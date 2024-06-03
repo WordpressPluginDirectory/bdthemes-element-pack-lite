@@ -1266,30 +1266,32 @@ $(window).on('elementor/frontend/init', function () {
 			$settings = $slider.data('settings'),
 			$widgetSettings = $slider.data('widget-settings');
 
-			const Swiper = elementorFrontend.utils.swiper;
-			initSwiper();
-			async function initSwiper() {
-				var swiper = await new Swiper($sliderContainer, $settings);
+		const Swiper = elementorFrontend.utils.swiper;
+		initSwiper();
+		async function initSwiper() {
+			var swiper = await new Swiper($sliderContainer, $settings);
 
-				if ($settings.pauseOnHover) {
-					$($sliderContainer).hover(function () {
-						(this).swiper.autoplay.stop();
-					}, function () {
-						(this).swiper.autoplay.start();
-					});
-				}
-			};
+			if ($settings.pauseOnHover) {
+				$($sliderContainer).hover(function () {
+					(this).swiper.autoplay.stop();
+				}, function () {
+					(this).swiper.autoplay.start();
+				});
+			}
+		};
 
 		if ($widgetSettings.mouseInteractivity == true) {
-			var data = $($widgetSettings.id).find('.bdt-panel-slide-item');
-			$(data).each((index, element) => {
-				var scene = $(element).get(0);
-				var parallaxInstance = new Parallax(scene, {
-					selector: '.bdt-panel-slide-thumb',
-					hoverOnly: true,
-					pointerEvents: true
+			setTimeout(() => {
+				var data = $($widgetSettings.id).find('.bdt-panel-slide-item');
+				$(data).each((index, element) => {
+					var scene = $(element).get(0);
+					var parallaxInstance = new Parallax(scene, {
+						selector: '.bdt-panel-slide-thumb',
+						hoverOnly: true,
+						pointerEvents: true
+					});
 				});
-			});
+			}, 2000);
 		}
 
 	};
@@ -1767,6 +1769,10 @@ $(window).on('elementor/frontend/init', function () {
   var widgetAjaxSearch = function ($scope, $) {
     var $searchContainer = $scope.find('.bdt-search-container'),
       $searchWidget = $scope.find('.bdt-ajax-search');
+
+    $($scope).find('.bdt-navbar-dropdown-close').on('click', function () {
+      bdtUIkit.drop($scope.find('.bdt-navbar-dropdown')).hide();
+    });
 
     let $search;
 
