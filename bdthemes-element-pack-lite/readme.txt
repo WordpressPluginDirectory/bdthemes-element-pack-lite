@@ -3,13 +3,13 @@ Contributors: bdthemes, selimmw, mohammaadfarid, bdkoder, maudud, abutalib, soha
 Donate link: http://bdthemes.com/
 Tags:  elementor addons, elementor widget, elementor extensions, elementor addon, addons
 Requires at least: 5.0.0
-Tested up to: 6.5.3
+Tested up to: 6.5.4
 Requires PHP: 7.4.0
-Stable tag: 5.6.6
+Stable tag: 5.6.8
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Elementor requires at least: 3.0.0
-Elementor tested up to: 3.21.8
+Elementor tested up to: 3.22.1
 
 Best Addon for Elementor WordPress Plugin with 70+ Most Popular Elements that need your everyday website page building.
 
@@ -258,6 +258,15 @@ https://youtu.be/u9JRd824Mjc
 
 
 == Changelog ==
+
+= 5.6.8 [19th June 2024] =
+
+* Fixed: Security improved in countdown widget
+
+= 5.6.7 [11th June 2024] =
+
+* Added: Keyboard option added in slider widget
+* Added: Pre title & text controls added in trailer box widget
 
 = 5.6.6 [3rd June 2024] =
 
