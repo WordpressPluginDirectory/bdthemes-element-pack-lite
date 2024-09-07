@@ -2,6 +2,7 @@
 namespace ElementPack\Modules\CustomGallery\Skins;
 use ElementPack\Base\Module_Base;
 use Elementor\Controls_Manager;
+use ElementPack\Utils;
 
 use Elementor\Skin_Base as Elementor_Skin_Base;
 
@@ -168,9 +169,9 @@ class Skin_Abetis extends Elementor_Skin_Base {
 
 		$tag = $this->parent->get_settings_for_display( 'title_tag' );
 		?>
-		<<?php echo esc_attr($tag) ?> class="bdt-gallery-item-title">
+		<<?php echo esc_attr( Utils::get_valid_html_tag( $tag ) ); ?> class="bdt-gallery-item-title">
 			<?php echo wp_kses( $title['image_title'], element_pack_allow_tags( 'text' ) ); ?>
-		</<?php echo esc_attr($tag) ?>>
+		</<?php echo esc_attr( Utils::get_valid_html_tag( $tag ) ); ?>>
 		<?php
 	}
 
