@@ -291,6 +291,7 @@ class Accordion extends Module_Base {
 							'activeScrollspy'   => $settings['active_scrollspy'],
 							'hashTopOffset'     => isset( $settings['hash_top_offset']['size'] ) ? $settings['hash_top_offset']['size'] : false,
 							'hashScrollspyTime' => isset( $settings['hash_scrollspy_time']['size'] ) ? $settings['hash_scrollspy_time']['size'] : false,
+							"closeAllItemsOnMobile"    => $settings["close_all_items_on_mobile"] ? true : false,
 						] ),
 					],
 				],
@@ -398,7 +399,7 @@ class Accordion extends Module_Base {
 								if ( 'yes' == $settings['schema_activity'] ) {
 									echo '<div itemprop="text">';
 								}
-								echo wp_kses_post( $this->parse_text_editor( $item['tab_content'] ) );
+								echo $this->parse_text_editor( $item['tab_content'] );
 								if ( 'yes' == $settings['schema_activity'] ) {
 									echo '</div>';
 								}
