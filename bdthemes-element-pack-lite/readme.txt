@@ -3,13 +3,13 @@ Contributors: bdthemes, selimmw, mohammaadfarid, bdkoder, maudud, abutalib, soha
 Donate link: http://bdthemes.com/
 Tags:  elementor addons, elementor widget, elementor extensions, elementor addon, addons
 Requires at least: 5.0.0
-Tested up to: 6.7
+Tested up to: 6.7.1
 Requires PHP: 7.4.0
-Stable tag: 5.10.9
+Stable tag: 5.10.11
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Elementor requires at least: 3.22
-Elementor tested up to: 3.25.9
+Elementor tested up to: 3.25.10
 
 Best Addon for Elementor WordPress Plugin with 70+ Most Popular Elements that need your everyday website page building.
 
@@ -355,6 +355,19 @@ https://youtu.be/u9JRd824Mjc
 
 
 == Changelog ==
+
+= 5.10.11 [25th November 2024] =
+
+* Added: Button margin added in call out widget
+* Added: Item hover controls added in product grid widget
+* Fixed: Timezone widget digit issue fixed (Thanks to Silvio)
+* Fixed: Title align issue fixed in product grid widget
+* Fixed: Template editor dark mode design fixed
+* Fixed: RTL issue fixed in image compare widget
+
+= 5.10.10 [23th November 2024] =
+
+* Fixed: Translation issue fixed
 
 = 5.10.9 [21th November 2024] =
 

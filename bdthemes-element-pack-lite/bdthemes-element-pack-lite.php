@@ -4,14 +4,14 @@
  * Plugin Name: Element Pack Lite - Addons for Elementor
  * Plugin URI: http://elementpack.pro/
  * Description: The all-new <a href="https://elementpack.pro/">Element Pack</a> brings incredibly advanced, and super-flexible widgets, and A to Z essential addons to the Elementor page builder for WordPress. Explore expertly-coded widgets with first-class support by experts.
- * Version: 5.10.9
+ * Version: 5.10.11
  * Author: BdThemes
  * Author URI: https://bdthemes.com/
  * Text Domain: bdthemes-element-pack
  * Domain Path: /languages
  * License: GPL3
  * Elementor requires at least: 3.22
- * Elementor tested up to: 3.25.9
+ * Elementor tested up to: 3.25.10
  */
 
 
@@ -82,7 +82,7 @@ if ( ! function_exists( 'element_pack_pro_activated' ) ) {
 if ( ! element_pack_pro_installed() ) {
 
 	// Some pre defined value for easy use
-	define( 'BDTEP_VER', '5.10.9' );
+	define( 'BDTEP_VER', '5.10.11' );
 	define( 'BDTEP_TPL_DB_VER', '1.0.0' );
 	define( 'BDTEP__FILE__', __FILE__ );
 	if ( ! defined( 'BDTEP_TITLE' ) ) {
@@ -93,16 +93,26 @@ if ( ! element_pack_pro_installed() ) {
 	// Helper function here
 	require_once( dirname( __FILE__ ) . '/includes/helper.php' );
 	require_once( dirname( __FILE__ ) . '/includes/utils.php' );
-
-
 	require_once BDTEP_INC_PATH . 'class-pro-widget-map.php';
+
+	/**
+	 * Loads translations
+	 *
+	 * @return void
+	 */
+
+	if ( ! function_exists( 'ep_load_textdomain' ) ) {
+		function ep_load_textdomain() {
+			load_plugin_textdomain( 'bdthemes-element-pack', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+		}
+		add_action( 'init', 'ep_load_textdomain' );
+	}
 
 	/**
 	 * Plugin load here correctly
 	 * Also loaded the language file from here
 	 */
 	function bdthemes_element_pack_load_plugin() {
-		load_plugin_textdomain( 'bdthemes-element-pack', false, BDTEP_PNAME . '/languages' );
 
 		if ( ! did_action( 'elementor/loaded' ) ) {
 			add_action( 'admin_notices', 'bdthemes_element_pack_fail_load' );
