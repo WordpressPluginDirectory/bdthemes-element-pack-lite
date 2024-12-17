@@ -658,26 +658,25 @@ $(window).on('elementor/frontend/init', function () {
 
 		$('.cc-compliance').append(
 			`<button class="btn-denyCookie bdt-cc-close-btn cc-btn cc-dismiss">
-				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-				<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
-				</svg>
-		   </button>`
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+                </svg>
+           </button>`
 		);
 
 		/**
 		 * Dismiss if user click close button
 		 */
-		$('.bdt-cc-close-btn').on('click', function () {
+		$('.cc-btn.btn-denyCookie').on('click', function () {
 			$('.bdt-cookie-consent').hide();
-			document.cookie = 'element_pack_cookie_widget=denied; max-age=' + 60 * 60 * 24 * 7;
+			document.cookie = 'element_pack_cookie_widget_gtag=denied; max-age=' + 60 * 60 * 24 * 7 + '; path=/';
 			return;
 		});
 
-		if (document.cookie.indexOf('element_pack_cookie_widget=denied') !== -1) {
+		if (document.cookie.indexOf('element_pack_cookie_widget_gtag=denied') !== -1) {
 			$('.bdt-cookie-consent').hide();
 			return;
 		}
-
 
 		/**
 		 * gtag consent update
@@ -686,15 +685,15 @@ $(window).on('elementor/frontend/init', function () {
 			return;
 		}
 
-		if (true !== gtagSettings.gtag_enabled) {
+		if (gtagSettings.gtag_enabled !== true) {
 			return;
 		}
 
-		function consentGrantedAdStorage($args) {
-			gtag('consent', 'update', $args);
+		function consentGrantedAdStorage(args) {
+			gtag('consent', 'update', args);
 		}
 
-		let gtag_attr_obj = {
+		let gtagAttrObj = {
 			'ad_user_data': gtagSettings.ad_user_data,
 			'ad_personalization': gtagSettings.ad_personalization,
 			'ad_storage': gtagSettings.ad_storage,
@@ -702,11 +701,16 @@ $(window).on('elementor/frontend/init', function () {
 		};
 
 		$('.cc-btn.cc-dismiss').on('click', function () {
-			consentGrantedAdStorage(gtag_attr_obj);
+			consentGrantedAdStorage(gtagAttrObj);
 		});
 
+		$('.cc-btn.btn-denyCookie').on('click', function () {
+			consentGrantedAdStorage({
+				'ad_storage': 'denied',
+				'analytics_storage': 'denied'
+			});
+		});
 	};
-
 
 	jQuery(window).on('elementor/frontend/init', function () {
 		elementorFrontend.hooks.addAction('frontend/element_ready/bdt-cookie-consent.default', widgetCookieConsent);
@@ -717,7 +721,6 @@ $(window).on('elementor/frontend/init', function () {
 /**
  * End cookie consent widget script
  */
-
 
 /**
  * Start countdown widget script
@@ -1032,6 +1035,7 @@ $(window).on('elementor/frontend/init', function () {
             run: function () {
                 var options = this.getDefaultSettings(),
                     element = this.findElement('.elementor-widget-container').get(0);
+                    
 
                 if ( this.settings('translate_toggle') ) {
                     if ( this.settings('translate_x.sizes.from').length !== 0 || this.settings('translate_x.sizes.to').length !== 0 ) {
@@ -1162,6 +1166,7 @@ $(window).on('elementor/frontend/init', function () {
         });
     });
 }(jQuery, window.elementorFrontend));
+
 /**
  * Start Flip Box widget script
  */
@@ -3280,12 +3285,12 @@ $(window).on('elementor/frontend/init', function () {
 
             getDefaultSettings: function () {
                 return {
-                    left            : 'unset',
-                    time            : '.5s',
-                    mixColor        : '#fff',
-                    backgroundColor : '#fff',
-                    saveInCookies   : false,
-                    label           : '🌓',
+                    left: 'unset',
+                    time: '.5s',
+                    mixColor: '#fff',
+                    backgroundColor: '#fff',
+                    saveInCookies: false,
+                    label: '🌓',
                     autoMatchOsTheme: false
                 };
             },
@@ -3303,7 +3308,7 @@ $(window).on('elementor/frontend/init', function () {
 
             setCookie: function (name, value, days) {
                 var expires = "";
-                if ( days ) {
+                if (days) {
                     var date = new Date();
                     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
                     expires = "; expires=" + date.toUTCString();
@@ -3312,11 +3317,11 @@ $(window).on('elementor/frontend/init', function () {
             },
             getCookie: function (name) {
                 var nameEQ = name + "=";
-                var ca     = document.cookie.split(';');
-                for ( var i = 0; i < ca.length; i++ ) {
+                var ca = document.cookie.split(';');
+                for (var i = 0; i < ca.length; i++) {
                     var c = ca[i];
-                    while ( c.charAt(0) == ' ' ) c = c.substring(1, c.length);
-                    if ( c.indexOf(nameEQ) == 0 ) return c.substring(nameEQ.length, c.length);
+                    while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
                 }
                 return null;
             },
@@ -3327,8 +3332,7 @@ $(window).on('elementor/frontend/init', function () {
 
 
             run: function () {
-                var options = this.getDefaultSettings(),
-                    element = this.findElement('.elementor-widget-container').get(0);
+                var options = this.getDefaultSettings();
 
                 var autoMatchOsTheme = (this.settings('autoMatchOsTheme') === 'yes'
                     && this.settings('autoMatchOsTheme') !== 'undefined');
@@ -3336,12 +3340,12 @@ $(window).on('elementor/frontend/init', function () {
                 var saveInCookies = (this.settings('saveInCookies') === 'yes'
                     && this.settings('saveInCookies') !== 'undefined');
 
-                options.left             = 'unset';
-                options.time             = this.settings('time.size') / 1000 + 's';
-                options.mixColor         = this.settings('mix_color');
-                options.backgroundColor  = this.settings('default_background');
-                options.saveInCookies    = saveInCookies;
-                options.label            = '🌓';
+                options.left = 'unset';
+                options.time = this.settings('time.size') / 1000 + 's';
+                options.mixColor = this.settings('mix_color');
+                options.backgroundColor = this.settings('default_background');
+                options.saveInCookies = saveInCookies;
+                options.label = '🌓';
                 options.autoMatchOsTheme = autoMatchOsTheme;
 
                 $('body').removeClass(function (index, css) {
@@ -3351,33 +3355,31 @@ $(window).on('elementor/frontend/init', function () {
 
                 $(this.settings('ignore_element')).addClass('darkmode-ignore');
 
-                if ( options.mixColor ) {
+                if (options.mixColor) {
 
                     $('.darkmode-toggle, .darkmode-layer, .darkmode-background').remove();
 
                     var darkmode = new Darkmode(options);
                     darkmode.showWidget();
 
-                    if ( this.settings('default_mode') === 'dark' ) {
+                    if (this.settings('default_mode') === 'dark') {
                         darkmode.toggle();
                         $('body').addClass('darkmode--activated');
                         $('.darkmode-layer').addClass('darkmode-layer--simple darkmode-layer--expanded');
-                        // console.log(darkmode.isActivated()) // will return true
                     } else {
                         $('body').removeClass('darkmode--activated');
                         $('.darkmode-layer').removeClass('darkmode-layer--simple darkmode-layer--expanded');
-                        // console.log(darkmode.isActivated()) // will return true
                     }
 
                     var global_this = this,
-                        editMode    = $('body').hasClass('elementor-editor-active');
+                        editMode = $('body').hasClass('elementor-editor-active');
 
-                    if ( editMode === false && saveInCookies === true ) {
+                    if (editMode === false && saveInCookies === true) {
                         $('.darkmode-toggle').on('click', function () {
-                            if ( darkmode.isActivated() === true ) {
+                            if (darkmode.isActivated() === true) {
                                 global_this.eraseCookie('bdtDarkModeUserAction');
                                 global_this.setCookie('bdtDarkModeUserAction', 'dark', 10);
-                            } else if ( darkmode.isActivated() === false ) {
+                            } else if (darkmode.isActivated() === false) {
                                 global_this.eraseCookie('bdtDarkModeUserAction');
                                 global_this.setCookie('bdtDarkModeUserAction', 'light', 10);
                             } else {
@@ -3387,8 +3389,8 @@ $(window).on('elementor/frontend/init', function () {
 
                         var userCookie = this.getCookie('bdtDarkModeUserAction')
 
-                        if ( userCookie !== null && userCookie !== 'undefined' ) {
-                            if ( userCookie === 'dark' ) {
+                        if (userCookie !== null && userCookie !== 'undefined') {
+                            if (userCookie === 'dark') {
                                 darkmode.toggle();
                                 $('body').addClass('darkmode--activated');
                                 $('.darkmode-layer').addClass('darkmode-layer--simple darkmode-layer--expanded');
@@ -3418,6 +3420,7 @@ $(window).on('elementor/frontend/init', function () {
 /**
  * End Dark Mode widget script
  */
+
 (function ($, elementor) {
   $(window).on("elementor/frontend/init", function () {
     var ModuleHandler = elementorModules.frontend.handlers.Base,
