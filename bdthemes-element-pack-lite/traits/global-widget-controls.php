@@ -7698,6 +7698,7 @@ trait Global_Widget_Controls {
 							"observeParents" => ($settings["observer"]) ? true : false,
 							"mousewheel" 	 => ($settings["mousewheel"]) ? true : false,
 							"effect"         => $settings["transition"],
+							"fadeEffect"     => ['crossFade' => true],
 							"navigation"     => [
 								"nextEl" => "#" . $id . " .bdt-navigation-next",
 								"prevEl" => "#" . $id . " .bdt-navigation-prev",
@@ -7909,24 +7910,4 @@ trait Global_Widget_Controls {
 		$this->end_controls_tabs();
 
 	}
-
-	// Function to recursively search for the particles value
-	// public function ep_find_recursive_item( $sections, $key ) {
-	// 	if ( !is_array( $sections ) ) {
-	// 		return false;
-	// 	}
-	// 	foreach ($sections as $section) {
-	// 		if (is_array($section)) {
-	// 			if (isset($section['settings'][$key]) && $section['settings'][$key] === 'yes') {
-	// 				return true;				
-	// 			} else {
-	// 				$result = $this->ep_find_recursive_item($section, $key);
-	// 				if ($result) {
-	// 					return $result;
-	// 				}
-	// 			}				
-	// 		}
-	// 	}
-	// 	return false;
-	// }
 }
