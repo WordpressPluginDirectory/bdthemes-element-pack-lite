@@ -82,6 +82,7 @@ class Module extends Element_Pack_Module_Base {
 					'element_pack_cursor_effects_show' => 'yes'
 				],
 				'classes' => BDTEP_IS_PC,
+				'render_type' => 'template',
 			]
 		);
 		$section->add_control(
@@ -89,6 +90,7 @@ class Module extends Element_Pack_Module_Base {
 			[ 
 				'label'              => esc_html__( 'Image', 'bdthemes-element-pack' ),
 				'type'               => Controls_Manager::MEDIA,
+				'dynamic'            => ['active' => true],
 				'frontend_available' => true,
 				'render_type'        => 'template',
 				'default'            => [ 

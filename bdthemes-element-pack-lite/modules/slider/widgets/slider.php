@@ -268,7 +268,12 @@ class Slider extends Module_Base {
 						<?php endif; ?>
 
 						<?php if ('' !== $item['tab_content']) : ?>
-							<div class="bdt-slide-text"><?php echo $this->parse_text_editor($item['tab_content']); ?></div>
+							<div class="bdt-slide-text">
+								<?php
+								// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+								echo $this->parse_text_editor($item['tab_content']);
+								?>
+							</div>
 						<?php endif; ?>
 
 						<?php if ((!empty($item['tab_link']['url'])) && ($settings['show_button'])) : ?>
@@ -296,8 +301,9 @@ class Slider extends Module_Base {
 				<?php
 
 				} elseif ("elementor" == $item['source']) {
-					echo Element_Pack_Loader::elementor()->frontend->get_builder_content_for_display($item['template_id']);
-					echo element_pack_template_edit_link($item['template_id']);
+					// PHPCS - should not be escaped.
+                    echo Element_Pack_Loader::elementor()->frontend->get_builder_content_for_display($item['template_id']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo wp_kses( element_pack_template_edit_link($item['template_id']), element_pack_allow_tags('text') );
 				}
 				?>
 

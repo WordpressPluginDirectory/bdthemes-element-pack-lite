@@ -402,16 +402,19 @@ class Accordion extends Module_Base {
 								if ( 'yes' == $settings['schema_activity'] ) {
 									echo '<div itemprop="text">';
 								}
+								// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 								echo $this->parse_text_editor( $item['tab_content'] );
 								if ( 'yes' == $settings['schema_activity'] ) {
 									echo '</div>';
 								}
 							} elseif ( "elementor" == $item['source'] and ! empty( $item['template_id'] ) ) {
-								echo Element_Pack_Loader::elementor()->frontend->get_builder_content_for_display( $item['template_id'] );
-								echo element_pack_template_edit_link( $item['template_id'] );
+								// PHPCS - should not be escaped.
+								echo Element_Pack_Loader::elementor()->frontend->get_builder_content_for_display( $item['template_id'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+								echo wp_kses( element_pack_template_edit_link( $item['template_id'] ), element_pack_allow_tags('text') );
 							} elseif ( 'anywhere' == $item['source'] and ! empty( $item['anywhere_id'] ) ) {
-								echo Element_Pack_Loader::elementor()->frontend->get_builder_content_for_display( $item['anywhere_id'] );
-								echo element_pack_template_edit_link( $item['anywhere_id'] );
+								// PHPCS - should not be escaped.
+								echo Element_Pack_Loader::elementor()->frontend->get_builder_content_for_display( $item['anywhere_id'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+								echo wp_kses( element_pack_template_edit_link( $item['anywhere_id'] ), element_pack_allow_tags('text') );
 							}
 							?>
 						</div>
