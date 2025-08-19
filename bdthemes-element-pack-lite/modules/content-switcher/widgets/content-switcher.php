@@ -68,6 +68,18 @@ class Content_Switcher extends Module_Base {
 		return true;
 	}
 	
+	protected function get_upsale_data(): array {
+		return [
+			'condition' => ! is_ep_pro(),
+			'image' => esc_url( BDTEP_ASSETS_URL . 'images/go-pro.svg' ),
+			'image_alt' => esc_attr__( 'Upgrade', 'bdthemes-element-pack' ),
+			'title' => esc_html__( 'Unlock Premium Features', 'bdthemes-element-pack' ),
+			'description' => sprintf(__( '<ul class="bdt-widget-promotion-list"><li>%1$s</li><li>%2$s</li></ul> These features are available only in Element Pack Pro.', 'bdthemes-element-pack' ), 'Style -> Show Multiple Switches', 'Content Type -> Elementor Template, Link Section, Link Widget'),
+			'upgrade_url' => esc_url( 'https://www.elementpack.pro/pricing/?utm_source=widget_panel&utm_medium=ep_widget_panel' ),
+			'upgrade_text' => sprintf(__( '<span class="bdt-widget-promotion-btn">%s</span>', 'bdthemes-element-pack' ), 'Upgrade to Pro'),
+		];
+	}
+
 	protected function register_controls() {
 		$this->start_controls_section(
 			'section_switcher_layout',
@@ -79,7 +91,7 @@ class Content_Switcher extends Module_Base {
 		$this->add_control(
 			'switcher_style',
 			[
-				'label'   => esc_html__('Style', 'bdthemes-element-pack') . BDTEP_PC,
+				'label'   => esc_html__('Style', 'bdthemes-element-pack'),
 				'type'    => Controls_Manager::SELECT,
 				'default' => '1',
 				'options' => [
@@ -92,9 +104,9 @@ class Content_Switcher extends Module_Base {
 					'7'      => esc_html__('Clean Circle', 'bdthemes-element-pack'),
 					'8'      => esc_html__('Soft Curve', 'bdthemes-element-pack'),
 					'9'      => esc_html__('Square Rotate', 'bdthemes-element-pack'),
-					'button' => esc_html__('Button Style', 'bdthemes-element-pack'),
+					'button' => esc_html__('Show all switches', 'bdthemes-element-pack') . BDTEP_LOCK,
 				],
-				'classes' => BDTEP_IS_PC,
+				'classes' => BDTEP_LOCK_CLASS,
 			]
 		);
 
@@ -113,16 +125,16 @@ class Content_Switcher extends Module_Base {
 		$repeater->add_control(
 			'content_type',
 			[
-				'label'   => esc_html__('Content Type', 'bdthemes-element-pack') . BDTEP_PC,
+				'label'   => esc_html__('Content Type', 'bdthemes-element-pack'),
 				'type'    => Controls_Manager::SELECT,
 				'default' => 'content',
 				'options' => [
 					'content' => esc_html__('Content', 'bdthemes-element-pack'),
-					'template' => esc_html__('Saved Templates', 'bdthemes-element-pack'),
-					'link_section'  => esc_html__('Link Section', 'bdthemes-element-pack'),
-					'link_widget'  => esc_html__('Link Widget', 'bdthemes-element-pack'),
+					'template' => esc_html__('Elementor Template', 'bdthemes-element-pack') . BDTEP_LOCK,
+					'link_section'  => esc_html__('Link Section', 'bdthemes-element-pack') . BDTEP_LOCK,
+					'link_widget'  => esc_html__('Link Widget', 'bdthemes-element-pack') . BDTEP_LOCK,
 				],
-				'classes' => BDTEP_IS_PC,
+				'classes' => BDTEP_LOCK_CLASS,
 			]
 		);
 
