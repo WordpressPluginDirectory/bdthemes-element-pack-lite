@@ -290,7 +290,7 @@ class Module extends Element_Pack_Module_Base {
             'ep_liquid_glass_effects_notice',
             [
                 'type'            => Controls_Manager::RAW_HTML,
-                'raw'             => esc_html__('Liquid glass effect works best with transparent or semi-transparent backgrounds. For optimal results, ensure the parent section has a background image or color.', 'bdthemes-element-pack'),
+                'raw'             => esc_html__('Liquid glass effect works best with transparent backgrounds. For optimal results, ensure the parent section has a background image.', 'bdthemes-element-pack'),
                 'content_classes' => 'elementor-panel-alert elementor-panel-alert-info',
                 'condition' => [
                     'element_pack_backdrop_filter' => 'yes',
@@ -318,11 +318,19 @@ class Module extends Element_Pack_Module_Base {
         add_action('elementor/element/container/section_background/before_section_end', [$this, 'register_controls'], 10, 2);
         add_action('elementor/element/section/section_background/before_section_end', [$this, 'register_controls'], 10, 2);
         
-        // Add CSS to frontend for liquid glass effects
-        add_action('wp_head', [$this, 'add_liquid_glass_effects_svg_filter']);
-    }
+        add_action('elementor/frontend/before_render', [$this, 'add_liquid_glass_effects_svg_filter'], 10, 1);
+        add_action('elementor/preview/enqueue_scripts', [$this, 'add_liquid_glass_effects_svg_filter'], 10, 1);
 
-    public function add_liquid_glass_effects_svg_filter() {
+    }
+    
+    public function add_liquid_glass_effects_svg_filter( $element ) {
+        if ( !\ElementPack\Element_Pack_Loader::elementor()->preview->is_preview_mode() && !\ElementPack\Element_Pack_Loader::elementor()->editor->is_edit_mode() ) {
+            $settings = $element->get_settings_for_display();
+            if ( !isset($settings['element_pack_backdrop_filter_type']) || 'liquid_glass' !== $settings['element_pack_backdrop_filter_type'] ) {
+                return;
+            }
+        }
+	
         ?>
         <svg style="display: none">
       <filter
