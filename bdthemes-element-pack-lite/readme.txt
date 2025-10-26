@@ -3,13 +3,13 @@ Contributors: bdthemes, selimmw, mohammaadfarid, maudud, abutalib, sohanurrahman
 Donate link: http://bdthemes.com/
 Tags: elementor, elementor addons, elementor template, elementor widgets, dynamic builder
 Requires at least: 5.0.0
-Tested up to: 6.8.2
+Tested up to: 6.8.3
 Requires PHP: 7.4.0
-Stable tag: 8.2.3
+Stable tag: 8.3.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
-Elementor requires at least: 3.22
-Elementor tested up to: 3.32.2
+Elementor requires at least: 3.28
+Elementor tested up to: 3.32.5
 
 Ultimate Elementor addon with 300+ widgets, templates, live copy paste, post grid, header footer, mega menu, dynamic builder, WooCommerce builder and more.
 
@@ -42,7 +42,7 @@ Element Pack gives you everything you need to build high-quality websites quickl
 ***"An excellent pack of tools to customize your website easily"*** - G2
 
 
-https://youtu.be/NhaIMIrFh1Q?si=mgsH9QFxW1Z9rYHi
+https://youtu.be/Shxejp20pW0?si=Md3CwBSHS6HRR_Lt
 
 ## Supercharge your Elementor experience with Element Pack – the most comprehensive Elementor addon. 
 
@@ -278,6 +278,32 @@ https://youtu.be/NhaIMIrFh1Q?si=GA64tzuOaEAYqAvV
 
 == Changelog ==
 
+= 8.3.0 [26th October 2025] =
+
+* Added: Animated card widget added
+* Added: Accordion items controls added in accordion widget
+* Added: Rating (Above Text) feature added in testimonial grid widget
+* Fixed: Backdrop filter liquid glass issue fixed
+* Fixed: reCAPTCHA issue fixed in Simple Contact Form, User Register widget
+* Updated: Security improved
+
+= 8.2.6 [13th October 2025] =
+
+* Fixed: Security: Privilege escalation vulnerability fixed in Setup Wizard template import endpoints
+* Fixed: Navigation dots size issue fixed in editor mode
+
+= 8.2.5 [9th October 2025] =
+
+* Added: Item blend mode & text typography added in fancy icons widget
+* Fixed: Elementor pro theme builder conflict fixed
+
+= 8.2.4 [8th October 2025] =
+
+* Added: Template Library preview fallback added
+* Added: Content style controls added in review card grid & carousel widgets
+* Fixed: CSS file missing issue fixed in review card widget
+* Updated: Error handling updated in Template Library
+
 = 8.2.3 [28th September 2025] =
 
 * Added: New widgets & extensions tutorial video added in - [Dynamic Grid](https://youtu.be/-BdpQ2lttSo?si=vpEHqHl_pTzQxhyY), [Dynamic Carousel](https://youtu.be/uc08OzVbq_g?si=3vCt8T4zeFSw4oiU), [SVG Maps](https://youtu.be/LZMtIMqBTZY?si=JvfHuTJWFWPXE5mc), [Text Gradient Background](https://youtu.be/J1DNE_Jx4Rs?si=l8Q5Y0ddMl9YzqEh), [Shape Divider](https://youtu.be/Onlgq2ND5EM?si=AceE8KxbPD46vlbS), [White Label](https://youtu.be/sXEgAgAKNDc?si=Rsw0nxFYylNhWuaQ), [Custom CSS & Js](https://youtu.be/2kWiUA_TcRY?si=6l0q7byh8-kT_zU4)
@@ -436,3 +462,7 @@ Note: we don’t provide plugin support for Adult sites.
 ### Can I use Element Pack on client sites?
 
 - Yes, definitely. You can use our plugin on any website, self or client, within the allowed number of licenses provided by the package you purchase. There are no bindings to the usage.
+
+###  How can I report security bugs? 
+
+-  You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/9e5fbc2f-c2b2-434c-b42e-2516005fddbc)
