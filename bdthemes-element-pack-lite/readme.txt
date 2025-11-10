@@ -1,22 +1,24 @@
 === Element Pack Addons for Elementor ===
-Contributors: bdthemes, selimmw, mohammaadfarid, maudud, abutalib, sohanurrahman, rakibulpk, muhammadasik, tauhidalam
+Contributors: bdthemes, selimmw, mohammaadfarid, maudud, abutalib, sohanurrahman, rakibulpk, muhammadasik, tauhidalam, syedfarhanreza, shmusuf, arafatakashakku
 Donate link: http://bdthemes.com/
 Tags: elementor, elementor addons, elementor template, elementor widgets, dynamic builder
 Requires at least: 5.0.0
 Tested up to: 6.8.3
 Requires PHP: 7.4.0
-Stable tag: 8.3.1
+Stable tag: 8.3.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Elementor requires at least: 3.28
 Elementor tested up to: 3.32.5
 
-Ultimate Elementor addon with 300+ widgets, templates, live copy paste, post grid, header footer, mega menu, dynamic builder, WooCommerce builder and more.
+Ultimate Elementor addon with 300+ widgets, templates, live copy paste, post grid, header footer, mega menu, dynamic builder, WooCommerce and more.
 
 
 == Description ==
 
 Element Pack is a powerful addon for Elementor that helps you build beautiful and responsive websites with ease. It also offers exclusive features, including 300+ widgets and 2,700+ templates, giving you everything you need to design WordPress websites with ease.
+
+### [🎉 Black Friday Offer: Upgrade to Pro and Save up to 87% on All Plugins! 🎊](https://bdthemes.com/deals/?utm_source=WordPress_org&utm_medium=bfcm_cta&utm_campaign=element_pack)
 
 Trusted by **100,000+ websites**, it's the easiest way to design your stunning websites without coding.
 
@@ -277,6 +279,10 @@ https://youtu.be/NhaIMIrFh1Q?si=GA64tzuOaEAYqAvV
 
 
 == Changelog ==
+
+= 8.3.2 [9th November 2025] =
+
+* Updated: System improved
 
 = 8.3.1 [6th November 2025] =
 
