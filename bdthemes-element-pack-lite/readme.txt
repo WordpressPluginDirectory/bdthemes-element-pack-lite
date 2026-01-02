@@ -5,11 +5,11 @@ Tags: elementor, elementor addons, elementor template, elementor widgets, dynami
 Requires at least: 5.0.0
 Tested up to: 6.9
 Requires PHP: 7.4.0
-Stable tag: 8.3.10
+Stable tag: 8.3.14
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Elementor requires at least: 3.28
-Elementor tested up to: 3.33.4
+Elementor tested up to: 3.34.0
 
 Ultimate Elementor addon with 300+ widgets, templates, live copy paste, post grid, header footer, mega menu, dynamic builder, WooCommerce and more.
 
@@ -279,6 +279,26 @@ https://youtu.be/NhaIMIrFh1Q?si=GA64tzuOaEAYqAvV
 
 
 == Changelog ==
+
+= 8.3.14 [1st January 2026] =
+
+* Fixed: CSRF vulnerability fixed in Simple Contact Form widget
+
+= 8.3.13 [1st January 2026] =
+
+* Fixed: Masonry issue fixed in testimonial grid widget
+* Fixed: Biggopti cache image URL issue fixed
+* Updated: Caching system updated for Facebook Feed widget
+
+= 8.3.12 [24th December 2025] =
+
+* Fixed: Social icon issue fixed in member widget
+* Fixed: Image issue fixed in Facebook Feed and Facebook Feed Carousel widgets
+
+= 8.3.11 [17th December 2025] =
+
+* Fixed: Icon position issue fixed in lighbox widget
+* Updated: System improved
 
 = 8.3.10 [10th December 2025] =
 
