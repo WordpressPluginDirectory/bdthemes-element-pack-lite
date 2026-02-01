@@ -152,12 +152,21 @@ class Plugin_Integration_Helper {
      */
     public static function build_plugin_data($plugin_slugs = []) {
         $predefined = self::get_predefined_plugins();
-        $fetched_data = Plugin_Api_Fetcher::get_multiple_plugins_data($plugin_slugs);
+        
+        // Use new non-blocking approach - get cached data only from Remote_Data_Handler
+        $fetched_data = [];
+        if (function_exists('ep_get_remote_plugins')) {
+            $fetched_data = ep_get_remote_plugins();
+        }
+        
         $plugins = [];
 
         foreach ($plugin_slugs as $slug) {
             $config = $predefined[$slug] ?? ['recommended' => false, 'fallback' => []];
-            $api_data = $fetched_data[$slug] ?? null;
+            
+            // Try to get data from remote cache first
+            $api_slug = (strpos($slug, '/') !== false) ? dirname($slug) : $slug;
+            $api_data = $fetched_data[$api_slug] ?? null;
 
             // Ensure api_data is a valid array with required fields
             if ($api_data && self::validate_plugin_data($api_data)) {

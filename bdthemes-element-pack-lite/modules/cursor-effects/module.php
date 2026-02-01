@@ -94,7 +94,7 @@ class Module extends Element_Pack_Module_Base {
 				'frontend_available' => true,
 				'render_type'        => 'template',
 				'default'            => [ 
-					'url' => Utils::get_placeholder_image_src(),
+					'url' => BDTEP_ASSETS_URL . 'images/logo.svg',
 				],
 				'condition'          => [ 
 					'element_pack_cursor_effects_source' => 'image'
