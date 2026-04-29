@@ -1,40 +1,224 @@
-=== Element Pack Addons for Elementor ===
+=== Element Pack – Widgets, Templates & Addons for Elementor ===
 Contributors: bdthemes, selimmw, mohammaadfarid, maudud, abutalib, sohanurrahman, rakibulpk, muhammadasik, tauhidalam, syedfarhanreza, shmusuf, arafatakashakku, shaikatazim, shamim496
 Donate link: http://bdthemes.com/
-Tags: elementor, elementor addons, elementor template, elementor widgets, dynamic builder
+Tags: elementor widgets, widgets for elementor, elementor addons, elementor templates, woocommerce widgets
 Requires at least: 5.0.0
-Tested up to: 6.9
+Tested up to: 6.9.4
 Requires PHP: 7.4.0
-Stable tag: 8.3.17
+Stable tag: 8.6.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Elementor requires at least: 3.28
-Elementor tested up to: 3.34.2
+Elementor tested up to: 4.0.3
 
-Ultimate Elementor addon with 300+ widgets, templates, live copy paste, post grid, header footer, mega menu, dynamic builder, WooCommerce and more.
+Elementor addons with 300+ widgets, templates, WooCommerce widgets, mega menu, header footer builder, and powerful design extensions.
 
 
 == Description ==
 
-Element Pack is a powerful addon for Elementor that helps you build beautiful and responsive websites with ease. It also offers exclusive features, including 300+ widgets and 2,700+ templates, giving you everything you need to design WordPress websites with ease.
+Element Pack is a powerful Elementor addon that extends the Elementor page builder with advanced Elementor widgets, templates, and design extensions.
 
-### [🎉 Black Friday Offer: Upgrade to Pro and Save up to 87% on All Plugins! 🎊](https://bdthemes.com/deals/?utm_source=WordPress_org&utm_medium=bfcm_cta&utm_campaign=element_pack)
+With Element Pack you can build professional WordPress websites using powerful widgets for Elementor, WooCommerce widgets, Elementor templates, and advanced design elements.
 
-Trusted by **100,000+ websites**, it's the easiest way to design your stunning websites without coding.
+Element Pack includes 300+ widgets and extensions and thousands of ready-made Elementor templates.
+
 
 👉 **[Get Element Pack Now for Free](https://elementpack.pro)**.
 
-## 🚀 Why Choose Element Pack?
-✅ **2700+ Ready-Made Templates** – Use pre-designed pages, headers, footers and blocks instantly.
-✅ **300+ Advanced Widgets** – Add interactive Elementor widgets to enhance your website.
-✅ **Fully Customizable** – Easily adjust elements, templates and widgets to match your style.
-✅ **Seamless Integrations** – Works with WooCommerce, Easy Digital Downloads (EDD), Advanced Custom Fields (ACF) and more.
-✅ **Lightweight & Fast** – Optimized for performance without slowing down your site.
-✅ **Trusted by Millions** – 4M+ all-time downloads and growing.
-✅ **Top Ratings** – Rated 4.7 out of 5 on WordPress.org and 4.5 out of 5 on G2.
-✅ **Quick Support** – Our dedicated support team is ready to help with any questions or issues.
+## Advanced Widgets for Elementor
 
-Element Pack gives you everything you need to build high-quality websites quickly and efficiently. 🚀
+Element Pack, one of the best essential addons for Elementor, includes a powerful collection of advanced widgets for Elementor that help you design professional websites without writing code.
+
+These Elementor widgets extend the Elementor page builder with modern design elements and dynamic content options. Whether you are building landing pages, business websites, portfolios, or blogs, these widgets make it easy to create beautiful layouts inside Elementor.
+
+Popular widgets for Elementor included in Element Pack:
+
+- Pricing Table widget
+
+- Testimonial widget
+
+- Image Gallery widget
+
+- Team Member widget
+
+- Logo Grid widget
+
+- Countdown Timer widget
+
+- Social Feed widget
+
+- Blog Post widget
+
+With these advanced Elementor widgets, you can design fully customized pages using the Elementor editor.
+
+## WooCommerce Widgets for Elementor
+
+Element Pack also provides powerful WooCommerce widgets for Elementor that help you design fully customized online stores.
+
+Using these widgets, you can create beautiful product layouts, showcase featured products, and design modern shop pages directly in the Elementor page builder.
+
+Popular WooCommerce Elementor widgets include:
+
+- Product Grid widget
+
+- Product Carousel widget
+
+- Product Category widget
+
+- Add to Cart widget
+
+- Product Gallery widget
+
+- Product Slider widget
+
+These WooCommerce widgets for Elementor allow you to build highly engaging ecommerce pages without additional plugins.
+
+## Elementor Template Library
+
+Element Pack includes a large Elementor template library that allows you to quickly create professional websites.
+
+The template library provides ready-made Elementor templates that can be imported directly into your page builder.
+
+400+ Available templates include:
+
+- Landing page templates
+
+- Business website templates
+
+- Portfolio templates
+
+- Blog page templates
+
+- WooCommerce store templates
+
+With this Elementor template library, you can launch websites faster by importing and customizing professionally designed layouts.
+
+## Mega Menu Builder for Elementor
+
+Element Pack includes an advanced Mega Menu builder for Elementor that allows you to create powerful navigation menus.
+
+Using the Elementor Mega Menu builder, you can design fully customizable menus with images, icons, widgets, and dynamic content.
+
+Features include:
+
+- Custom multi-column navigation menus
+
+- Visual menu builder inside Elementor
+
+- Dropdown mega menus
+
+- Responsive navigation layouts
+
+This Mega Menu for Elementor helps you build modern navigation systems that improve website usability and design.
+
+## 250+ Header & Footer Builder for Elementor
+
+Element Pack includes a flexible Header and Footer builder for Elementor that allows you to design fully customized website headers and footers.
+
+With the Elementor header builder you can create:
+
+- Custom website headers
+
+- Navigation menus
+
+- Sticky headers
+
+- Responsive header layouts
+
+Using the Elementor footer builder, you can design advanced footer sections including widgets, menus, and dynamic content.
+
+This Header & Footer builder for Elementor gives you complete control over your website layout without editing theme files.
+
+## Elementor Extensions & Modules
+
+Element Pack also includes powerful Elementor extensions and modules that enhance the capabilities of the Elementor page builder.
+
+These extensions add advanced design features, animations, and interactive effects to your Elementor websites.
+
+Popular extensions include:
+
+- Sticky content modules
+
+- Parallax effects
+
+- Advanced animations
+
+- Background effects
+
+- Motion design tools
+
+These Elementor extensions help designers create modern websites with interactive layouts and advanced visual effects.
+
+
+## Widgets, Extensions & Templates for Elementor
+
+Element Pack is designed to be a complete toolkit for Elementor users, offering a large collection of widgets, templates, and extensions that help you build professional websites faster.
+
+With Element Pack you get access to:
+
+- 300+ Elementor widgets and extensions
+
+- 2,700+ ready-made Elementor templates and blocks
+
+- Advanced WooCommerce widgets for Elementor
+
+- Powerful navigation and mega menu builder
+
+- Flexible header and footer builder
+
+- Modern animations, effects, and interactive elements
+
+This powerful combination makes Element Pack one of the most comprehensive Elementor addon solutions for designers, developers, and agencies.
+
+Whether you are building landing pages, ecommerce websites, portfolios, or business websites, Element Pack provides everything you need to extend the Elementor page builder.
+
+## Explore Element Pack Features in Action
+
+Element Pack includes powerful visual tools that integrate seamlessly with the Elementor editor. The screenshots below highlight some of the key features of the plugin.
+
+- ### Advanced Elementor Widgets Panel:
+Explore a large collection of Elementor widgets that help you build modern layouts directly inside the Elementor editor. 👉 [Check All the Widgets](https://www.elementpack.pro/widgets/)
+
+- ### WooCommerce Widgets for Elementor:
+Design beautiful ecommerce pages with product grids, product sliders, and advanced WooCommerce widgets. 👉 [Check all WooCommerce Elementor Elements](https://www.elementpack.pro/widgets/)
+
+- ### Elementor Template Library:
+Import ready-made premium Elementor templates and sections to build websites faster. 👉 [Check all the templates with Live Demo](https://www.elementpack.pro/ready-templates/ready-blocks/#ready-block)
+
+- ### Mega Menu Builder for Elementor:
+Create powerful navigation menus with multi-column layouts, icons, and dynamic content.
+
+- ### Header & Footer Builder for Elementor:
+Design custom headers and footers using the Elementor visual builder. 👉 [Check all the templates with Live Demo](https://www.elementpack.pro/ready-templates/ready-blocks/#ready-block)
+
+- ### Advanced Design Widgets and Effects:
+Enhance your website with animations, motion effects, and interactive design elements.
+
+
+
+## 🚀 Why Elementor Users Choose Element Pack
+Thousands of website creators rely on Element Pack to extend the power of Elementor.
+
+With its large collection of widgets for Elementor, ready-to-use Elementor templates, and advanced design tools, Element Pack helps users build professional websites without coding.
+
+Why users choose Element Pack:
+
+- Large collection of advanced Elementor widgets
+
+- Powerful WooCommerce widgets for Elementor
+
+- Huge Elementor template library
+
+- Flexible navigation and layout builders
+
+- Lightweight and optimized performance
+
+- Regular updates and feature improvements
+
+Whether you are a beginner or an experienced developer, Element Pack makes it easier to build modern websites with Elementor.
+
+Start building faster with Element Pack and unlock new design possibilities for your Elementor websites.
+
 
 **[Element Pack Demo](https://www.elementpack.pro/widgets/)** | **[Official Websites](https://elementpack.pro)** | **[Knowledge base](https://bdthemes.com/all-knowledge-base-of-element-pack/)** | **[VideoTutorial](https://youtube.com/playlist?list=PLP0S85GEw7DOJf_cbgUIL20qqwqb5x8KA&si=bR91QQYCjeAtG9vC)**
 
@@ -106,109 +290,42 @@ Enhance your Elementor site with Element Pack’s powerful Elementor widgets. Ge
 👉 [Check All the Widgets](https://www.elementpack.pro/widgets/)
 
 
-## 2700+ Free & Pro Ready-Made Templates for Every Page & Section
+## What's More
 
-With Element Pack Elementor Addon, you get a massive collection of professionally designed templates to build stunning websites quickly and easily. No need to start from scratch—just import, customize and launch!
 
-### 400+ Page Templates – Build Full Websites in Minutes
-
-Get access to 400+ complete page templates across 20+ categories, including:
-
-✅ Landing Pages – Convert more visitors with high-converting designs.
-
-✅ Service Pages – Showcase your services professionally and attract clients.
-
-✅ Ecommerce Pages – Create beautiful WooCommerce product pages and boost sales.
-
-✅ Portfolio Pages – Display your work in a stunning layout.
-
-… and many more!
-
-### 1900+ Free Blocks – Mix & Match to Create Unique Designs
-
-✅ Hero Sections – Grab attention with engaging headlines and visuals.
-
-✅ Testimonials – Build credibility with customer reviews.
-
-✅ Call-to-Action Blocks – Encourage users to take action.
-
-✅ Pricing Tables – Clearly present your pricing and packages.
-
-… and many more to fit your needs!
-
-### 250+ Header & Footer Templates – Professional Navigation & Branding
-
-✅ Modern Headers – Improve navigation and user experience.
-
-✅ Sticky & Transparent Headers – Create seamless, stylish designs.
-
-✅ Customizable Footers – Add essential links, contact details and branding.
-
-👉 [Check all the templates with Live Demo](https://www.elementpack.pro/ready-templates/ready-blocks/#ready-block)
-
-## Powerful WooCommerce Features for Elementor 
-
-Enhance your online store with Element Pack’s WooCommerce Elementor widgets. Build stunning, user-friendly shopping experiences with seamless Elementor integration.
-
-**🛒 WooCommerce Checkout Page** – Smooth & Secure Payments
-
-Create a fully customized checkout page that ensures a seamless and secure payment process. Improve conversions by optimizing the design for user experience.
-
-**🛍 WooCommerce Cart Page** – Easy & Interactive Shopping Cart
-
-Design an intuitive cart page where customers can view, update and manage their orders effortlessly, leading to a smoother shopping experience.
-
-**📦 WooCommerce Tracking Form** – Real-Time Order Tracking
-
-Let your customers track their orders easily with a WooCommerce tracking form. Improve customer satisfaction by providing real-time shipping updates.
-
-**🏷 WooCommerce Product** – Showcase Products Beautifully
-
-Display your WooCommerce products in a visually appealing layout. Highlight product details, pricing and add-to-cart buttons to drive more sales.
-
-**🎠 WooCommerce Slider** – Engaging Product Carousels
-
-Create dynamic WooCommerce product sliders to showcase featured, latest, or on-sale products. Grab attention and encourage more clicks with an interactive display.
-
-👉 [Check all WooCommerce Elementor Elements](https://www.elementpack.pro/widgets/)
-
-## Exclusive & Unique Features to Supercharge Your Website
-
-With Element Pack, you get powerful Elementor extensions that make designing your website easier, faster and more interactive. Improve user experience, streamline content and take full control of your site.
-
-### Seamless Easy Digital Downloads Integration for Your Store
+**1. Seamless Easy Digital Downloads Integration for Your Store:**
 
 Get all the features of Easy Digital Downloads (EDD) with Element Pack’s essential widgets. Whether you’re selling digital products, managing customer accounts, or showcasing reviews, these widgets make everything easier and more engaging.
 
-### Live Copy-Paste – Save Time with Instant Design Replication
+**2. Live Copy-Paste – Save Time with Instant Design Replication:**
 
 You can copy any Elementor section or widget from one website to another with just one click. No need to recreate designs—just copy, paste and go!
 
-### Dynamic Grid & Carousel – Showcase Your Content Beautifully
+**3. Dynamic Grid & Carousel – Showcase Your Content Beautifully**
 
 Easily display posts, products, or custom content in a stylish grid or carousel. Keep your visitors engaged with interactive layouts.
 
-### Comparison List – Help Your Visitors Make Better Choices
+**4. Comparison List – Help Your Visitors Make Better Choices**
 
 You can let users compare multiple products, services, or features side by side. Perfect for eCommerce and pricing tables.
 
-### Visibility Controls – Display What Matters, When It Matters
+**5.Visibility Controls – Display What Matters, When It Matters**
 
 Take full control of your content by choosing who sees what based on device type, user roles, or conditions. Customize your site for the right audience.
 
-### Notation – Make Your Content More User-Friendly
+**6. Notation – Make Your Content More User-Friendly**
 
 Highlight important sections with notes, labels, or tooltips. Guide your users and make your site easier to navigate.
 
-### iFrame – Embed External Content Seamlessly
+**7. iFrame – Embed External Content Seamlessly**
 
 You can display external websites, videos, or custom content inside your pages without affecting design or performance.
 
-### Scroll Box – Keep Long Content Organized
+**8. Scroll Box – Keep Long Content Organized**
 
 Wrap large text sections inside a scrollable box to keep your pages clean and easy to read. Ideal for FAQs, policies, or detailed information.
 
-### Sub Menu – Improve Your Site Navigation
+**9. Sub Menu – Improve Your Site Navigation**
 
 Create multi-level submenus to help visitors navigate your site effortlessly. Keep your menus structured and user-friendly.
 
@@ -232,24 +349,41 @@ Ans. It is due to your server PHP setting. You can increase PHP memory limit fro
 Have a feature suggestion? Share it with us on our [Feature Suggestion Page](https://feedback.bdthemes.com/b/6vr2250l/feature-requests/idea/new).
 For assistance, [Contact us](https://bdthemes.com/support/) 💌 or check out our Tutorials.
 
-== Check out our other Addons 👑 ==
+== Checkout our other Plugins 👑 ==
 
 Explore the best free addons for Elementor and Gutenberg to boost your site with advanced blocks, sliders and eCommerce tools.
 
-* **[ZoloBlocks](https://wordpress.org/plugins/zoloblocks/)** 🆕☀️ - Advanced Gutenberg block plugin for powerful web design.
+* **[Element Pack](https://wordpress.org/plugins/bdthemes-element-pack-lite/)** - Build responsive websites from scratch with an all-rounder package of 300+ widgets and 2700+ ready-to-use assets for Elementor.
 
-* **[Prime Slider](https://wordpress.org/plugins/bdthemes-prime-slider-lite/)** - Next-gen slider builder with a sleek interface.
+* **[Prime Slider](https://wordpress.org/plugins/bdthemes-prime-slider-lite/)** - The revolutionary slider builder addon for Elementor with a next-gen superb interface and 50+ unique slider designs.
 
-* **[Ultimate Post Kit](https://wordpress.org/plugins/ultimate-post-kit/)** - Ultimate blogging addon with customizable widgets.
+* **[Ultimate Post Kit](https://wordpress.org/plugins/ultimate-post-kit/)** - Best blogging addon for building a quality blogging website with fine-tuned post layouts, carousels, sliders and lists.
 
-* **[Ultimate Store Kit](https://wordpress.org/plugins/ultimate-store-kit/)** - eCommerce addon for perfect online store designs.
+* **[Ultimate Store Kit](https://wordpress.org/plugins/ultimate-store-kit/)** - The only eCommerce addon for answering all your online store design problems in one package for WooCommerce and EDD.
 
-* **[Pixel Gallery](https://wordpress.org/plugins/pixel-gallery/)** - Easy-to-use image gallery addon for Elementor.
+* **[Pixel Gallery](https://wordpress.org/plugins/pixel-gallery/)** - The first Elementor-based WordPress gallery addon offering 60+ flexible and customizable gallery builder widgets.
 
-* **[Live Copy Paste](https://wordpress.org/plugins/live-copy-paste/)** - Fast, cross-domain copy-paste for WordPress websites.
+* **[ZoloBlocks](https://wordpress.org/plugins/zoloblocks/)** - Mind-blowing dynamic block plugin for Gutenberg with powerful and advanced features offering a greater web design experience.
 
+* **[Augmented Reality Viewer](https://wordpress.org/plugins/ar-viewer/)** - Bring your products to life with immersive 3D and AR experiences directly inside your WordPress website.
 
-Visit [BdThemes](https://bdthemes.com/) for services, page builders, blogs, documentation and exclusive ultimate addons for Elementor coupons.
+* **[Dark Reader](https://wordpress.org/plugins/dark-reader/)** - Instantly transform your website into a sleek, eye-friendly dark mode experience with smooth and elegant styling.
+
+* **[Instant Image Generator](https://wordpress.org/plugins/ai-image/)** - Generate AI-powered images or import visuals instantly from popular platforms like Unsplash, Openverse, Pixabay, Pexels and Giphy — all from one place.
+
+* **[Live Copy Paste](https://wordpress.org/plugins/live-copy-paste/)** - Seamlessly copy and paste sections, widgets and entire pages across domains with zero hassle.
+
+* **[One Accessibility](https://wordpress.org/plugins/website-accessibility/)** - Make your website inclusive and accessible to everyone with essential accessibility enhancements and compliance-ready tools.
+
+* **[QR Code Generator & Scanner](https://wordpress.org/plugins/zolo-qr-code/)** - Create and manage dynamic QR codes directly from your WordPress dashboard for smarter engagement and tracking.
+
+* **[Smart Admin Assistant](https://wordpress.org/plugins/smart-admin-assistant/)** - Enhance your WordPress dashboard with productivity-focused tools and smart site management features.
+
+* **[Spin Wheel](https://wordpress.org/plugins/spin-wheel/)** - Engage visitors with an interactive spinning wheel that offers discounts, coupons and promotional rewards.
+
+* **[Swift Checkout for WooCommerce](https://wordpress.org/plugins/swift-checkout/)** - Simplify the WooCommerce checkout process to improve user experience and boost conversion rates.
+
+Visit [BdThemes](https://bdthemes.com/) to learn about our services, Elementor page builder-based products, informative blogs and documentation.
 
 
 == Installation ==
@@ -279,6 +413,88 @@ https://youtu.be/NhaIMIrFh1Q?si=GA64tzuOaEAYqAvV
 
 
 == Changelog ==
+
+= 8.6.1 [28th April 2026] =
+
+* Added: Skin calm, ekip, phaedra Border & border radius controls added in member widget
+* Added: Notification Z-Index control added in Simple Contact Form widget ( Thanks to Chiara Scrigner )
+* Fixed: Icon hover effects now apply correctly for all effect in the step flow widget
+* Fixed: Search widget: Ajax live search always showing no results fixed (request now includes the required security nonce)
+* Fixed: Cursor Effects extension: Style → Size control now applies to SVG icons (uploaded SVG as image and inline SVG), not only icon fonts
+* Fixed: Fixed toggle icon background styling and button border-radius control issues in the dark mode widget
+* Fixed: Fixed hard-coded/untranslatable strings and translation-unsafe formatting in settings screens and setup wizard views
+* Fixed: Implemented translatable Select2 UI strings via Select2 language defaults
+* Fixed: Fixed WordPress escaping issues in the template edit link title and user register logout text
+
+= 8.6.0 [15th April 2026] =
+
+* Added: Give donation history widget unlocked from pro
+* Added: Give donor wall widget unlocked from pro
+* Added: Give form widget unlocked from pro
+* Added: Give form grid widget unlocked from pro
+* Added: Give goal widget unlocked from pro
+* Added: Give login widget unlocked from pro
+* Added: Give profile editor widget unlocked from pro
+* Added: Give receipt widget unlocked from pro
+* Added: Give register widget unlocked from pro
+* Added: Give totals widget unlocked from pro
+* Added: Object fit and object position control added in the animated card widget
+* Fixed: Icon size issue fixed in cursor effects extension
+* Fixed: Plus grid style borders fixed in logo grid widget
+* Fixed: Setup wizard template image missing issue fixed
+* Fixed: Tab text align control condition corrected to show only when "grid tab type" is set to "Title" in static grid tab widget
+
+= 8.5.2 [8th April 2026] =
+
+* Added: Widget content template rendering added in elementor editor page
+
+= 8.5.1 [1st April 2026] =
+
+* Updated: Made compatible with Elementor version 4.0.0
+
+= 8.5.0 [30th March 2026] =
+
+* Added: tel:, mailto: and sms: protocol support added in wrapper link extension
+* Added: Enable smooth animation added in cursor effects extension
+* Fixed: SVG Image widget: Stored XSS vulnerability fixed ( Thanks to Webbernaut )
+* Fixed: Glassmorphism issue fixed in the countdown widget
+* Fixed: Button a & button b alignment issue fixed in dual button widget
+* Fixed: Undefined array key issue fixed in trailer box widget
+* Fixed: Svg image widget caption duplicate issue fixed
+* Fixed: Undefined array key "element_pack_backdrop_filter_type" issue fixed in backdrop filter extension
+* Fixed: Page Speed issue fixed in Static Carousel widget ( Thanks to Nikolaos Koulouridis )
+* Fixed: Testimonial rating issue fixed ( Thanks to Nikolaos Koulouridis )
+* Fixed: Placeholder image replication for import template issue fixed in Cursor Effects extension
+* Fixed: Resolved clip-path and hover styling issues in the anthe style of the creative button widget
+* Fixed: The image hover effects extension issue has been fixed
+* Fixed: Added notice for invisible cursor icons in the cursor effects extension
+* Updated: Removed RTL CSS files and added modern CSS support
+
+= 8.4.2 [1st March 2026] =
+
+* Fixed: Placeholder image replication for import template issue fixed in Cursor Effects extension
+* Fixed: Testimonial rating issue fixed ( Thanks to Nikolaos Koulouridis )
+
+= 8.4.1 [24th February 2026] =
+
+* Added: Enable smooth animation added in cursor effects extension
+* Fixed: Title font size issue fixed in accordion widget
+
+= 8.4.0 [16th February 2026] =
+
+* Added: Animation added in accordion widget
+* Added: Google Rich Results (Schema) compliance for Testimonial Grid widgets ( Thanks to Nikolaos Koulouridis )
+* Fixed: Reading Progress widget showing "NaN%" in Elementor editor (default skin) fixed
+* Fixed: Margin issue fixed in the testimonial grid widget
+* Updated: Security improved
+
+= 8.3.19 [8th February 2026] =
+
+* Updated: Security improved
+
+= 8.3.18 [3rd February 2026] =
+
+* Fixed: Path traversal vulnerability fixed in SVG Image widget
 
 = 8.3.17 [1st February 2026] =
 

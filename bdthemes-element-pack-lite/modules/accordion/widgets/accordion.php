@@ -249,7 +249,7 @@ class Accordion extends Module_Base {
 		$this->add_control(
 			'show_custom_icon',
 			[ 
-				'label'     => esc_html__( 'Show Title Icon', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'label'     => esc_html__( 'Show Title Icon', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::SWITCHER,
 				'separator' => 'before'
 			]
@@ -274,7 +274,9 @@ class Accordion extends Module_Base {
 						wp_json_encode( [ 
 							"collapsible" => $settings["collapsible"] ? true : false,
 							"multiple"    => $settings["multiple"] ? true : false,
-							"transition"  => "ease-in-out",
+							"animation"   => $settings["accordion_animation"] ? true : false,
+							"transition"  => $settings["transition"] == 'custom' ? $settings["custom_transition"] : $settings["transition"],
+							"duration"    => $settings["duration"],
 						] )
 					]
 				]
@@ -304,7 +306,8 @@ class Accordion extends Module_Base {
 		$active_migrated = isset( $settings['__fa4_migrated']['accordion_active_icon'] );
 		$active_is_new   = empty( $settings['icon_active'] ) && Icons_Manager::is_migration_allowed();
 
-		if ( $settings['schema_activity'] == 'yes' ) {
+		$output_schema = element_pack_should_output_faq_schema( $settings );
+		if ( $output_schema ) {
 			$this->add_render_attribute( 'accordion', 'itemscope' );
 			$this->add_render_attribute( 'accordion', [ 'itemtype' => 'https://schema.org/FAQPage' ] );
 		}
@@ -329,7 +332,7 @@ class Accordion extends Module_Base {
 					$this->add_render_attribute( $tab_title_setting_key, 'class', ( 'right' == $settings['icon_align'] ) ? 'bdt-flex-between' : '' );
 
 
-					$this->add_render_attribute( $tab_content_setting_key, [ 
+					$this->add_render_attribute( $tab_content_setting_key, [
 						'class' => [ 'bdt-ep-accordion-content bdt-accordion-content' ],
 					] );
 
@@ -345,7 +348,7 @@ class Accordion extends Module_Base {
 						] );
 					}
 
-					if ( $settings['schema_activity'] == 'yes' ) {
+					if ( $output_schema ) {
 						$this->add_render_attribute( $item_key, 'itemscope' );
 						$this->add_render_attribute( $item_key, 'itemprop', 'mainEntity' );
 						$this->add_render_attribute( $item_key, 'itemtype', 'https://schema.org/Question' );
@@ -386,7 +389,7 @@ class Accordion extends Module_Base {
 								</span>
 							<?php endif; ?>
 
-							<span role="heading" class="bdt-ep-title-text bdt-flex-inline bdt-flex-middle" <?php echo ( 'yes' == $settings['schema_activity']) ? 'itemprop="name"' : ''; ?>>
+							<span role="heading" class="bdt-ep-title-text bdt-flex-inline bdt-flex-middle" <?php echo $output_schema ? 'itemprop="name"' : ''; ?>>
 
 								<?php if ( ! empty( $item['repeater_icon']['value'] ) and $settings['show_custom_icon'] == 'yes' ) : ?>
 									<span class="bdt-ep-accordion-custom-icon">
@@ -400,12 +403,12 @@ class Accordion extends Module_Base {
 						<div <?php $this->print_render_attribute_string( $tab_content_setting_key ); ?>>
 							<?php
 							if ( 'custom' == $item['source'] and ! empty( $item['tab_content'] ) ) {
-								if ( 'yes' == $settings['schema_activity'] ) {
+								if ( $output_schema ) {
 									echo '<div itemprop="text">';
 								}
 								// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 								echo $this->parse_text_editor( $item['tab_content'] );
-								if ( 'yes' == $settings['schema_activity'] ) {
+								if ( $output_schema ) {
 									echo '</div>';
 								}
 							} elseif ( "elementor" == $item['source'] and ! empty( $item['template_id'] ) ) {
@@ -421,6 +424,84 @@ class Accordion extends Module_Base {
 						</div>
 					</div>
 				<?php endforeach; ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	protected function content_template() {
+		?>
+		<#
+		var iconHTML        = elementor.helpers.renderIcon( view, settings.accordion_icon, { 'aria-hidden': true, 'class': 'fa-fw' }, 'i', 'object' );
+		var iconActiveHTML  = elementor.helpers.renderIcon( view, settings.accordion_active_icon, { 'aria-hidden': true, 'class': 'fa-fw' }, 'i', 'object' );
+		var migrated        = elementor.helpers.isIconMigrated( settings, 'accordion_icon' );
+		var titleHTMLTag    = elementor.helpers.validateHTMLTag( settings.title_html_tag );
+
+		var accordionOpts = JSON.stringify({
+			collapsible : !! settings.collapsible,
+			multiple    : !! settings.multiple,
+			animation   : !! settings.accordion_animation,
+			transition  : settings.transition === 'custom' ? settings.custom_transition : settings.transition,
+			duration    : settings.duration
+		});
+		#>
+		<div class="bdt-ep-accordion-container">
+			<div class="bdt-ep-accordion bdt-accordion" data-bdt-accordion="{{ accordionOpts }}">
+				<#
+				if ( settings.tabs ) {
+					_.each( settings.tabs, function( item, index ) {
+						var tabCount = index + 1;
+
+						var isActive = ( settings.multiple === 'yes' && settings.always_active_all_items === 'yes' )
+							|| tabCount == settings.active_item;
+
+						var itemClass  = 'bdt-ep-accordion-item' + ( isActive ? ' bdt-open' : '' );
+						var titleClass = 'bdt-ep-accordion-title bdt-accordion-title bdt-flex bdt-flex-middle'
+							+ ( settings.icon_align === 'right' ? ' bdt-flex-between' : '' );
+
+						var tabContentKey = view.getRepeaterSettingKey( 'tab_content', 'tabs', index );
+						view.addRenderAttribute( tabContentKey, 'class', 'bdt-ep-accordion-content bdt-accordion-content' );
+						view.addInlineEditingAttributes( tabContentKey, 'advanced' );
+						#>
+						<div class="{{ itemClass }}">
+							<{{{ titleHTMLTag }}} class="{{ titleClass }}">
+
+								<# if ( settings.accordion_icon && settings.accordion_icon.value ) { #>
+								<span class="bdt-ep-accordion-icon bdt-flex-align-{{ settings.icon_align }}" aria-hidden="true">
+									<# if ( iconHTML && iconHTML.rendered && ( ! settings.icon || migrated ) ) { #>
+										<span class="bdt-ep-accordion-icon-closed">{{{ iconHTML.value }}}</span>
+										<span class="bdt-ep-accordion-icon-opened">{{{ iconActiveHTML.value }}}</span>
+									<# } else { #>
+										<i class="bdt-ep-accordion-icon-closed {{ settings.icon }}" aria-hidden="true"></i>
+										<i class="bdt-ep-accordion-icon-opened {{ settings.icon_active }}" aria-hidden="true"></i>
+									<# } #>
+								</span>
+								<# } #>
+
+								<span role="heading" class="bdt-ep-title-text bdt-flex-inline bdt-flex-middle">
+									<# if ( item.repeater_icon && item.repeater_icon.value && settings.show_custom_icon === 'yes' ) {
+										var customIconHTML = elementor.helpers.renderIcon( view, item.repeater_icon, { 'aria-hidden': true, 'class': 'fa-fw' }, 'i', 'object' );
+										if ( customIconHTML && customIconHTML.rendered ) { #>
+											<span class="bdt-ep-accordion-custom-icon">{{{ customIconHTML.value }}}</span>
+										<# }
+									} #>
+									{{{ item.tab_title }}}
+								</span>
+
+							</{{{ titleHTMLTag }}}>
+
+							<div {{{ view.getRenderAttributeString( tabContentKey ) }}}>
+								<# if ( item.source === 'custom' || ! item.source ) { #>
+									{{{ item.tab_content }}}
+								<# } else { #>
+									<div style="padding:20px;text-align:center;color:#888;border:1px dashed #ccc;">
+										<i class="eicon-column" style="font-size:24px;display:block;margin-bottom:8px;"></i>
+										<?php esc_html_e( 'Template content is visible in preview mode.', 'bdthemes-element-pack' ); ?>
+									</div>
+								<# } #>
+							</div>
+						</div>
+					<# } ); } #>
 			</div>
 		</div>
 		<?php

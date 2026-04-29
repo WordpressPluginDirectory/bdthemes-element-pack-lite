@@ -294,7 +294,7 @@ class Countdown extends Module_Base {
 				'type'         => Controls_Manager::CHOOSE,
 				'options'      => [ 
 					'left'   => [ 
-						'title' => __( 'Left', 'bdthemes-element-pack' ),
+						'title' => __( 'Start', 'bdthemes-element-pack' ),
 						'icon'  => 'eicon-text-align-left',
 					],
 					'center' => [ 
@@ -302,7 +302,7 @@ class Countdown extends Module_Base {
 						'icon'  => 'eicon-text-align-center',
 					],
 					'right'  => [ 
-						'title' => __( 'Right', 'bdthemes-element-pack' ),
+						'title' => __( 'End', 'bdthemes-element-pack' ),
 						'icon'  => 'eicon-text-align-right',
 					],
 				],
@@ -492,7 +492,6 @@ class Countdown extends Module_Base {
 			[ 
 				'label'       => esc_html__( 'Days', 'bdthemes-element-pack' ),
 				'type'        => Controls_Manager::TEXT,
-				'dynamic'     => [ 'active' => true ],
 				'default'     => esc_html__( 'Days', 'bdthemes-element-pack' ),
 				'placeholder' => esc_html__( 'Days', 'bdthemes-element-pack' ),
 				'condition'   => [ 
@@ -508,7 +507,6 @@ class Countdown extends Module_Base {
 			[ 
 				'label'       => esc_html__( 'Hours', 'bdthemes-element-pack' ),
 				'type'        => Controls_Manager::TEXT,
-				'dynamic'     => [ 'active' => true ],
 				'default'     => esc_html__( 'Hours', 'bdthemes-element-pack' ),
 				'placeholder' => esc_html__( 'Hours', 'bdthemes-element-pack' ),
 				'condition'   => [ 
@@ -524,7 +522,6 @@ class Countdown extends Module_Base {
 			[ 
 				'label'       => esc_html__( 'Minutes', 'bdthemes-element-pack' ),
 				'type'        => Controls_Manager::TEXT,
-				'dynamic'     => [ 'active' => true ],
 				'default'     => esc_html__( 'Minutes', 'bdthemes-element-pack' ),
 				'placeholder' => esc_html__( 'Minutes', 'bdthemes-element-pack' ),
 				'condition'   => [ 
@@ -540,7 +537,6 @@ class Countdown extends Module_Base {
 			[ 
 				'label'       => esc_html__( 'Seconds', 'bdthemes-element-pack' ),
 				'type'        => Controls_Manager::TEXT,
-				'dynamic'     => [ 'active' => true ],
 				'default'     => esc_html__( 'Seconds', 'bdthemes-element-pack' ),
 				'placeholder' => esc_html__( 'Seconds', 'bdthemes-element-pack' ),
 				'condition'   => [ 
@@ -565,7 +561,6 @@ class Countdown extends Module_Base {
 			[ 
 				'label'     => __( 'Symbol', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::TEXT,
-				'dynamic'   => [ 'active' => true ],
 				'default'   => ':',
 				'condition' => [ 
 					'show_separator' => 'yes',
@@ -642,7 +637,6 @@ class Countdown extends Module_Base {
 			[ 
 				'label'       => __( 'End Message', 'bdthemes-element-pack' ),
 				'type'        => Controls_Manager::WYSIWYG,
-				'dynamic'     => [ 'active' => true ],
 				'default'     => __( 'Countdown End!', 'bdthemes-element-pack' ),
 				'placeholder' => __( 'Type your message here', 'bdthemes-element-pack' ),
 				'condition'   => [ 
@@ -656,7 +650,6 @@ class Countdown extends Module_Base {
 			[ 
 				'label'       => __( 'Redirection Link', 'bdthemes-element-pack' ),
 				'type'        => Controls_Manager::TEXT,
-				'dynamic'     => [ 'active' => true ],
 				'placeholder' => __( 'https://elementpack.pro/', 'bdthemes-element-pack' ),
 				'condition'   => [ 
 					'end_action_type' => 'url'
@@ -719,7 +712,7 @@ class Countdown extends Module_Base {
 					'size' => 5
 				],
 				'selectors' => [ 
-					'{{WRAPPER}} .bdt-countdown-item' => 'backdrop-filter: blur({{SIZE}}px); -webkit-backdrop-filter: blur({{SIZE}}px);'
+					'{{WRAPPER}} .bdt-countdown-item' => '--ep-countdown-glass-blur: {{SIZE}}px;'
 				],
 				'condition' => [ 
 					'glassmorphism_effect' => 'yes',
@@ -2459,11 +2452,16 @@ class Countdown extends Module_Base {
 			$ended_message = 'ended';
 		}
 
+		$countdown_grid_classes = [ 'bdt-countdown-grid' ];
+		if ( ! empty( $settings['glassmorphism_effect'] ) && $settings['glassmorphism_effect'] === 'yes' ) {
+			$countdown_grid_classes[] = 'bdt-countdown-glassmorphism-yes';
+		}
+
 		$this->add_render_attribute(
 			[ 
 				'countdown' => [ 
 					'id'                 => 'bdt-countdown-' . $this->get_id() . '-timer',
-					'class'              => [ 'bdt-countdown-grid' ],
+					'class'              => $countdown_grid_classes,
 					'data-bdt-countdown' => [ 
 						isset( $settings['loop_time'] ) && ( $settings['loop_time'] == 'yes' ) ? '' : 'date: ' . $final_time
 					],

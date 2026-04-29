@@ -202,18 +202,18 @@ class Contact_Form extends Module_Base {
 			[ 
 				'label'     => esc_html__( 'Text Align', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::CHOOSE,
-				'default'   => 'left',
+				'default'   => 'start',
 				'options'   => [ 
-					'left'   => [ 
-						'title' => esc_html__( 'Left', 'bdthemes-element-pack' ),
+					'start'   => [ 
+						'title' => esc_html__( 'Start', 'bdthemes-element-pack' ),
 						'icon'  => 'eicon-text-align-left',
 					],
 					'center' => [ 
 						'title' => esc_html__( 'Center', 'bdthemes-element-pack' ),
 						'icon'  => 'eicon-text-align-center',
 					],
-					'right'  => [ 
-							'title' => esc_html__( 'Right', 'bdthemes-element-pack' ),
+					'end'  => [ 
+							'title' => esc_html__( 'End', 'bdthemes-element-pack' ),
 							'icon'  => 'eicon-text-align-right',
 						],
 				],
@@ -626,6 +626,19 @@ class Contact_Form extends Module_Base {
 				'condition' => [ 
 					'custom_success_message' => 'yes',
 				],
+			]
+		);
+
+		$this->add_control(
+			'notification_z_index',
+			[
+				'label'       => esc_html__( 'Notification Z-Index', 'bdthemes-element-pack' ),
+				'description' => esc_html__( 'Set a stacking value for submit notifications so they appear above theme headers or overlays. Leave empty for default behavior.', 'bdthemes-element-pack' ),
+				'type'        => Controls_Manager::NUMBER,
+				'min'         => -2147483648,
+				'max'         => 2147483647,
+				'dynamic'     => [ 'active' => true ],
+				'separator'   => 'before',
 			]
 		);
 
@@ -1222,6 +1235,11 @@ class Contact_Form extends Module_Base {
 
 
 	public function render() {
+		$settings = $this->get_settings_for_display();
+		if ( isset( $settings['notification_z_index'] ) && $settings['notification_z_index'] !== '' && is_numeric( $settings['notification_z_index'] ) ) {
+			$this->add_render_attribute( '_wrapper', 'data-bdt-notification-z-index', (string) (int) $settings['notification_z_index'] );
+		}
+
 		$this->form_fields_render_attributes();
 
 		?>

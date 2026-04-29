@@ -747,9 +747,79 @@ trait Global_Widget_Controls {
 			'schema_activity',
 			[ 
 				'label'       => esc_html__( 'Schema Active', 'bdthemes-element-pack' ),
-				'description' => esc_html__( 'Warning: If you have multiple Accordion widgets on the same page so don\'t activate schema for both Accordion widgets so you will get errors on the google index. Activate the only one which you want to show on google search.', 'bdthemes-element-pack' ),
+				'description' => esc_html__( 'Adds FAQ structured data (microdata) for rich results. Note: Schema is auto-disabled when SEO plugins (Yoast, Rank Math, etc.) are active to prevent duplicate markup. Use the override below if you need to force-enable.', 'bdthemes-element-pack' ) . ( element_pack_is_seo_plugin_active() ? ' ' . esc_html__( 'An SEO plugin is detected on your site.', 'bdthemes-element-pack' ) : '' ),
 				'type'        => Controls_Manager::SWITCHER,
 				'separator'   => 'before',
+			]
+		);
+
+		$this->add_control(
+			'schema_override_seo',
+			[ 
+				'label'       => esc_html__( 'Override SEO Plugin Detection', 'bdthemes-element-pack' ),
+				'description' => esc_html__( 'Force output schema markup even when an SEO plugin is active. Use only if you have disabled FAQ schema in your SEO plugin to avoid duplicate markup errors in Google Search Console.', 'bdthemes-element-pack' ),
+				'type'        => Controls_Manager::SWITCHER,
+				'condition'   => [ 
+					'schema_activity' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'accordion_animation',
+			[ 
+				'label'   => __( 'Animation', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'type'    => Controls_Manager::SWITCHER,
+				'default' => 'yes',
+				'separator' => 'before',
+			]
+		);
+
+		$this->add_control(
+			'duration',
+			[ 
+				'label'   => __( 'Duration', 'bdthemes-element-pack' ) . BDTEP_PC,
+				'type'    => Controls_Manager::NUMBER,
+				'default' => 200,
+				'condition' => [ 
+					'accordion_animation' => 'yes',
+				],
+				'classes' => BDTEP_IS_PC,
+			]
+		);
+
+		$this->add_control(
+			'transition',
+			[ 
+				'label'   => __( 'Transition', 'bdthemes-element-pack' ) . BDTEP_PC,
+				'type'    => Controls_Manager::SELECT,
+				'options' => [ 
+					'' => 'None', 
+					'ease-in-out' => 'Ease In Out', 
+					'ease-out' => 'Ease Out', 
+					'ease-in' => 'Ease In',
+					'linear' => 'Linear',
+					'custom' => 'Custom',
+				],
+				'default' => 'ease-in-out',
+				'condition' => [ 
+					'accordion_animation' => 'yes',
+				],
+				'classes' => BDTEP_IS_PC,
+			]
+		);
+
+		$this->add_control(
+			'custom_transition',
+			[ 
+				'label'   => __( 'Custom Transition', 'bdthemes-element-pack' ),
+				'type'    => Controls_Manager::TEXT,
+				'default' => 'cubic-bezier(0.4, 0, 0.2, 1)',
+				'condition' => [ 
+					'transition' => 'custom',
+					'accordion_animation' => 'yes',
+				],
+				'placeholder' => 'cubic-bezier(0.4, 0, 0.2, 1)',
 			]
 		);
 
@@ -1199,6 +1269,7 @@ trait Global_Widget_Controls {
 			[ 
 				'label'       => __( 'Alignment', 'bdthemes-element-pack' ),
 				'type'        => Controls_Manager::CHOOSE,
+				'default'     => 'right',
 				'options'     => [ 
 					'left'  => [ 
 						'title' => __( 'Start', 'bdthemes-element-pack' ),
@@ -1209,7 +1280,6 @@ trait Global_Widget_Controls {
 						'icon'  => 'eicon-h-align-right',
 					],
 				],
-				'default'     => is_rtl() ? 'left' : 'right',
 				'toggle'      => false,
 				'label_block' => false,
 			]
@@ -1279,7 +1349,7 @@ trait Global_Widget_Controls {
 		$this->add_responsive_control(
 			'icon_space',
 			[ 
-				'label'     => __( 'Spacing', 'bdthemes-element-pack' ),
+				'label'     => __( 'Space Between', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::SLIDER,
 				'range'     => [ 
 					'px' => [ 
@@ -3231,8 +3301,8 @@ trait Global_Widget_Controls {
 					],
 				],
 				'selectors' => [
-					'{{WRAPPER}} .bdt-navigation-prev' => 'left: {{SIZE}}px;',
-					'{{WRAPPER}} .bdt-navigation-next' => 'right: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-navigation-prev' => is_rtl() ? 'right: {{SIZE}}px;' : 'left: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-navigation-next' => is_rtl() ? 'left: {{SIZE}}px;' : 'right: {{SIZE}}px;',
 				],
 				'conditions' => [
 					'terms' => [
@@ -4141,15 +4211,15 @@ trait Global_Widget_Controls {
 				'type'    => Controls_Manager::SELECT,
 				'default' => 'center',
 				'options' => [
-					'top-left'      => esc_html__('Top Left', 'bdthemes-element-pack'),
+					'top-left'      => esc_html__('Top Start', 'bdthemes-element-pack'),
 					'top-center'    => esc_html__('Top Center', 'bdthemes-element-pack'),
-					'top-right'     => esc_html__('Top Right', 'bdthemes-element-pack'),
+					'top-right'     => esc_html__('Top End', 'bdthemes-element-pack'),
 					'center'        => esc_html__('Center', 'bdthemes-element-pack'),
-					'center-left'   => esc_html__('Center Left', 'bdthemes-element-pack'),
-					'center-right'  => esc_html__('Center Right', 'bdthemes-element-pack'),
-					'bottom-left'   => esc_html__('Bottom Left', 'bdthemes-element-pack'),
+					'center-left'   => esc_html__('Center Start', 'bdthemes-element-pack'),
+					'center-right'  => esc_html__('Center End', 'bdthemes-element-pack'),
+					'bottom-left'   => esc_html__('Bottom Start', 'bdthemes-element-pack'),
 					'bottom-center' => esc_html__('Bottom Center', 'bdthemes-element-pack'),
-					'bottom-right'  => esc_html__('Bottom Right', 'bdthemes-element-pack'),
+					'bottom-right'  => esc_html__('Bottom End', 'bdthemes-element-pack'),
 				]
 			]
 		);
@@ -4308,8 +4378,8 @@ trait Global_Widget_Controls {
 					'slider_icon[value]!' => '',
 				],
 				'selectors' => [
-					'{{WRAPPER}} .bdt-slider .bdt-button-icon-align-right' => is_rtl() ? 'margin-right: {{SIZE}}{{UNIT}};' : 'margin-left: {{SIZE}}{{UNIT}};',
-					'{{WRAPPER}} .bdt-slider .bdt-button-icon-align-left'  => is_rtl() ? 'margin-left: {{SIZE}}{{UNIT}};' : 'margin-right: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-slider .bdt-button-icon-align-right' => is_rtl() ? 'margin-inline-end: {{SIZE}}{{UNIT}};' : 'margin-inline-start: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-slider .bdt-button-icon-align-left'  => is_rtl() ? 'margin-inline-start: {{SIZE}}{{UNIT}};' : 'margin-inline-end: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -5767,8 +5837,8 @@ trait Global_Widget_Controls {
 					],
 				],
 				'selectors' => [
-					'{{WRAPPER}} .bdt-slider .bdt-navigation-prev' => 'left: {{SIZE}}px;',
-					'{{WRAPPER}} .bdt-slider .bdt-navigation-next' => 'right: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-slider .bdt-navigation-prev' => is_rtl() ? 'right: {{SIZE}}px;' : 'left: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-slider .bdt-navigation-next' => is_rtl() ? 'left: {{SIZE}}px;' : 'right: {{SIZE}}px;',
 				],
 				'conditions' => [
 					'terms' => [
@@ -5951,8 +6021,8 @@ trait Global_Widget_Controls {
 					],
 				],
 				'selectors' => [
-					'{{WRAPPER}} .bdt-slider .bdt-navigation-prev' => 'left: {{SIZE}}px;',
-					'{{WRAPPER}} .bdt-slider .bdt-navigation-next' => 'right: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-slider .bdt-navigation-prev' => is_rtl() ? 'right: {{SIZE}}px;' : 'left: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-slider .bdt-navigation-next' => is_rtl() ? 'left: {{SIZE}}px;' : 'right: {{SIZE}}px;',
 				],
 				'conditions' => [
 					'terms' => [
@@ -6089,9 +6159,9 @@ trait Global_Widget_Controls {
 						'max' => 200,
 					],
 				],
-				'selectors' => [
-					'{{WRAPPER}} .bdt-slider .bdt-navigation-prev' => 'left: {{SIZE}}px;',
-					'{{WRAPPER}} .bdt-slider .bdt-navigation-next' => 'right: {{SIZE}}px;',
+					'selectors' => [
+						'{{WRAPPER}} .bdt-slider .bdt-navigation-prev' => is_rtl() ? 'right: {{SIZE}}px;' : 'left: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-slider .bdt-navigation-next' => is_rtl() ? 'left: {{SIZE}}px;' : 'right: {{SIZE}}px;',
 				],
 				'conditions' => [
 					'terms' => [
@@ -6348,7 +6418,7 @@ trait Global_Widget_Controls {
                 'type'      => Controls_Manager::CHOOSE,
                 'options'   => [
                     'left'        => [
-                        'title' => esc_html__('Left', 'bdthemes-element-pack'),
+                        'title' => esc_html__('Start', 'bdthemes-element-pack'),
                         'icon'  => 'eicon-text-align-left',
                     ],
                     'center'  => [
@@ -6356,7 +6426,7 @@ trait Global_Widget_Controls {
                         'icon'  => 'eicon-text-align-center',
                     ],
                     'right'   => [
-                        'title' => esc_html__('Right', 'bdthemes-element-pack'),
+                        'title' => esc_html__('End', 'bdthemes-element-pack'),
                         'icon'  => 'eicon-text-align-right',
                     ],
                     'justify' => [

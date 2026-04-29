@@ -61,7 +61,7 @@ class DualButton extends Module_Base {
 	protected function is_dynamic_content(): bool {
 		return false;
 	}
-	
+
 	protected function register_controls() {
 		$this->start_controls_section(
 			'section_content_button',
@@ -93,7 +93,7 @@ class DualButton extends Module_Base {
 				'type' => Controls_Manager::CHOOSE,
 				'options' => [
 					'start' => [
-						'title' => __( 'Left', 'bdthemes-element-pack' ),
+						'title' => __( 'Start', 'bdthemes-element-pack' ),
 						'icon' => 'eicon-text-align-left',
 					],
 					'center' => [
@@ -101,7 +101,7 @@ class DualButton extends Module_Base {
 						'icon' => 'eicon-text-align-center',
 					],
 					'end' => [
-						'title' => __( 'Right', 'bdthemes-element-pack' ),
+						'title' => __( 'End', 'bdthemes-element-pack' ),
 						'icon' => 'eicon-text-align-right',
 					],
 				],
@@ -194,7 +194,7 @@ class DualButton extends Module_Base {
 					],
 				],
 				'selectors'  => [
-					'{{WRAPPER}} .bdt-btn-a' => 'margin-right: {{SIZE}}px;',
+					'{{WRAPPER}} .bdt-btn-a' => 'margin-inline-end: {{SIZE}}px;',
 				],
 				'condition' => [
 					'show_middle_text!' => 'yes',
@@ -275,6 +275,9 @@ class DualButton extends Module_Base {
 						'title' => esc_html__( 'Right', 'bdthemes-element-pack' ),
 						'icon'  => 'eicon-text-align-right',
 					],
+				],
+				'selectors' => [
+					'{{WRAPPER}} .bdt-dual-button .bdt-btn-a, {{WRAPPER}} .bdt-btn-a .bdt-btn-icon' => 'justify-content: {{VALUE}};',
 				],
 			]
 		);
@@ -437,6 +440,9 @@ class DualButton extends Module_Base {
 						'title' => esc_html__( 'Right', 'bdthemes-element-pack' ),
 						'icon'  => 'eicon-text-align-right',
 					],
+				],
+				'selectors' => [
+					'{{WRAPPER}} .bdt-dual-button .bdt-btn-b, {{WRAPPER}} .bdt-btn-b .bdt-btn-icon' => 'justify-content: {{VALUE}};',
 				],
 			]
 		);
@@ -1402,7 +1408,6 @@ class DualButton extends Module_Base {
 		if ( 'left' == $settings['button_a_icon_align'] or 'right' == $settings['button_a_icon_align'] ) {
 			$this->add_render_attribute( 'content-wrapper-a', 'class', 'bdt-flex bdt-flex-middle' );
 		}
-		$this->add_render_attribute( 'content-wrapper-a', 'class', 'bdt-flex-' . $settings['button_a_align'] );
 
 		$this->add_render_attribute( 'content-wrapper-a', 'class', ( 'top' == $settings['button_a_icon_align'] ) ? 'bdt-flex bdt-flex-column' : '' );
 		$this->add_render_attribute( 'content-wrapper-a', 'class', ( 'bottom' == $settings['button_a_icon_align'] ) ? 'bdt-flex bdt-flex-column-reverse' : '' );
@@ -1445,7 +1450,6 @@ class DualButton extends Module_Base {
 		if ( 'left' == $settings['button_b_icon_align'] or 'right' == $settings['button_b_icon_align'] ) {
 			$this->add_render_attribute( 'content-wrapper-b', 'class', 'bdt-flex bdt-flex-middle' );
 		}
-		$this->add_render_attribute( 'content-wrapper-b', 'class', 'bdt-flex-' . $settings['button_b_align'] );
 
 		$this->add_render_attribute( 'content-wrapper-b', 'class', ( 'top' == $settings['button_b_icon_align'] ) ? 'bdt-flex bdt-flex-column' : '' );
 		$this->add_render_attribute( 'content-wrapper-b', 'class', ( 'bottom' == $settings['button_b_icon_align'] ) ? 'bdt-flex bdt-flex-column-reverse' : '' );
@@ -1531,6 +1535,73 @@ class DualButton extends Module_Base {
 
 				<a <?php $this->print_render_attribute_string( 'button_b' ); ?>>
 					<?php $this->render_text_b($settings); ?>
+				</a>
+			</div>
+		</div>
+		<?php
+	}
+
+	protected function content_template() {
+		?>
+		<#
+		var iconHtmlA  = elementor.helpers.renderIcon( view, settings.button_a_select_icon, { 'aria-hidden': true, 'class': 'fa-fw' }, 'i', 'object' );
+		var migratedA  = elementor.helpers.isIconMigrated( settings, 'button_a_select_icon' );
+		var iconHtmlB  = elementor.helpers.renderIcon( view, settings.button_b_select_icon, { 'aria-hidden': true, 'class': 'fa-fw' }, 'i', 'object' );
+		var migratedB  = elementor.helpers.isIconMigrated( settings, 'button_b_select_icon' );
+
+		var btnAClasses = 'bdt-btn-a bdt-ep-button bdt-effect-' + settings.button_a_effect + ' bdt-ep-button-size-' + settings.dual_button_size;
+		var btnBClasses = 'bdt-btn-b bdt-ep-button bdt-effect-' + settings.button_b_effect + ' bdt-ep-button-size-' + settings.dual_button_size;
+		var btnAHref = ( settings.button_a_link && settings.button_a_link.url ) ? settings.button_a_link.url : '#';
+		var btnBHref = ( settings.button_b_link && settings.button_b_link.url ) ? settings.button_b_link.url : '#';
+
+		var contentWrapAClasses = 'bdt-btn-content-wrap';
+		if ( 'left' === settings.button_a_icon_align || 'right' === settings.button_a_icon_align ) {
+			contentWrapAClasses += ' bdt-flex bdt-flex-middle';
+		} else if ( 'top' === settings.button_a_icon_align ) {
+			contentWrapAClasses += ' bdt-flex bdt-flex-column';
+		} else if ( 'bottom' === settings.button_a_icon_align ) {
+			contentWrapAClasses += ' bdt-flex bdt-flex-column-reverse';
+		}
+
+		var contentWrapBClasses = 'bdt-btn-content-wrap';
+		if ( 'left' === settings.button_b_icon_align || 'right' === settings.button_b_icon_align ) {
+			contentWrapBClasses += ' bdt-flex bdt-flex-middle';
+		} else if ( 'top' === settings.button_b_icon_align ) {
+			contentWrapBClasses += ' bdt-flex bdt-flex-column';
+		} else if ( 'bottom' === settings.button_b_icon_align ) {
+			contentWrapBClasses += ' bdt-flex bdt-flex-column-reverse';
+		}
+		#>
+		<div class="bdt-element-align-wrapper bdt-flex">
+			<div class="bdt-dual-button bdt-ep-button-wrapper bdt-element">
+				<a class="{{ btnAClasses }}" href="{{ btnAHref }}">
+					<div class="{{ contentWrapAClasses }}" data-text="{{ settings.button_a_text }}">
+						<# if ( iconHtmlA && iconHtmlA.rendered && ( ! settings.button_a_icon || migratedA ) ) { #>
+						<div class="bdt-btn-icon bdt-a-icon bdt-flex-align-{{ settings.button_a_icon_align }}">
+							<div class="bdt-ep-button-a-icon-inner">
+								{{{ iconHtmlA.value }}}
+							</div>
+						</div>
+						<# } #>
+						<div class="bdt-btn-text">{{{ settings.button_a_text }}}</div>
+					</div>
+				</a>
+
+				<# if ( 'yes' === settings.show_middle_text ) { #>
+				<span>{{ settings.middle_text }}</span>
+				<# } #>
+
+				<a class="{{ btnBClasses }}" href="{{ btnBHref }}">
+					<div class="{{ contentWrapBClasses }}" data-text="{{ settings.button_b_text }}">
+						<# if ( iconHtmlB && iconHtmlB.rendered && ( ! settings.button_b_icon || migratedB ) ) { #>
+						<div class="bdt-btn-icon bdt-btn-b-icon bdt-flex-align-{{ settings.button_b_icon_align }}">
+							<div class="bdt-b-icon-inner">
+								{{{ iconHtmlB.value }}}
+							</div>
+						</div>
+						<# } #>
+						<div class="bdt-btn-text">{{{ settings.button_b_text }}}</div>
+					</div>
 				</a>
 			</div>
 		</div>

@@ -54,7 +54,7 @@ class Trailer_Box extends Module_Base {
 	protected function is_dynamic_content(): bool {
 		return false;
 	}
-	
+
 	protected function register_controls() {
 		$this->start_controls_section(
 			'section_content_layout',
@@ -298,8 +298,7 @@ class Trailer_Box extends Module_Base {
 					'button_icon[value]!' => '',
 				],
 				'selectors' => [
-					'{{WRAPPER}} .bdt-trailer-box .bdt-trailer-box-button-icon-right' => 'margin-left: {{SIZE}}{{UNIT}};',
-					'{{WRAPPER}} .bdt-trailer-box .bdt-trailer-box-button-icon-left'  => 'margin-right: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-trailer-box .bdt-trailer-box-button' => 'gap: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -2019,153 +2018,195 @@ class Trailer_Box extends Module_Base {
 
 	}
 
-	public function render_button() {
-		$settings = $this->get_settings_for_display();
-
-		if ( ! isset( $settings['icon'] ) && ! Icons_Manager::is_migration_allowed() ) {
-			// add old default
-			$settings['icon'] = 'fas fa-arrow-right';
+	public function render_button( $settings ) {
+		$link_type = $settings['link_type'];
+		if ( $link_type !== 'button' ) {
+			return;
 		}
-
-		$migrated  = isset( $settings['__fa4_migrated']['button_icon'] );
-		$is_new    = empty( $settings['icon'] ) && Icons_Manager::is_migration_allowed();
-
+		$button_url  = $settings['button']['url'];
+		$button_text = $settings['button_text'];
+		if ( empty( $button_url ) || empty( $button_text ) ) {
+			return;
+		}
+		$migrated = isset( $settings['__fa4_migrated']['button_icon'] );
+		// Match Elementor button trait / Timeline: fa4 field is `icon`, not `button_icon`.
+		$is_new = empty( $settings['icon'] ?? '' ) && Icons_Manager::is_migration_allowed();
+		$this->add_link_attributes( 'trailer-box-button', $settings['button'] );
+		$button_classes = [ 'bdt-trailer-box-button' ];
+		if ( ! empty( $settings['button_hover_animation'] ) ) {
+			$button_classes[] = 'elementor-animation-' . esc_attr( $settings['button_hover_animation'] );
+		}
+		$this->add_render_attribute( 'trailer-box-button', 'class', $button_classes );
+		$button_position = $settings['button_position'];
+		$position_classes = [
+			'bdt-trailer-box-button-position',
+			'bdt-position-' . esc_attr( $button_position ),
+		];
+		$this->add_render_attribute( 'trailer-box-button-position', 'class', $position_classes );
+		if ( ! empty( $settings['button_css_id'] ) ) {
+			$this->add_render_attribute( 'trailer-box-button', 'id', esc_attr( $settings['button_css_id'] ) );
+		}
 		?>
-
-		<?php if ('button' === $settings['link_type']) : ?>
-			<?php if (( '' !== $settings['button']['url'] ) and ('' !== $settings['button_text'] )) :
-
-				$this->add_link_attributes( 'trailer-box-button', $settings['button'] );
-				$this->add_render_attribute(
-					[
-						'trailer-box-button' => [
-							'class'  => [
-								'bdt-trailer-box-button',
-								$settings['button_hover_animation'] ? 'elementor-animation-'.$settings['button_hover_animation'] : ''
-							]
-						]
-					]
-				);
-				$this->add_render_attribute(
-					[
-						'trailer-box-button-position' => [
-							'class'  => [
-								'bdt-trailer-box-button-position',
-								' bdt-position-' . $settings['button_position'],
-							]
-						]
-					]
-				);
-
-				if ( ! empty( $settings['button_css_id'] ) ) {
-					$this->add_render_attribute( 'trailer-box-button', 'id', $settings['button_css_id'] );
-				}
-
+		<div <?php $this->print_render_attribute_string( 'trailer-box-button-position' ); ?>>
+			<a <?php $this->print_render_attribute_string( 'trailer-box-button' ); ?>>
+				<?php
+				$icon_align    = isset( $settings['icon_align'] ) ? $settings['icon_align'] : 'right';
+				$use_render_icon = ( $is_new || $migrated ) && ! empty( $settings['button_icon']['library'] );
+				$use_legacy_icon = ! $use_render_icon && ! empty( $settings['icon'] );
+				
+				if ( ( $use_render_icon || $use_legacy_icon ) && 'left' === $icon_align ) :
+					if ( $use_render_icon ) :
+						Icons_Manager::render_icon( $settings['button_icon'], [ 'aria-hidden' => 'true', 'class' => 'fa-fw' ] );
+					else :
+						?>
+						<i class="<?php echo esc_attr( $settings['icon'] ); ?>" aria-hidden="true"></i>
+						<?php
+					endif;
+				endif;
 				?>
-				<div <?php $this->print_render_attribute_string( 'trailer-box-button-position' ); ?>>
-					<a <?php $this->print_render_attribute_string( 'trailer-box-button' ); ?>>
-						<?php echo esc_html($settings['button_text']); ?>
-	
-						<?php if ($settings['button_icon']['value']) : ?>
-							<span class="bdt-trailer-box-button-icon-<?php echo esc_attr($settings['icon_align']); ?>">
-	
-								<?php if ( $is_new || $migrated ) :
-									Icons_Manager::render_icon( $settings['button_icon'], [ 'aria-hidden' => 'true', 'class' => 'fa-fw' ] );
-								else : ?>
-									<i class="<?php echo esc_attr( $settings['icon'] ); ?>" aria-hidden="true"></i>
-								<?php endif; ?>
-	
-							</span>
-						<?php endif; ?>
-	
-					</a>
-				</div>
-			<?php endif; ?>
-		<?php endif; ?>
-
+				<span class="bdt-trailer-box-button-text">
+					<?php echo esc_html( $button_text ); ?>
+				</span>
+				<?php if ( ( $use_render_icon || $use_legacy_icon ) && 'right' === $icon_align ) : ?>
+					<?php if ( $use_render_icon ) : ?>
+						<?php Icons_Manager::render_icon( $settings['button_icon'], [ 'aria-hidden' => 'true', 'class' => 'fa-fw' ] ); ?>
+					<?php else : ?>
+						<i class="<?php echo esc_attr( $settings['icon'] ); ?>" aria-hidden="true"></i>
+					<?php endif; ?>
+				<?php endif; ?>
+			</a>
+		</div>
 		<?php
 	}
 
 	public function render() {
-		$settings               = $this->get_settings_for_display();
-		$target   = (isset($settings['button']['is_external'])  && $settings['button']['is_external'] == 'on' ) ? '_blank' : '_self';
-		
-		$origin                 = ' bdt-position-' . $settings['origin'];
+
+		$settings = $this->get_settings_for_display();
+
+		$link_type = $settings['link_type'];
+		$button_url = ! empty( $settings['button']['url'] ) ? $settings['button']['url'] : '';
+		$target = ( ! empty( $settings['button']['is_external'] ) && $settings['button']['is_external'] === 'on' ) ? '_blank' : '_self';
+		$origin = 'bdt-position-' . esc_attr( $settings['origin'] );
 
 		$has_background_overlay = false;
-
-		if ( isset( $settings['background_overlay_background'] ) && in_array( $settings['background_overlay_background'], [ 'classic', 'gradient' ] ) ) {
+		$overlay_bg = isset( $settings['background_overlay_background'] ) ? $settings['background_overlay_background'] : '';
+		if ( in_array( $overlay_bg, [ 'classic', 'gradient' ], true ) ) {
 			$has_background_overlay = true;
 		}
 
-		if ( isset( $settings['background_overlay_hover_background'] ) && in_array( $settings['background_overlay_hover_background'], [ 'classic', 'gradient' ] ) ) {
+		$overlay_hover_bg = isset( $settings['background_overlay_hover_background'] ) ? $settings['background_overlay_hover_background'] : '';
+		if ( in_array( $overlay_hover_bg, [ 'classic', 'gradient' ], true ) ) {
 			$has_background_overlay = true;
 		}
 
-		if ( $has_background_overlay ) : ?>
+		$pre_title = $settings['pre_title'];
+		$title = $settings['title'];
+		$content = $settings['content'];
+		$button_position = $settings['button_position'];
+		$pre_title_hide = $settings['pre_title_hide'];
+		$title_tag = Utils::get_valid_html_tag( $settings['title_tags'] );
+		
+		if ( $has_background_overlay ) :
+			?>
 			<div class="elementor-background-overlay"></div>
 		<?php endif; ?>
-
-		<?php if ('item' === $settings['link_type']) : ?>
-			<div onclick="window.open('<?php echo esc_url($settings['button']['url']); ?>','<?php echo esc_attr($target); ?>');" style="cursor: pointer;">
+		<?php if ( $link_type === 'item' && $button_url ) : ?>
+			<div onclick="window.open('<?php echo esc_url( $button_url ); ?>','<?php echo esc_attr( $target ); ?>');" style="cursor: pointer;">
 		<?php endif; ?>
-
-		<?php if ($settings['pre_title']) {
-
-			$this->add_render_attribute(
-				[
-					'avd-hclass' => [
-						'class' => [
-							'bdt-trailer-box-pre-title',
-							$settings['pre_title_hide'] ? 'bdt-visible@'. $settings['pre_title_hide'] : '',
-						],
-					],
-				]
-			);
-		} 
-		
-		$this->add_render_attribute('bdt-trailer-box-title', 'class', 'bdt-trailer-box-title');
-		
+		<?php
+		if ( $pre_title ) {
+			$pre_title_classes = [ 'bdt-trailer-box-pre-title' ];
+			if ( $pre_title_hide ) {
+				$pre_title_classes[] = 'bdt-visible@' . esc_attr( $pre_title_hide );
+			}
+			$this->add_render_attribute( 'avd-hclass', 'class', $pre_title_classes );
+		}
+		$this->add_render_attribute( 'bdt-trailer-box-title', 'class', 'bdt-trailer-box-title' );
 		?>
-
-			<div class="bdt-trailer-box bdt-position-relative">
-				<div class="bdt-trailer-box-desc <?php echo esc_attr($origin); ?>">
-					<div class="bdt-trailer-box-desc-inner">
-						<?php if ( '' !== $settings['pre_title'] ) : ?>
-							<div <?php $this->print_render_attribute_string( 'avd-hclass' );?>>
-								<?php echo wp_kses( $settings['pre_title'], element_pack_allow_tags('title') ); ?>
-							</div>
-						<?php endif; ?>
-
-						<?php if ( '' !== $settings['title'] ) : ?>
-							<div class="bdt-trailer-box-title-wrap">
-								<<?php echo esc_attr(Utils::get_valid_html_tag($settings['title_tags'])); ?> <?php $this->print_render_attribute_string('bdt-trailer-box-title'); ?>>
-									<?php echo wp_kses( $settings['title'], element_pack_allow_tags('title') ); ?>
-								</<?php echo esc_attr(Utils::get_valid_html_tag($settings['title_tags'])); ?>>
-							</div>
-						<?php endif; ?>
-
-						<?php if ( '' !== $settings['content'] ) : ?>
-							<div class="bdt-trailer-box-text"><?php echo wp_kses_post($settings['content']); ?></div>
-						<?php endif; ?>
-
-						<?php if ( ! $settings['button_position']) : ?>
-							<?php $this->render_button(); ?>
-						<?php endif; ?>
-					</div>
-					
+		<div class="bdt-trailer-box bdt-position-relative">
+			<div class="bdt-trailer-box-desc <?php echo esc_attr( $origin ); ?>">
+				<div class="bdt-trailer-box-desc-inner">
+					<?php if ( $pre_title ) : ?>
+						<div <?php $this->print_render_attribute_string( 'avd-hclass' ); ?>>
+							<?php echo wp_kses( $pre_title, element_pack_allow_tags( 'title' ) ); ?>
+						</div>
+					<?php endif; ?>
+					<?php if ( $title ) : ?>
+						<div class="bdt-trailer-box-title-wrap">
+							<<?php echo esc_attr( $title_tag ); ?> <?php $this->print_render_attribute_string( 'bdt-trailer-box-title' ); ?>>
+								<?php echo wp_kses( $title, element_pack_allow_tags( 'title' ) ); ?>
+							</<?php echo esc_attr( $title_tag ); ?>>
+						</div>
+					<?php endif; ?>
+					<?php if ( $content ) : ?>
+						<div class="bdt-trailer-box-text"><?php echo wp_kses_post( $content ); ?></div>
+					<?php endif; ?>
+					<?php if ( ! $button_position ) : ?>
+						<?php $this->render_button( $settings ); ?>
+					<?php endif; ?>
 				</div>
-				
 			</div>
-
-			<?php if ( $settings['button_position']) : ?>
-				<?php $this->render_button(); ?>
-			<?php endif; ?>
-
-		<?php if ('item' === $settings['link_type']) : ?>
+		</div>
+		<?php if ( $button_position ) : ?>
+			<?php $this->render_button( $settings ); ?>
+		<?php endif; ?>
+		<?php if ( $link_type === 'item' && $button_url ) : ?>
 			</div>
 		<?php endif; ?>
+		<?php
+	}
 
+	protected function content_template() {
+		?>
+		<#
+		var origin   = 'bdt-position-' + ( settings.origin || 'bottom-left' );
+		var titleTag = settings.title_tags || 'h3';
+		var iconHTML = elementor.helpers.renderIcon( view, settings.button_icon, { 'aria-hidden': true, 'class': 'fa-fw' }, 'i', 'object' );
+		var migrated = elementor.helpers.isIconMigrated( settings, 'button_icon' );
+		#>
+		<div class="bdt-trailer-box bdt-position-relative">
+			<div class="bdt-trailer-box-desc {{ origin }}">
+				<div class="bdt-trailer-box-desc-inner">
+					<# if ( settings.pre_title ) { #>
+						<div class="bdt-trailer-box-pre-title">{{{ settings.pre_title }}}</div>
+					<# } #>
+					<# if ( settings.title ) { #>
+						<div class="bdt-trailer-box-title-wrap">
+							<{{ titleTag }} class="bdt-trailer-box-title">{{{ settings.title }}}</{{ titleTag }}>
+						</div>
+					<# } #>
+					<# if ( settings.content ) { #>
+						<div class="bdt-trailer-box-text">{{{ settings.content }}}</div>
+					<# } #>
+					<# if ( 'button' === settings.link_type && ! settings.button_position ) { #>
+						<div class="bdt-trailer-box-button-position">
+							<a class="bdt-trailer-box-button">
+								<# if ( iconHTML && iconHTML.rendered && 'left' === settings.icon_align ) { #>
+									{{{ iconHTML.value }}}
+								<# } #>
+								<span class="bdt-trailer-box-button-text">{{ settings.button_text }}</span>
+								<# if ( iconHTML && iconHTML.rendered && 'right' === settings.icon_align ) { #>
+									{{{ iconHTML.value }}}
+								<# } #>
+							</a>
+						</div>
+					<# } #>
+				</div>
+			</div>
+		</div>
+		<# if ( 'button' === settings.link_type && settings.button_position ) { #>
+			<div class="bdt-trailer-box-button-position bdt-position-{{ settings.button_position }}">
+				<a class="bdt-trailer-box-button">
+					<# if ( iconHTML && iconHTML.rendered && 'left' === settings.icon_align ) { #>
+						{{{ iconHTML.value }}}
+					<# } #>
+					<span class="bdt-trailer-box-button-text">{{ settings.button_text }}</span>
+					<# if ( iconHTML && iconHTML.rendered && 'right' === settings.icon_align ) { #>
+						{{{ iconHTML.value }}}
+					<# } #>
+				</a>
+			</div>
+		<# } #>
 		<?php
 	}
 }

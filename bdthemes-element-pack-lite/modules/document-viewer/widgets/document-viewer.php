@@ -40,9 +40,6 @@ class Document_Viewer extends Module_Base {
 	public function has_widget_inner_wrapper(): bool {
         return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
     }
-	protected function is_dynamic_content(): bool {
-		return false;
-	}
 
 	protected function register_controls() {
 		$this->start_controls_section(
@@ -133,17 +130,16 @@ class Document_Viewer extends Module_Base {
 		$file_ext = strtolower($file_ext);
 
 		if ($viewer_type === 'google_docs') {
-			// Google Docs viewer (for public URLs only)
-			// $viewer_base = 'https://docs.google.com/viewer?';
-			// $query_params = http_build_query([
-			// 	'url' => $source_url,
-			// 	'embedded' => 'true'
-			// ]);
-
-			// Special case: if it's a Google Sheets link
-			if (strpos($source_url, 'docs.google.com/spreadsheets') !== false) {
+			// Native Google Doc: use /preview for embedding (edit URLs return full editor HTML)
+			if (preg_match('#docs\.google\.com/document/d/([a-zA-Z0-9_-]+)#', $source_url, $doc_matches)) {
+				$final_url = 'https://docs.google.com/document/d/' . $doc_matches[1] . '/preview';
+			}
+			// Google Sheets: use widget params for embed
+			elseif (strpos($source_url, 'docs.google.com/spreadsheets') !== false) {
 				$final_url = $source_url . (strpos($source_url, '?') === false ? '?' : '&') . 'widget=true&headers=false';
-			} else {
+			}
+			// External document (PDF, etc.): use Google Docs viewer
+			else {
 				$viewer_base = 'https://docs.google.com/viewer?';
 				$query_params = http_build_query([
 					'url' => $source_url,

@@ -13,7 +13,6 @@ use Elementor\Icons_Manager;
 
 use ElementPack\Modules\Member\Skins;
 use ElementPack\Traits\Global_Mask_Controls;
-use WordPressVIPMinimum\Sniffs\Functions\StripTagsSniff;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -43,16 +42,8 @@ class Member extends Module_Base {
 		return [ 'member', 'team', 'experts' ];
 	}
 
-	public function get_style_depends() {
-		if ( $this->ep_is_edit_mode() ) {
-			return [ 
-				'ep-styles'
-			];
-		} else {
-			return [ 
-				'ep-member'
-			];
-		}
+	public function get_style_depends(): array {
+		return $this->ep_is_edit_mode() ? [ 'ep-styles' ] : [ 'ep-member' ];
 	}
 
 	public function get_custom_help_url() {
@@ -292,7 +283,7 @@ class Member extends Module_Base {
 				'fields'      => $repeater->get_controls(),
 				'default'     => [ 
 					[ 
-						'social_icon_link'       => [ 'url' => 'http://www.facebook.com/bdthemes/' ],
+						'social_icon_link'       => [ 'url' => 'http://www.facebook.com/sigmative/' ],
 						'social_share_icon'       => [ 
 							'value'   => 'fab fa-facebook-f',
 							'library' => 'fa-brands',
@@ -300,15 +291,15 @@ class Member extends Module_Base {
 						'social_link_title' => __( 'Facebook', 'bdthemes-element-pack' ),
 					],
 					[ 
-						'social_icon_link'       => [ 'url' => 'http://www.twitter.com/bdthemes/' ],
+						'social_icon_link'       => [ 'url' => 'http://www.x.com/bdthemescom/' ],
 						'social_share_icon'       => [ 
-							'value'   => 'fab fa-twitter',
+							'value'   => 'fab fa-x-twitter',
 							'library' => 'fa-brands',
 						],
-						'social_link_title' => __( 'Twitter', 'bdthemes-element-pack' ),
+						'social_link_title' => __( 'X', 'bdthemes-element-pack' ),
 					],
 					[ 
-						'social_icon_link'       => [ 'url' => 'http://www.instagram.com/bdthemes/' ],
+						'social_icon_link'       => [ 'url' => 'http://www.instagram.com/sigmative/' ],
 						'social_share_icon'       => [ 
 							'value'   => 'fab fa-instagram',
 							'library' => 'fa-brands',
@@ -340,7 +331,7 @@ class Member extends Module_Base {
 				'label'     => __( 'Overlay Color', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [ 
-					'{{WRAPPER}} .skin-band .bdt-member-photo:before' => 'background: {{VALUE)}};',
+					'{{WRAPPER}} .skin-band .bdt-member-photo:before' => 'background: {{VALUE}};',
 				],
 				'condition' => [ 
 					'_skin' => [ 'bdt-band' ],
@@ -353,7 +344,7 @@ class Member extends Module_Base {
 				'label'     => __( 'Background Color', 'bdthemes-element-pack' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [ 
-					'{{WRAPPER}} .skin-band .bdt-member-item-wrapper' => 'background: {{VALUE)}};',
+					'{{WRAPPER}} .skin-band .bdt-member-item-wrapper' => 'background: {{VALUE}};',
 				],
 				'condition' => [ 
 					'_skin' => [ 'bdt-band' ],
@@ -615,7 +606,7 @@ class Member extends Module_Base {
 				'label'     => esc_html__( 'Photo', 'bdthemes-element-pack' ),
 				'tab'       => Controls_Manager::TAB_STYLE,
 				'condition' => [ 
-					'_skin!' => 'bdt-flip',
+					'_skin!' => ['bdt-calm', 'bdt-ekip', 'bdt-phaedra', 'bdt-flip'],
 				],
 			]
 		);
@@ -1237,67 +1228,72 @@ class Member extends Module_Base {
 		$this->end_controls_section();
 	}
 
-	public function render_social_icons( $class = '' ) {
-		$settings = $this->get_settings_for_display();
+	/**
+	 * Renders social icons. Called from default skin (with $settings) and from other skins (with class string only).
+	 *
+	 * @param array<string, mixed>|string|null $settings_or_class Settings from render (single call site) or class name when invoked by skins.
+	 * @param string                           $class            Extra CSS class when first argument is settings.
+	 */
+	public function render_social_icons( $settings_or_class = null, string $class = '' ) {
+		if ( is_array( $settings_or_class ) ) {
+			$settings = $settings_or_class;
+		} else {
+			$settings = $this->get_settings_for_display();
+			$class    = is_string( $settings_or_class ) ? $settings_or_class : '';
+		}
 
-		if ( 'yes' !== $settings['member_social_icon'] ) {
+		if ( ( isset( $settings['member_social_icon'] ) && $settings['member_social_icon'] !== 'yes' )
+			|| empty( $settings['social_link_list'] )
+			|| ! is_array( $settings['social_link_list'] ) ) {
 			return;
 		}
-		$this->add_render_attribute( 'social_icons', 'class', 'bdt-member-icons ' . $class );
 
+		$this->add_render_attribute( 'social_icons', 'class', 'bdt-member-icons ' . esc_attr( $class ) );
 		?>
-			<div <?php $this->print_render_attribute_string( 'social_icons' ); ?>>
-				<?php
-				foreach ( $settings['social_link_list'] as $index => $link ) :
+		<div <?php $this->print_render_attribute_string( 'social_icons' ); ?>>
+			<?php
+			foreach ( $settings['social_link_list'] as $index => $link ) {
+				$link_key = 'link_' . $index;
 
-					$link_key = 'link_' . $index;
+				$tooltip = '';
+				if ( isset( $settings['social_icon_tooltip'] ) && $settings['social_icon_tooltip'] === 'yes' ) {
+					$title_raw   = isset( $link['social_link_title'] ) ? $link['social_link_title'] : '';
+					$tooltip_raw = wp_kses_post( strip_tags( (string) $title_raw ) );
+					$tooltip     = 'title: ' . esc_attr( $tooltip_raw ) . ';';
+				}
 
-					$tooltip = '';
-					if ( 'yes' === $settings['social_icon_tooltip'] ) {
-						
-						$tooltip_text = wp_kses_post(strip_tags( $link['social_link_title'])); // Escape for safe attribute usage
-						
-						// Build the tooltip attribute safely
-						$tooltip = 'title: ' . htmlspecialchars($tooltip_text, ENT_QUOTES) . ';';
-					
-						// $this->add_render_attribute( $link_key, 'data-bdt-tooltip', $tooltip, true );
+				$link_id = isset( $link['_id'] ) ? $link['_id'] : '';
+				$this->add_render_attribute( $link_key, 'class', 'bdt-member-icon elementor-repeater-item-' . esc_attr( $link_id ) );
+
+				$link_url = isset( $link['social_icon_link']['url'] ) ? $link['social_icon_link']['url'] : '';
+				if ( $link_url !== '' ) {
+					$this->add_link_attributes( $link_key, $link['social_icon_link'] );
+				} else {
+					$fallback_url = isset( $link['social_link'] ) ? $link['social_link'] : '#';
+					$this->add_render_attribute(
+						[ $link_key => [ 'href' => esc_url( $fallback_url ), 'target' => '_blank' ] ],
+						'',
+						'',
+						true
+					);
+				}
+
+				$migrated = isset( $link['__fa4_migrated']['social_share_icon'] );
+				$is_new   = empty( $link['social_icon'] ) && Icons_Manager::is_migration_allowed();
+				?>
+				<a <?php $this->print_render_attribute_string( $link_key ); ?> data-bdt-tooltip="<?php echo esc_attr( $tooltip ); ?>">
+					<?php
+					if ( $is_new || $migrated ) {
+						Icons_Manager::render_icon( $link['social_share_icon'], [ 'aria-hidden' => 'true', 'class' => 'fa-fw' ] );
+					} else {
+						echo '<i class="' . esc_attr( $link['social_icon'] ?? '' ) . '" aria-hidden="true"></i>';
 					}
-
-					$this->add_render_attribute( $link_key, 'class', 'bdt-member-icon elementor-repeater-item-' . esc_attr( $link['_id'] ) );
-
-					if ( isset($link['social_icon_link']['url']) && ! empty($link['social_icon_link']['url']) ) {
-						$this->add_link_attributes($link_key, $link['social_icon_link']);
-					} else { // TODO: Condition should be removed after v8.0 
-						$this->add_render_attribute(
-							[
-								$link_key => [
-									'href' => esc_attr($link['social_link']),
-									'target' => '_blank',
-								]
-							], '', '', true );
-					}
-
-					$migrated = isset( $link['__fa4_migrated']['social_share_icon'] );
-					$is_new   = empty( $link['social_icon'] ) && Icons_Manager::is_migration_allowed();
 					?>
-
-					<a <?php $this->print_render_attribute_string( $link_key ); ?> 
-						data-bdt-tooltip="<?php 
-						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-						echo $tooltip;
-						 ?>"
-					>
-
-						<?php if ( $is_new || $migrated ) :
-							Icons_Manager::render_icon( $link['social_share_icon'], [ 'aria-hidden' => 'true', 'class' => 'fa-fw' ] );
-						else : ?>
-							<i class="<?php echo esc_attr( $link['social_icon'] ); ?>" aria-hidden="true"></i>
-						<?php endif; ?>
-
-					</a>
-
-				<?php endforeach; ?>
-			</div>
+				</a>
+				<?php
+			}
+			?>
+		</div>
 		<?php
 	}
 
@@ -1305,98 +1301,350 @@ class Member extends Module_Base {
 		$settings = $this->get_settings_for_display();
 
 		if ( ! isset( $settings['social_icon'] ) && ! Icons_Manager::is_migration_allowed() ) {
-			// add old default
 			$settings['social_icon'] = 'fab fa-facebook-f';
 		}
 
-		$image_mask = $settings['image_mask_popover'] == 'yes' ? ' bdt-image-mask' : '';
+		$image_mask = ( isset( $settings['image_mask_popover'] ) && $settings['image_mask_popover'] === 'yes' ) ? ' bdt-image-mask' : '';
 		$this->add_render_attribute( 'image-wrap', 'class', 'bdt-member-photo-wrapper' . $image_mask );
 
+		$member_name = isset( $settings['name'] ) ? $settings['name'] : '';
+		$thumb_size  = isset( $settings['thumbnail_size_size'] ) ? $settings['thumbnail_size_size'] : 'full';
 		?>
-
 		<div class="bdt-member skin-default bdt-transition-toggle">
 			<?php
-
-			if ( ! empty( $settings['photo']['url'] ) ) :
-				$photo_hover_animation = ( '' != $settings['photo_hover_animation'] ) ? ' bdt-transition-scale-' . $settings['photo_hover_animation'] : ''; ?>
-
+			if ( ! empty( $settings['photo']['url'] ) ) {
+				$photo_hover_animation = ( isset( $settings['photo_hover_animation'] ) && $settings['photo_hover_animation'] !== '' )
+					? ' bdt-transition-scale-' . esc_attr( $settings['photo_hover_animation'] )
+					: '';
+				$has_alt_photo = ! empty( $settings['member_alternative_photo'] ) && ! empty( $settings['alternative_photo']['url'] );
+				?>
 				<div <?php $this->print_render_attribute_string( 'image-wrap' ); ?>>
-
-					<?php if ( ( $settings['member_alternative_photo'] ) and ( ! empty( $settings['alternative_photo']['url'] ) ) ) : ?>
+					<?php if ( $has_alt_photo ) : ?>
 						<div class="bdt-position-relative bdt-overflow-hidden bdt-position-z-index"
 							data-bdt-toggle="target: > .bdt-member-photo-flip; mode: hover; animation: bdt-animation-fade; queued: true; duration: 300;">
-
 							<div class="bdt-member-photo-flip bdt-position-absolute bdt-position-z-index">
-
-								<?php
-								$thumb_url = Group_Control_Image_Size::get_attachment_image_src( $settings['alternative_photo']['id'], 'thumbnail_size', $settings );
-								if ( ! $thumb_url ) {
-									printf( '<img src="%1$s" alt="%2$s">', esc_url( $settings['alternative_photo']['url'] ), esc_html( $settings['name'] ) );
-								} else {
-									print( wp_get_attachment_image(
-										$settings['alternative_photo']['id'],
-										$settings['thumbnail_size_size'],
-										false,
-										[ 
-											'alt' => esc_html( $settings['name'] )
-										]
-									) );
-								}
-								?>
-
+								<?php $this->render_member_image( $settings['alternative_photo'], $thumb_size, $member_name, $settings ); ?>
 							</div>
 						<?php endif; ?>
 
-						<div class="bdt-member-photo">
-							<div class="<?php echo esc_attr( $photo_hover_animation ); ?>">
-
-								<?php
-								$thumb_url = Group_Control_Image_Size::get_attachment_image_src( $settings['photo']['id'], 'thumbnail_size', $settings );
-								if ( ! $thumb_url ) {
-									printf( '<img src="%1$s" alt="%2$s">', esc_url( $settings['photo']['url'] ), esc_html( $settings['name'] ) );
-								} else {
-									print( wp_get_attachment_image(
-										$settings['photo']['id'],
-										$settings['thumbnail_size_size'],
-										false,
-										[ 
-											'alt' => esc_html( $settings['name'] )
-										]
-									) );
-								}
-								?>
-
-							</div>
+					<div class="bdt-member-photo">
+						<div class="<?php echo esc_attr( $photo_hover_animation ); ?>">
+							<?php $this->render_member_image( $settings['photo'], $thumb_size, $member_name, $settings ); ?>
 						</div>
-
-						<?php if ( ( $settings['member_alternative_photo'] ) and ( ! empty( $settings['alternative_photo']['url'] ) ) ) : ?>
+					</div>
+					<?php if ( $has_alt_photo ) : ?>
 						</div>
 					<?php endif; ?>
-
 				</div>
-			<?php endif; ?>
+			<?php } ?>
 
 			<div class="bdt-member-content">
-				<?php if ( ! empty( $settings['name'] ) ) : ?>
-					<span class="bdt-member-name">
-						<?php echo wp_kses( $settings['name'], element_pack_allow_tags( 'title' ) ); ?>
-					</span>
+				<?php if ( $member_name !== '' ) : ?>
+					<span class="bdt-member-name"><?php echo wp_kses( $member_name, element_pack_allow_tags( 'title' ) ); ?></span>
 				<?php endif; ?>
 				<?php if ( ! empty( $settings['role'] ) ) : ?>
-					<span class="bdt-member-role">
-						<?php echo wp_kses( $settings['role'], element_pack_allow_tags( 'title' ) ); ?>
-					</span>
+					<span class="bdt-member-role"><?php echo wp_kses( $settings['role'], element_pack_allow_tags( 'title' ) ); ?></span>
 				<?php endif; ?>
 				<?php if ( ! empty( $settings['description_text'] ) ) : ?>
-					<div class="bdt-member-text bdt-content-wrap">
-						<?php echo wp_kses( $settings['description_text'], element_pack_allow_tags( 'text' ) ); ?>
-					</div>
+					<div class="bdt-member-text bdt-content-wrap"><?php echo wp_kses( $settings['description_text'], element_pack_allow_tags( 'text' ) ); ?></div>
 				<?php endif; ?>
 			</div>
-
-			<?php $this->render_social_icons(''); ?>
-
+			<?php $this->render_social_icons( $settings, '' ); ?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Outputs member photo (img or wp_get_attachment_image). Single place for image logic and escaping.
+	 *
+	 * @param array<string, mixed> $photo    Media control value (id, url).
+	 * @param string               $size     Image size key.
+	 * @param string               $alt_text Alt attribute value.
+	 * @param array<string, mixed> $settings Widget settings (from render) for image size control.
+	 */
+	protected function render_member_image( array $photo, string $size, string $alt_text, array $settings ) {
+		$id  = isset( $photo['id'] ) ? (int) $photo['id'] : 0;
+		$url = isset( $photo['url'] ) ? $photo['url'] : '';
+		if ( $url === '' ) {
+			return;
+		}
+		$thumb_url = $id > 0 ? Group_Control_Image_Size::get_attachment_image_src( $id, 'thumbnail_size', $settings ) : null;
+		if ( ! $thumb_url ) {
+			printf( '<img src="%1$s" alt="%2$s">', esc_url( $url ), esc_attr( $alt_text ) );
+			return;
+		}
+		echo wp_get_attachment_image( $id, $size, false, [ 'alt' => esc_attr( $alt_text ) ] );
+	}
+
+	/**
+	 * Shared JS template fragment for social icons (Member editor preview).
+	 *
+	 * @param string $icons_extra_class Extra classes for `.bdt-member-icons` (matches skin render_social_icons() second arg).
+	 */
+	protected function print_member_social_icons_content_template( string $icons_extra_class = '' ) {
+		$class = 'bdt-member-icons' . ( $icons_extra_class !== '' ? ' ' . esc_attr( $icons_extra_class ) : '' );
+		?>
+			<# if ( settings.member_social_icon === 'yes' && settings.social_link_list && settings.social_link_list.length ) { #>
+				<div class="<?php echo esc_attr( $class ); ?>">
+					<# _.each( settings.social_link_list, function( link ) {
+						var socialIconHTML = elementor.helpers.renderIcon( view, link.social_share_icon, { 'aria-hidden': true, 'class': 'fa-fw' }, 'i', 'object' );
+						var migrated = link.__fa4_migrated && link.__fa4_migrated.social_share_icon;
+						var linkUrl = ( link.social_icon_link && link.social_icon_link.url ) ? link.social_icon_link.url : '';
+						var linkExtra = '';
+						if ( linkUrl !== '' ) {
+							if ( link.social_icon_link.is_external ) {
+								linkExtra += ' target="_blank"';
+								var rp = [ 'noopener', 'noreferrer' ];
+								if ( link.social_icon_link.nofollow ) {
+									rp.push( 'nofollow' );
+								}
+								linkExtra += ' rel="' + rp.join( ' ' ) + '"';
+							} else if ( link.social_icon_link.nofollow ) {
+								linkExtra += ' rel="nofollow"';
+							}
+						} else {
+							linkUrl = link.social_link || '#';
+							linkExtra = ' target="_blank"';
+						}
+						var tooltipAttr = '';
+						if ( settings.social_icon_tooltip === 'yes' && link.social_link_title ) {
+							var tipText = String( link.social_link_title ).replace( /<[^>]+>/g, '' ).replace( /"/g, '&quot;' );
+							tooltipAttr = ' data-bdt-tooltip="title: ' + tipText + ';"';
+						}
+					#>
+						<a class="bdt-member-icon elementor-repeater-item-{{ link._id }}" href="<# print( linkUrl ); #>"<# print( linkExtra ); #><# print( tooltipAttr ); #>>
+							<# if ( socialIconHTML && socialIconHTML.rendered && ( ! link.social_icon || migrated ) ) { #>
+								{{{ socialIconHTML.value }}}
+							<# } else if ( link.social_icon ) { #>
+								<i class="{{ link.social_icon }}" aria-hidden="true"></i>
+							<# } #>
+						</a>
+					<# } ); #>
+				</div>
+			<# } #>
+		<?php
+	}
+
+	protected function content_template() {
+		?>
+		<#
+		var skin = settings._skin || '';
+		var hasAltPhoto = settings.member_alternative_photo && settings.alternative_photo && settings.alternative_photo.url;
+		var hoverAnimClass = ( settings.photo_hover_animation && settings.photo_hover_animation !== '' ) ? 'bdt-transition-scale-' + settings.photo_hover_animation : '';
+		var maskClass = ( settings.image_mask_popover === 'yes' ) ? ' bdt-image-mask' : '';
+		#>
+
+		<# if ( skin === 'bdt-band' ) { #>
+		<div class="bdt-member skin-band bdt-transition-toggle">
+			<div class="bdt-member-item-wrapper">
+				<# if ( settings.photo && settings.photo.url ) { #>
+				<div class="bdt-member-photo-wrapper<# print( maskClass ); #>">
+					<# if ( hasAltPhoto ) { #>
+					<div class="bdt-position-relative bdt-overflow-hidden"
+						bdt-toggle="target: &gt; .bdt-member-photo-flip; mode: hover; animation: bdt-animation-fade; queued: true; duration: 300;">
+						<div class="bdt-member-photo-flip bdt-position-absolute bdt-position-z-index">
+							<img src="{{ settings.alternative_photo.url }}" alt="{{ settings.name }}">
+						</div>
+					<# } #>
+					<div class="bdt-member-photo">
+						<div class="<# print( hoverAnimClass ); #>">
+							<img src="{{ settings.photo.url }}" alt="{{ settings.name }}">
+						</div>
+					</div>
+					<# if ( hasAltPhoto ) { #>
+					</div>
+					<# } #>
+					<?php $this->print_member_social_icons_content_template(); ?>
+				</div>
+				<# } #>
+				<div class="bdt-member-content">
+					<# if ( settings.name ) { #><span class="bdt-member-name">{{{ settings.name }}}</span><# } #>
+					<# if ( settings.role ) { #><span class="bdt-member-role">{{{ settings.role }}}</span><# } #>
+					<# if ( settings.description_text ) { #><div class="bdt-member-text bdt-content-wrap">{{{ settings.description_text }}}</div><# } #>
+				</div>
+			</div>
+		</div>
+
+		<# } else if ( skin === 'bdt-calm' ) { #>
+		<div class="bdt-member skin-calm bdt-transition-toggle bdt-inline<# print( maskClass ); #><# if ( hasAltPhoto ) { #> bdt-position-relative bdt-overflow-hidden bdt-transition-toggle<# } #>"<# if ( hasAltPhoto ) { #> bdt-toggle="target: &gt; div &gt; .bdt-member-photo-flip; mode: hover; animation: bdt-animation-fade; queued: true; duration: 300;"<# } #>>
+			<# if ( settings.photo && settings.photo.url ) { #>
+			<div class="bdt-member-photo-wrapper">
+				<# if ( hasAltPhoto ) { #>
+				<div class="bdt-member-photo-flip bdt-position-absolute bdt-position-z-index">
+					<img src="{{ settings.alternative_photo.url }}" alt="{{ settings.name }}">
+				</div>
+				<# } #>
+				<div class="bdt-member-photo">
+					<div class="<# print( hoverAnimClass ); #>">
+						<img src="{{ settings.photo.url }}" alt="{{ settings.name }}">
+					</div>
+				</div>
+			</div>
+			<# } #>
+			<div class="bdt-member-overlay bdt-overlay bdt-position-bottom bdt-text-center bdt-position-z-index">
+				<div class="bdt-member-desc">
+					<div class="bdt-member-content bdt-transition-slide-bottom-small">
+						<# if ( settings.name ) { #><span class="bdt-member-name">{{{ settings.name }}}</span><# } #>
+						<# if ( settings.role ) { #><span class="bdt-member-role">{{{ settings.role }}}</span><# } #>
+					</div>
+					<?php $this->print_member_social_icons_content_template( 'bdt-transition-slide-bottom' ); ?>
+				</div>
+			</div>
+		</div>
+
+		<# } else if ( skin === 'bdt-ekip' ) { #>
+		<div class="bdt-member skin-ekip bdt-transition-toggle<# print( maskClass ); #><# if ( hasAltPhoto ) { #> bdt-position-relative bdt-overflow-hidden bdt-transition-toggle<# } #>"<# if ( hasAltPhoto ) { #> bdt-toggle="target: &gt; div &gt; .bdt-member-photo-flip; mode: hover; animation: bdt-animation-fade; queued: true; duration: 300;"<# } #>>
+			<# if ( settings.photo && settings.photo.url ) { #>
+			<div class="bdt-member-photo-wrapper">
+				<# if ( hasAltPhoto ) { #>
+				<div class="bdt-member-photo-flip bdt-position-absolute bdt-position-z-index">
+					<img src="{{ settings.alternative_photo.url }}" alt="{{ settings.name }}">
+				</div>
+				<# } #>
+				<div class="bdt-member-photo">
+					<div class="<# print( hoverAnimClass ); #>">
+						<img src="{{ settings.photo.url }}" alt="{{ settings.name }}">
+					</div>
+				</div>
+			</div>
+			<# } #>
+			<div class="ekip-overlay bdt-position-z-index">
+				<div class="bdt-member-desc">
+					<div class="bdt-member-content">
+						<# if ( settings.role ) { #><span class="bdt-member-role">{{{ settings.role }}}</span><# } #>
+						<# if ( settings.name ) { #><span class="bdt-member-name">{{{ settings.name }}}</span><# } #>
+					</div>
+					<?php $this->print_member_social_icons_content_template(); ?>
+				</div>
+			</div>
+		</div>
+
+		<# } else if ( skin === 'bdt-phaedra' ) { #>
+		<div class="bdt-member skin-phaedra bdt-transition-toggle<# print( maskClass ); #><# if ( hasAltPhoto ) { #> bdt-position-relative bdt-overflow-hidden bdt-transition-toggle<# } #>"<# if ( hasAltPhoto ) { #> bdt-toggle="target: &gt; div &gt; .bdt-member-photo-flip; mode: hover; animation: bdt-animation-fade; queued: true; duration: 300;"<# } #>>
+			<# if ( settings.photo && settings.photo.url ) { #>
+			<div class="bdt-member-photo-wrapper">
+				<# if ( hasAltPhoto ) { #>
+				<div class="bdt-member-photo-flip bdt-position-absolute bdt-position-z-index">
+					<img src="{{ settings.alternative_photo.url }}" alt="{{ settings.name }}">
+				</div>
+				<# } #>
+				<div class="bdt-member-photo">
+					<div class="<# print( hoverAnimClass ); #>">
+						<img src="{{ settings.photo.url }}" alt="{{ settings.name }}">
+					</div>
+				</div>
+			</div>
+			<# } #>
+			<div class="bdt-member-overlay bdt-overlay-default bdt-position-cover bdt-transition-fade bdt-position-z-index">
+				<div class="bdt-member-desc bdt-position-center bdt-text-center">
+					<div class="bdt-member-content bdt-transition-slide-top-small">
+						<# if ( settings.name ) { #><span class="bdt-member-name">{{{ settings.name }}}</span><# } #>
+						<# if ( settings.role ) { #><span class="bdt-member-role">{{{ settings.role }}}</span><# } #>
+					</div>
+					<?php $this->print_member_social_icons_content_template( 'bdt-transition-slide-bottom-small' ); ?>
+				</div>
+			</div>
+		</div>
+
+		<# } else if ( skin === 'bdt-partait' ) { #>
+		<div class="bdt-member skin-partait">
+			<div class="bdt-grid bdt-grid-collapse bdt-child-width-1-2@m" data-bdt-grid>
+				<# if ( settings.photo && settings.photo.url ) { #>
+				<div class="bdt-member-photo-wrapper<# print( maskClass ); #>">
+					<# if ( hasAltPhoto ) { #>
+					<div class="bdt-position-relative bdt-overflow-hidden"
+						bdt-toggle="target: &gt; .bdt-member-photo-flip; mode: hover; animation: bdt-animation-fade; queued: true; duration: 300;">
+						<div class="bdt-member-photo-flip bdt-position-absolute bdt-position-z-index">
+							<img src="{{ settings.alternative_photo.url }}" alt="{{ settings.name }}">
+						</div>
+					<# } #>
+					<div class="bdt-member-photo">
+						<div class="<# print( hoverAnimClass ); #>">
+							<img src="{{ settings.photo.url }}" alt="{{ settings.name }}">
+						</div>
+					</div>
+					<# if ( hasAltPhoto ) { #>
+					</div>
+					<# } #>
+				</div>
+				<# } #>
+				<div class="bdt-member-desc bdt-position-relative bdt-flex bdt-flex-middle">
+					<div class="bdt-text-center bdt-member-desc-wrapper">
+						<div class="bdt-member-content">
+							<# if ( settings.name ) { #><span class="bdt-member-name">{{{ settings.name }}}</span><# } #>
+							<# if ( settings.role ) { #><span class="bdt-member-role">{{{ settings.role }}}</span><# } #>
+							<# if ( settings.description_text ) { #><div class="bdt-member-text bdt-content-wrap">{{{ settings.description_text }}}</div><# } #>
+						</div>
+						<?php $this->print_member_social_icons_content_template(); ?>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<# } else if ( skin === 'bdt-flip' ) { #>
+		<div class="bdt-member skin-flip bdt-transition-toggle bdt-inline<# print( maskClass ); #>">
+			<# var flipFrontUrl = ( settings.photo && settings.photo.url ) ? settings.photo.url : '';
+			var flipBackUrl = ( settings.member_alternative_photo === 'yes' && settings.alternative_photo && settings.alternative_photo.url ) ? settings.alternative_photo.url : '';
+			#>
+			<div class="bdt-skin-flip-layer bdt-skin-flip-front" style="background-image: url('<# print( flipFrontUrl ); #>');">
+				<div class="bdt-skin-flip-layer-overlay">
+					<div class="bdt-skin-flip-layer-inner">
+						<div class="bdt-member-content bdt-position-bottom-center">
+							<# if ( settings.name ) { #><span class="bdt-member-name">{{{ settings.name }}}</span><# } #>
+							<# if ( settings.role ) { #><span class="bdt-member-role">{{{ settings.role }}}</span><# } #>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="bdt-skin-flip-layer bdt-skin-flip-back" style="background-image: url('<# print( flipBackUrl ); #>');">
+				<div class="bdt-skin-flip-layer-overlay">
+					<div class="bdt-skin-flip-layer-inner">
+						<?php $this->print_member_social_icons_content_template( 'bdt-position-bottom-center' ); ?>
+						<# if ( settings.description_text ) { #>
+						<div class="bdt-member-text bdt-position-center">{{{ settings.description_text }}}</div>
+						<# } #>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<# } else { #>
+		<div class="bdt-member skin-default bdt-transition-toggle">
+			<# if ( settings.photo && settings.photo.url ) { #>
+				<div class="bdt-member-photo-wrapper<# if ( settings.image_mask_popover === 'yes' ) { #> bdt-image-mask<# } #>">
+					<# if ( hasAltPhoto ) { #>
+						<div class="bdt-position-relative bdt-overflow-hidden bdt-position-z-index"
+							data-bdt-toggle="target: &gt; .bdt-member-photo-flip; mode: hover; animation: bdt-animation-fade; queued: true; duration: 300;">
+							<div class="bdt-member-photo-flip bdt-position-absolute bdt-position-z-index">
+								<img src="{{ settings.alternative_photo.url }}" alt="{{ settings.name }}">
+							</div>
+					<# } #>
+					<div class="bdt-member-photo">
+						<div class="<# print( hoverAnimClass ); #>">
+							<img src="{{ settings.photo.url }}" alt="{{ settings.name }}">
+						</div>
+					</div>
+					<# if ( hasAltPhoto ) { #>
+						</div>
+					<# } #>
+				</div>
+			<# } #>
+
+			<div class="bdt-member-content">
+				<# if ( settings.name ) { #>
+					<span class="bdt-member-name">{{{ settings.name }}}</span>
+				<# } #>
+				<# if ( settings.role ) { #>
+					<span class="bdt-member-role">{{{ settings.role }}}</span>
+				<# } #>
+				<# if ( settings.description_text ) { #>
+					<div class="bdt-member-text bdt-content-wrap">{{{ settings.description_text }}}</div>
+				<# } #>
+			</div>
+
+			<?php $this->print_member_social_icons_content_template(); ?>
+		</div>
+		<# } #>
 		<?php
 	}
 }

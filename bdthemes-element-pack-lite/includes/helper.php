@@ -43,6 +43,84 @@ function is_ep_pro() {
 	return apply_filters( 'bdt_ep_init_pro', false );
 }
 
+/**
+ * Check if an SEO plugin that outputs structured data (FAQ schema) is active.
+ * When these plugins are active, they typically add JSON-LD to the head.
+ * Duplicate DOM microdata from Element Pack would conflict and cause Google Search Console errors.
+ *
+ * @return bool True if an SEO plugin that may output FAQ/structured data is active.
+ */
+function element_pack_is_seo_plugin_active() {
+	$seo_plugins = [
+		// Yoast SEO (Free & Premium)
+		'WPSEO_VERSION' => 'defined',
+		// Rank Math
+		'RANK_MATH_VERSION' => 'defined',
+		// All in One SEO (Free & Pro)
+		'AIOSEO_VERSION' => 'defined',
+		// SEOPress
+		'SEOPRESS_VERSION' => 'defined',
+		// The SEO Framework
+		'THE_SEO_FRAMEWORK_VERSION' => 'defined',
+		// Squirrly SEO
+		'SQ_VERSION' => 'defined',
+	];
+
+	foreach ( $seo_plugins as $check => $type ) {
+		if ( 'defined' === $type && defined( $check ) ) {
+			return true;
+		}
+	}
+
+	// Fallback: is_plugin_active for plugins that may not define constants early
+	if ( ! function_exists( 'is_plugin_active' ) ) {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+
+	$plugin_paths = [
+		'wordpress-seo/wp-seo.php',
+		'wordpress-seo-premium/wp-seo-premium.php',
+		'seo-by-rank-math/rank-math.php',
+		'all-in-one-seo-pack/all_in_one_seo_pack.php',
+		'all-in-one-seo-pack-pro/all_in_one_seo_pack.php',
+		'wp-seopress/seopress.php',
+		'autodescription/autodescription.php',
+		'squirrly-seo/squirrly-seo.php',
+		'semrush-seo-writing-assistant/semrush-seo-writing-assistant.php',
+	];
+
+	foreach ( $plugin_paths as $path ) {
+		if ( is_plugin_active( $path ) ) {
+			return true;
+		}
+	}
+
+	return apply_filters( 'element_pack_is_seo_plugin_active', false );
+}
+
+/**
+ * Determine if DOM FAQ schema should be output for Accordion/FAQ widgets.
+ * Auto-disables when SEO plugins are active to prevent duplicate schema conflicts,
+ * unless the user has explicitly overridden via schema_override_seo.
+ *
+ * @param array $settings Widget settings containing schema_activity and schema_override_seo.
+ * @return bool True if schema markup should be output.
+ */
+function element_pack_should_output_faq_schema( $settings ) {
+	if ( empty( $settings['schema_activity'] ) || 'yes' !== $settings['schema_activity'] ) {
+		return false;
+	}
+
+	// If SEO plugin is active and user has not overridden, do not output DOM schema
+	if ( element_pack_is_seo_plugin_active() ) {
+		if ( empty( $settings['schema_override_seo'] ) || 'yes' !== $settings['schema_override_seo'] ) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 function element_pack_is_edit() {
 	return Plugin::$instance->editor->is_edit_mode();
 }
@@ -344,10 +422,15 @@ function element_pack_post_pagination( $wp_query ) {
 		return;
 	}
 
-	if ( is_front_page() ) {
-		$paged = ( get_query_var( 'page' ) ) ? get_query_var( 'page' ) : 1;
+	/** Use the passed query's current page so the active bullet matches (e.g. current_query source) */
+	if ( isset( $wp_query->query_vars['paged'] ) && $wp_query->query_vars['paged'] > 0 ) {
+		$paged = (int) $wp_query->query_vars['paged'];
+	} elseif ( isset( $wp_query->query_vars['page'] ) && $wp_query->query_vars['page'] > 0 ) {
+		$paged = (int) $wp_query->query_vars['page'];
+	} elseif ( is_front_page() ) {
+		$paged = ( get_query_var( 'page' ) ) ? (int) get_query_var( 'page' ) : 1;
 	} else {
-		$paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
+		$paged = ( get_query_var( 'paged' ) ) ? (int) get_query_var( 'paged' ) : 1;
 	}
 
 	$max = intval( $wp_query->max_num_pages );
@@ -434,7 +517,7 @@ function element_pack_template_on_modal_with_iframe( $template_id, $id ) {
 		?>
 		<a class="bdt-template-modal-iframe-edit-link bdt-elementor-template-edit-link"
 			data-modal-element=".<?php echo esc_attr( $modalSelector ) ?>" href="javascript:void(0)"
-			title="<?php esc_html__( 'Edit Template', 'bdthemes-element-pack' ) ?>" target="_blank">
+			title="<?php echo esc_attr__( 'Edit Template', 'bdthemes-element-pack' ) ?>" target="_blank">
 			<i class="eicon-edit"></i>
 		</a>
 		<div class="<?php echo esc_attr( $modalSelector ) ?> bdt-flex-top" bdt-modal>
@@ -725,16 +808,16 @@ function element_pack_transition_options() {
 		'scale-down'          => esc_html__( 'Scale Down', 'bdthemes-element-pack' ),
 		'slide-top'           => esc_html__( 'Slide Top', 'bdthemes-element-pack' ),
 		'slide-bottom'        => esc_html__( 'Slide Bottom', 'bdthemes-element-pack' ),
-		'slide-left'          => esc_html__( 'Slide Left', 'bdthemes-element-pack' ),
-		'slide-right'         => esc_html__( 'Slide Right', 'bdthemes-element-pack' ),
+		'slide-left'          => esc_html__( 'Slide Start', 'bdthemes-element-pack' ),
+		'slide-right'         => esc_html__( 'Slide End', 'bdthemes-element-pack' ),
 		'slide-top-small'     => esc_html__( 'Slide Top Small', 'bdthemes-element-pack' ),
 		'slide-bottom-small'  => esc_html__( 'Slide Bottom Small', 'bdthemes-element-pack' ),
-		'slide-left-small'    => esc_html__( 'Slide Left Small', 'bdthemes-element-pack' ),
-		'slide-right-small'   => esc_html__( 'Slide Right Small', 'bdthemes-element-pack' ),
+		'slide-left-small'    => esc_html__( 'Slide Start Small', 'bdthemes-element-pack' ),
+		'slide-right-small'   => esc_html__( 'Slide End Small', 'bdthemes-element-pack' ),
 		'slide-top-medium'    => esc_html__( 'Slide Top Medium', 'bdthemes-element-pack' ),
 		'slide-bottom-medium' => esc_html__( 'Slide Bottom Medium', 'bdthemes-element-pack' ),
-		'slide-left-medium'   => esc_html__( 'Slide Left Medium', 'bdthemes-element-pack' ),
-		'slide-right-medium'  => esc_html__( 'Slide Right Medium', 'bdthemes-element-pack' ),
+		'slide-left-medium'   => esc_html__( 'Slide Start Medium', 'bdthemes-element-pack' ),
+		'slide-right-medium'  => esc_html__( 'Slide End Medium', 'bdthemes-element-pack' ),
 	];
 
 	return $transition_options;
@@ -768,15 +851,15 @@ function element_pack_blend_options() {
 function element_pack_position() {
 	$position_options = [ 
 		''              => esc_html__( 'Default', 'bdthemes-element-pack' ),
-		'top-left'      => esc_html__( 'Top Left', 'bdthemes-element-pack' ),
+		'top-left'      => esc_html__( 'Top Start', 'bdthemes-element-pack' ),
 		'top-center'    => esc_html__( 'Top Center', 'bdthemes-element-pack' ),
-		'top-right'     => esc_html__( 'Top Right', 'bdthemes-element-pack' ),
+		'top-right'     => esc_html__( 'Top End', 'bdthemes-element-pack' ),
 		'center'        => esc_html__( 'Center', 'bdthemes-element-pack' ),
-		'center-left'   => esc_html__( 'Center Left', 'bdthemes-element-pack' ),
-		'center-right'  => esc_html__( 'Center Right', 'bdthemes-element-pack' ),
-		'bottom-left'   => esc_html__( 'Bottom Left', 'bdthemes-element-pack' ),
+		'center-left'   => esc_html__( 'Center Start', 'bdthemes-element-pack' ),
+		'center-right'  => esc_html__( 'Center End', 'bdthemes-element-pack' ),
+		'bottom-left'   => esc_html__( 'Bottom Start', 'bdthemes-element-pack' ),
 		'bottom-center' => esc_html__( 'Bottom Center', 'bdthemes-element-pack' ),
-		'bottom-right'  => esc_html__( 'Bottom Right', 'bdthemes-element-pack' ),
+		'bottom-right'  => esc_html__( 'Bottom End', 'bdthemes-element-pack' ),
 	];
 
 	return $position_options;
@@ -785,14 +868,14 @@ function element_pack_position() {
 // BDT Thumbnavs Position
 function element_pack_thumbnavs_position() {
 	$position_options = [ 
-		'top-left'      => esc_html__( 'Top Left', 'bdthemes-element-pack' ),
+		'top-left'      => esc_html__( 'Top Start', 'bdthemes-element-pack' ),
 		'top-center'    => esc_html__( 'Top Center', 'bdthemes-element-pack' ),
-		'top-right'     => esc_html__( 'Top Right', 'bdthemes-element-pack' ),
-		'center-left'   => esc_html__( 'Center Left', 'bdthemes-element-pack' ),
-		'center-right'  => esc_html__( 'Center Right', 'bdthemes-element-pack' ),
-		'bottom-left'   => esc_html__( 'Bottom Left', 'bdthemes-element-pack' ),
+		'top-right'     => esc_html__( 'Top End', 'bdthemes-element-pack' ),
+		'center-left'   => esc_html__( 'Center Start', 'bdthemes-element-pack' ),
+		'center-right'  => esc_html__( 'Center End', 'bdthemes-element-pack' ),
+		'bottom-left'   => esc_html__( 'Bottom Start', 'bdthemes-element-pack' ),
 		'bottom-center' => esc_html__( 'Bottom Center', 'bdthemes-element-pack' ),
-		'bottom-right'  => esc_html__( 'Bottom Right', 'bdthemes-element-pack' ),
+		'bottom-right'  => esc_html__( 'Bottom End', 'bdthemes-element-pack' ),
 	];
 
 	return $position_options;
@@ -800,15 +883,15 @@ function element_pack_thumbnavs_position() {
 
 function element_pack_navigation_position() {
 	$position_options = [ 
-		'top-left'      => esc_html__( 'Top Left', 'bdthemes-element-pack' ),
+		'top-left'      => esc_html__( 'Top Start', 'bdthemes-element-pack' ),
 		'top-center'    => esc_html__( 'Top Center', 'bdthemes-element-pack' ),
-		'top-right'     => esc_html__( 'Top Right', 'bdthemes-element-pack' ),
+		'top-right'     => esc_html__( 'Top End', 'bdthemes-element-pack' ),
 		'center'        => esc_html__( 'Center', 'bdthemes-element-pack' ),
-		'center-left'   => esc_html__( 'Center Left', 'bdthemes-element-pack' ),
-		'center-right'  => esc_html__( 'Center Right', 'bdthemes-element-pack' ),
-		'bottom-left'   => esc_html__( 'Bottom Left', 'bdthemes-element-pack' ),
+		'center-left'   => esc_html__( 'Center Start', 'bdthemes-element-pack' ),
+		'center-right'  => esc_html__( 'Center End', 'bdthemes-element-pack' ),
+		'bottom-left'   => esc_html__( 'Bottom Start', 'bdthemes-element-pack' ),
 		'bottom-center' => esc_html__( 'Bottom Center', 'bdthemes-element-pack' ),
-		'bottom-right'  => esc_html__( 'Bottom Right', 'bdthemes-element-pack' ),
+		'bottom-right'  => esc_html__( 'Bottom End', 'bdthemes-element-pack' ),
 	];
 
 	return $position_options;
@@ -2900,29 +2983,3 @@ if ( ! function_exists( 'ep_get_subsite_activation_source' ) ) {
 }
 
 // End: Custom CSS/JS Frontend Injection Functions
-
-// Filter to override WordPress posts_per_page for Builder pages
-add_action('pre_get_posts', 'element_pack_override_posts_per_page_for_builder');
-
-function element_pack_override_posts_per_page_for_builder($query) {
-	// Only affect main query
-	if (!$query->is_main_query()) {
-		return;
-	}
-	
-	// Check if we have pagination in URL
-	$paged = max(1, get_query_var('paged'), get_query_var('page'));
-	
-	// Only apply override on paginated pages (page > 1)
-	if ($paged <= 1) {
-		return;
-	}
-	
-	$post_id = get_queried_object_id();
-	
-	if ($post_id && function_exists('get_post_meta')) {
-		// Set posts_per_page to -1 to show all posts and avoid pagination conflicts
-		$query->set('posts_per_page', -1);
-		$query->set('nopaging', true);
-	}
-}

@@ -25,7 +25,7 @@ class Svg_Image extends Module_Base {
 	}
 
 	public function get_title() {
-		return BDTEP . esc_html__( 'SVG', 'bdthemes-element-pack' );
+		return BDTEP . esc_html__( 'SVG Image', 'bdthemes-element-pack' );
 	}
 
 	public function get_icon() {
@@ -40,16 +40,16 @@ class Svg_Image extends Module_Base {
 		return [ 'image', 'svg image', 'svg' ];
 	}
 
-	public function get_script_depends() {
+		public function get_script_depends() {
 		if ( $this->ep_is_edit_mode() ) {
 			if ( true == is_ep_pro() ) {
-				return [ 'draw-svg-plugin-js', 'scroll-trigger', 'magic-scroll', 'magic-scroll-animation', 'ep-scripts' ];
+				return [ 'draw-svg-plugin-js', 'scroll-trigger', 'ep-scripts' ];
 			} else {
 				return [ 'ep-scripts' ];
 			}
 		} else {
 			if ( true == is_ep_pro() ) {
-				return [ 'gsap', 'draw-svg-plugin-js', 'magic-scroll', 'magic-scroll-animation', 'scroll-trigger',  'ep-svg-image' ];
+				return [ 'gsap', 'draw-svg-plugin-js', 'scroll-trigger', 'ep-svg-image' ];
 			} else {
 				return [];
 			}
@@ -345,6 +345,145 @@ class Svg_Image extends Module_Base {
 					'condition'          => [ 
 						'svg_image_drawer_type!' => 'viewport',
 						'svg_image_draw'         => 'yes'
+					],
+					'frontend_available' => true,
+				]
+			);
+
+			$this->add_control(
+				'svg_image_easing',
+				[ 
+					'label'              => esc_html__( 'Easing', 'bdthemes-element-pack' ),
+					'type'               => Controls_Manager::SELECT,
+					'options'            => [ 
+						'none'         => esc_html__( 'None (Linear)', 'bdthemes-element-pack' ),
+						'power1.out'   => esc_html__( 'Power1 Out', 'bdthemes-element-pack' ),
+						'power1.in'    => esc_html__( 'Power1 In', 'bdthemes-element-pack' ),
+						'power1.inOut' => esc_html__( 'Power1 InOut', 'bdthemes-element-pack' ),
+						'power2.out'   => esc_html__( 'Power2 Out', 'bdthemes-element-pack' ),
+						'power2.in'    => esc_html__( 'Power2 In', 'bdthemes-element-pack' ),
+						'power2.inOut' => esc_html__( 'Power2 InOut', 'bdthemes-element-pack' ),
+						'power3.out'   => esc_html__( 'Power3 Out', 'bdthemes-element-pack' ),
+						'power3.in'    => esc_html__( 'Power3 In', 'bdthemes-element-pack' ),
+						'power3.inOut' => esc_html__( 'Power3 InOut', 'bdthemes-element-pack' ),
+						'power4.out'   => esc_html__( 'Power4 Out', 'bdthemes-element-pack' ),
+						'power4.inOut' => esc_html__( 'Power4 InOut', 'bdthemes-element-pack' ),
+						'back.out'     => esc_html__( 'Back Out', 'bdthemes-element-pack' ),
+						'back.inOut'   => esc_html__( 'Back InOut', 'bdthemes-element-pack' ),
+						'elastic.out'  => esc_html__( 'Elastic Out', 'bdthemes-element-pack' ),
+						'bounce.out'   => esc_html__( 'Bounce Out', 'bdthemes-element-pack' ),
+					],
+					'default'            => 'power2.out',
+					'condition'          => [ 
+						'svg_image_draw' => 'yes'
+					],
+					'frontend_available' => true,
+				]
+			);
+
+			$this->add_control(
+				'svg_image_stagger',
+				[ 
+					'label'              => esc_html__( 'Stagger Delay', 'bdthemes-element-pack' ),
+					'type'               => Controls_Manager::SLIDER,
+					'description'        => esc_html__( 'Delay between each SVG path animation.', 'bdthemes-element-pack' ),
+					'range'              => [ 
+						'px' => [ 
+							'min'  => 0,
+							'max'  => 2,
+							'step' => 0.05,
+						]
+					],
+					'default'            => [ 
+						'unit' => 'px',
+						'size' => 0.1,
+					],
+					'condition'          => [ 
+						'svg_image_draw' => 'yes'
+					],
+					'frontend_available' => true,
+				]
+			);
+
+			$this->add_control(
+				'svg_image_stagger_from',
+				[ 
+					'label'              => esc_html__( 'Stagger From', 'bdthemes-element-pack' ),
+					'type'               => Controls_Manager::SELECT,
+					'options'            => [ 
+						'start'  => esc_html__( 'Start', 'bdthemes-element-pack' ),
+						'center'  => esc_html__( 'Center', 'bdthemes-element-pack' ),
+						'end'     => esc_html__( 'End', 'bdthemes-element-pack' ),
+						'edges'   => esc_html__( 'Edges', 'bdthemes-element-pack' ),
+						'random'  => esc_html__( 'Random', 'bdthemes-element-pack' ),
+					],
+					'default'            => 'start',
+					'condition'          => [ 
+						'svg_image_draw' => 'yes'
+					],
+					'frontend_available' => true,
+				]
+			);
+
+			$this->add_control(
+				'svg_image_draw_live',
+				[ 
+					'label'              => esc_html__( 'Responsive (Live)', 'bdthemes-element-pack' ),
+					'type'               => Controls_Manager::SWITCHER,
+					'description'        => esc_html__( 'Recalculate path length on resize for responsive SVGs.', 'bdthemes-element-pack' ),
+					'default'            => 'no',
+					'condition'          => [ 
+						'svg_image_draw' => 'yes'
+					],
+					'frontend_available' => true,
+				]
+			);
+
+			$this->add_control(
+				'svg_image_scrub',
+				[ 
+					'label'              => esc_html__( 'Scrub Smoothness', 'bdthemes-element-pack' ),
+					'type'               => Controls_Manager::SLIDER,
+					'description'        => esc_html__( 'Higher value = smoother scroll-linked animation. 0 = instant.', 'bdthemes-element-pack' ),
+					'range'              => [ 
+						'px' => [ 
+							'min'  => 0,
+							'max'  => 3,
+							'step' => 0.1,
+						]
+					],
+					'default'            => [ 
+						'unit' => 'px',
+						'size' => 1,
+					],
+					'condition'          => [ 
+						'svg_image_draw'         => 'yes',
+						'svg_image_drawer_type' => 'viewport',
+					],
+					'frontend_available' => true,
+				]
+			);
+
+			$this->add_control(
+				'svg_image_scroll_length',
+				[ 
+					'label'              => esc_html__( 'Scroll Length (px)', 'bdthemes-element-pack' ),
+					'type'               => Controls_Manager::SLIDER,
+					'description'        => esc_html__( 'Scroll distance to complete the draw animation.', 'bdthemes-element-pack' ),
+					'range'              => [ 
+						'px' => [ 
+							'min'  => 100,
+							'max'  => 1500,
+							'step' => 50,
+						]
+					],
+					'default'            => [ 
+						'unit' => 'px',
+						'size' => 600,
+					],
+					'condition'          => [ 
+						'svg_image_draw'         => 'yes',
+						'svg_image_drawer_type' => 'viewport',
 					],
 					'frontend_available' => true,
 				]
@@ -847,6 +986,75 @@ class Svg_Image extends Module_Base {
 		return $caption;
 	}
 
+	/**
+	 * Sanitize raw SVG markup by removing all event handlers, script elements,
+	 * autofocus attributes, and javascript: URIs before the content is echoed.
+	 *
+	 * Uses DOMDocument to parse the SVG so that sanitization is applied
+	 * regardless of attribute quoting style, whitespace, or encoding — unlike
+	 * the regex-only approach which can be bypassed with unquoted values.
+	 *
+	 * @param string $svg_content Raw SVG string.
+	 * @return string Sanitized SVG string, or empty string on parse failure.
+	 */
+	private function sanitize_svg( $svg_content ) {
+		// Strip script elements before DOM parsing as an extra layer of defence.
+		$svg_content = preg_replace( '/<script[\s\S]*?<\/script>/si', '', $svg_content );
+
+		$dom = new \DOMDocument();
+		libxml_use_internal_errors( true );
+		$loaded = $dom->loadXML( $svg_content );
+		libxml_clear_errors();
+
+		if ( ! $loaded || ! $dom->documentElement ) {
+			return '';
+		}
+
+		$xpath = new \DOMXPath( $dom );
+
+		// Remove inherently dangerous elements entirely.
+		$dangerous_tags = array( 'script', 'foreignObject' );
+		foreach ( $dangerous_tags as $tag ) {
+			$nodes = $xpath->query( '//' . $tag );
+			if ( $nodes ) {
+				foreach ( iterator_to_array( $nodes ) as $node ) {
+					$node->parentNode->removeChild( $node );
+				}
+			}
+		}
+
+		// Walk every element and strip unsafe attributes.
+		$all_nodes = $xpath->query( '//*' );
+		if ( $all_nodes ) {
+			foreach ( $all_nodes as $element ) {
+				$remove = array();
+				foreach ( $element->attributes as $attr ) {
+					$name  = strtolower( $attr->nodeName );
+					$value = $attr->nodeValue;
+
+					// Remove all event-handler attributes (on*).
+					if ( substr( $name, 0, 2 ) === 'on' ) {
+						$remove[] = $attr->nodeName;
+
+					// Remove javascript: URIs in link/source attributes.
+					} elseif ( in_array( $name, array( 'href', 'xlink:href', 'src', 'action', 'formaction' ), true )
+						&& preg_match( '/^\s*javascript:/i', $value ) ) {
+						$remove[] = $attr->nodeName;
+
+					// Remove autofocus — prevents auto-fired focus events on load.
+					} elseif ( $name === 'autofocus' ) {
+						$remove[] = $attr->nodeName;
+					}
+				}
+				foreach ( $remove as $attr_name ) {
+					$element->removeAttribute( $attr_name );
+				}
+			}
+		}
+
+		return $dom->saveXML( $dom->documentElement );
+	}
+
 	public function render_svg() {
 		$settings = $this->get_settings_for_display();
 		$svg_file = $settings['image']['url'];
@@ -854,27 +1062,40 @@ class Svg_Image extends Module_Base {
 		if ( ! empty( $svg_file ) ) {
 			// Try to get the SVG file contents
 			if ( strpos( $svg_file, get_site_url() ) === 0 ) {
-				// Local file, convert URL to path
+				// Local file, convert URL to path with path traversal protection
 				$upload_dir = wp_upload_dir();
-				$baseurl = $upload_dir['baseurl'];
-				$basedir = $upload_dir['basedir'];
+				$baseurl    = $upload_dir['baseurl'];
+				$basedir    = $upload_dir['basedir'];
 				if ( strpos( $svg_file, $baseurl ) === 0 ) {
-					$svg_path = $basedir . substr( $svg_file, strlen( $baseurl ) );
-					if ( file_exists( $svg_path ) ) {
-						$svg_content = file_get_contents( $svg_path );
+					$relative_path = substr( $svg_file, strlen( $baseurl ) );
+					$relative_path = ltrim( $relative_path, '/' );
+					// Reject path traversal sequences
+					if ( strpos( $relative_path, '..' ) === false ) {
+						$svg_path  = $basedir . ( $relative_path !== '' ? '/' . $relative_path : '' );
+						$real_path = realpath( $svg_path );
+						$real_base = realpath( $basedir );
+						// Ensure resolved path is inside upload directory
+						if ( $real_path !== false && $real_base !== false && ( $real_path === $real_base || strpos( $real_path, $real_base . DIRECTORY_SEPARATOR ) === 0 ) ) {
+							if ( file_exists( $real_path ) && is_file( $real_path ) ) {
+								$svg_content = file_get_contents( $real_path );
+							}
+						}
 					}
 				}
 			}
 			// If not found, fallback to remote fetch (not recommended, but for completeness)
 			if ( empty( $svg_content ) ) {
-				$response = wp_remote_get( $svg_file );
+				$response = wp_safe_remote_get( $svg_file );
 				if ( ! is_wp_error( $response ) && ! empty( $response['body'] ) ) {
 					$svg_content = $response['body'];
 				}
 			}
 		}
 		if ( ! empty( $svg_content ) ) {
-			// Add class and data attributes to the SVG tag
+			$svg_content = $this->sanitize_svg( $svg_content );
+		}
+
+		if ( ! empty( $svg_content ) ) {
 			$svg_content = preg_replace( '/<svg(\s|>)/', '<svg class="bdt-svg-image-inner" data-bdt-svg="stroke-animation: true" ', $svg_content, 1 );
 			echo $svg_content;
 		} else {
@@ -952,7 +1173,7 @@ class Svg_Image extends Module_Base {
 		?>
 		<div <?php $this->print_render_attribute_string( 'wrapper' ); ?>>
 			<?php if ( $has_caption ) : ?>
-				<figure class="wp-caption">
+				<figure class="ep-caption">
 				<?php endif; ?>
 				<?php if ( $link ) : ?>
 					<a <?php $this->print_render_attribute_string( 'link' ); ?>>
@@ -967,7 +1188,7 @@ class Svg_Image extends Module_Base {
 				<?php endif; ?>
 				<?php
 				if ( $has_caption ) : ?>
-					<figcaption class="widget-image-caption wp-caption-text">
+					<figcaption class="widget-image-caption ep-caption-text">
 						<?php echo wp_kses_post( $this->get_caption( $settings ) ); ?>
 					</figcaption>
 				<?php endif; ?>

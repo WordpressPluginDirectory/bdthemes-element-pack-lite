@@ -59,9 +59,6 @@ class Facebook_Feed extends Module_Base {
 	public function has_widget_inner_wrapper(): bool {
         return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
     }
-	protected function is_dynamic_content(): bool {
-		return false;
-	}
 
 	protected function register_controls() {
 		$this->start_controls_section(
@@ -1791,8 +1788,7 @@ class Facebook_Feed extends Module_Base {
 		$this->end_controls_section();
 	}
 
-	protected function render_read_more( $data ) {
-		$settings = $this->get_settings_for_display();
+	protected function render_read_more( $data, $settings ) {
 		if ( 'yes' !== $settings['show_read_more'] && ! empty( $settings['read_more_text'] ) ) {
 			return;
 		}
@@ -1814,8 +1810,7 @@ class Facebook_Feed extends Module_Base {
 		);
 	}
 
-	protected function render_main_share( $data ) {
-		$settings = $this->get_settings_for_display();
+	protected function render_main_share( $data, $settings ) {
 		if ( 'yes' !== $settings['show_share'] ) {
 			return;
 		}
@@ -1859,7 +1854,7 @@ class Facebook_Feed extends Module_Base {
                         </li>',
 						esc_url( $data['permalink_url'] ),
 						esc_attr( $settings['link_target'] ),
-						esc_html__( 'Twitter', 'bdthemes-element-pack' )
+						esc_html__( 'X', 'bdthemes-element-pack' )
 					);
 					printf(
 						'<li>
@@ -1882,8 +1877,7 @@ class Facebook_Feed extends Module_Base {
 		<?php
 	}
 
-	protected function render_date( $data ) {
-		$settings = $this->get_settings_for_display();
+	protected function render_date( $data, $settings ) {
 		if ( 'yes' !== $settings['show_date'] ) {
 			return;
 		}
@@ -1893,8 +1887,7 @@ class Facebook_Feed extends Module_Base {
 		);
 	}
 
-	protected function render_author_image( $data ) {
-		$settings = $this->get_settings_for_display();
+	protected function render_author_image( $data, $settings ) {
 		if ( 'yes' !== $settings['show_author_image'] ) {
 			return;
 		}
@@ -1910,8 +1903,7 @@ class Facebook_Feed extends Module_Base {
 		);
 	}
 
-	protected function render_author_name( $data ) {
-		$settings = $this->get_settings_for_display();
+	protected function render_author_name( $data, $settings ) {
 		if ( 'yes' !== $settings['show_author_name'] ) {
 			return;
 		}
@@ -1926,9 +1918,7 @@ class Facebook_Feed extends Module_Base {
 		);
 	}
 
-	protected function render_feature_image( $data ) {
-
-		$settings = $this->get_settings_for_display();
+	protected function render_feature_image( $data, $settings ) {
 		$show_feature_image = in_array( 'yes', [$settings['show_feature_image'], $settings['show_image_album']] );
 		$attachments = $data['attachments'] ?? [];
 	
@@ -2000,8 +1990,7 @@ class Facebook_Feed extends Module_Base {
 	
 	
 
-	protected function render_desc( $data ) {
-		$settings = $this->get_settings_for_display();
+	protected function render_desc( $data, $settings ) {
 
 		if ( 'yes' !== $settings['show_desc'] ) {
 			return;
@@ -2018,8 +2007,7 @@ class Facebook_Feed extends Module_Base {
 		printf( '<div class="bdt-text">%1$s</div>', ! empty( $data['message'] ) ? wp_kses_post( $data['message'] ) : '' );
 	}
 
-	protected function render_like( $data ) {
-		$settings = $this->get_settings_for_display();
+	protected function render_like( $data, $settings ) {
 		if ( 'yes' !== $settings['show_like'] ) {
 			return;
 		}
@@ -2035,8 +2023,7 @@ class Facebook_Feed extends Module_Base {
 		);
 	}
 
-	protected function render_comments( $data ) {
-		$settings = $this->get_settings_for_display();
+	protected function render_comments( $data, $settings ) {
 		if ( 'yes' !== $settings['show_comments'] ) {
 			return;
 		}
@@ -2110,11 +2097,11 @@ class Facebook_Feed extends Module_Base {
 										/**
 										 * Render Feature Image
 										 */
-										$this->render_author_image( $item );
+										$this->render_author_image( $item, $settings );
 										?>
 										<div>
-											<?php $this->render_author_name( $item ); ?>
-											<?php $this->render_date( $item ); ?>
+											<?php $this->render_author_name( $item, $settings ); ?>
+											<?php $this->render_date( $item, $settings ); ?>
 										</div>
 									</div>
 
@@ -2126,8 +2113,8 @@ class Facebook_Feed extends Module_Base {
 										printf( '<div class="bdt-social-button">' );
 									}
 
-									$this->render_like( $item );
-									$this->render_comments( $item );
+									$this->render_like( $item, $settings );
+									$this->render_comments( $item, $settings );
 
 									if ( 'yes' == $settings['show_like'] || 'yes' == $settings['show_comments'] ) {
 										printf( '</div>' );
@@ -2135,7 +2122,7 @@ class Facebook_Feed extends Module_Base {
 									?>
 
 								</div>
-								<?php $this->render_desc( $item ); ?>
+								<?php $this->render_desc( $item, $settings ); ?>
 							</div>
 							<div class="bdt-img-content">
 
@@ -2148,10 +2135,10 @@ class Facebook_Feed extends Module_Base {
 									printf( '<div class="bdt-share-and-readmore">' );
 								}
 								if ( 'yes' === $settings['show_read_more'] ) {
-									$this->render_read_more( $item );
+									$this->render_read_more( $item, $settings );
 								}
 								if ( 'yes' === $settings['show_share'] ) {
-									$this->render_main_share( $item );
+									$this->render_main_share( $item, $settings );
 								}
 
 								if ( 'yes' == $settings['show_read_more'] || 'yes' == $settings['show_share'] ) {
@@ -2160,7 +2147,7 @@ class Facebook_Feed extends Module_Base {
 
 
 								?>
-								<?php $this->render_feature_image( $item ); ?>
+								<?php $this->render_feature_image( $item, $settings ); ?>
 							</div>
 						</div>
 
