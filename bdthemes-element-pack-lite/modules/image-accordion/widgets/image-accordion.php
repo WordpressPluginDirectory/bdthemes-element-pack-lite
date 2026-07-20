@@ -12,11 +12,14 @@ use Elementor\Group_Control_Text_Stroke;
 use Elementor\Repeater;
 use ElementPack\Utils;
 
+use ElementPack\Traits\Global_Widget_Controls;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 class Image_Accordion extends Module_Base {
+
+	use Global_Widget_Controls;
 
 	public function get_name() {
 		return 'bdt-image-accordion';
@@ -63,6 +66,8 @@ class Image_Accordion extends Module_Base {
 
 	protected function register_controls() {
 
+
+		$this->register_deprecated_widget_controls();
 		$this->start_controls_section(
 			'section_accordion_item',
 			[
@@ -168,7 +173,7 @@ class Image_Accordion extends Module_Base {
 				'type'    => Controls_Manager::MEDIA,
 				'dynamic' => [ 'active' => true ],
 				'default' => [
-					'url' => BDTEP_ASSETS_URL . 'images/gallery/item-'.rand(1,4).'.svg',
+					'url' => BDTEP_ASSETS_URL . 'images/gallery/item-'.wp_rand(1,4).'.svg',
 				],
 			]
 		);
@@ -303,7 +308,7 @@ class Image_Accordion extends Module_Base {
 			[
 				'name'         => 'thumbnail_size',
 				'label'        => esc_html__( 'Image Size', 'bdthemes-element-pack' ),
-				'exclude'      => [ 'custom' ],
+				'exclude'      => [ 'custom' ], // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- Elementor control option, not WP_Query.
 				'default'      => 'full',
 				'separator' => 'before'
 			]
@@ -765,7 +770,7 @@ class Image_Accordion extends Module_Base {
 				'name' => 'sliding_overlay_background',
 				'label' => esc_html__('Background', 'bdthemes-element-pack'),
 				'types' => ['classic', 'gradient'],
-				'exclude' => ['image'],
+				'exclude' => ['image'], // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- Elementor control option, not WP_Query.
 				'selector' => '{{WRAPPER}}.skin--sliding-box .bdt-ep-image-accordion-img:before',
 				'fields_options' => [
 					'background' => [

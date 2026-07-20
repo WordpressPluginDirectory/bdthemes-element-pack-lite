@@ -412,8 +412,10 @@ class Module extends Element_Pack_Module_Base {
 					'vh' => [ 'min' => 1, 'max' => 100 ],
 				],
 				'default'    => [ 'unit' => 'px', 'size' => 50 ],
+				'frontend_available' => true,
 				'selectors' => [
-					'{{WRAPPER}}.bdt-cursor-effects-yes' => '--cursor-image-size: {{SIZE}}{{UNIT}};',
+					'#bdt-cursor-effects-wrap-{{ID}}' => '--cursor-image-size: {{SIZE}}{{UNIT}};',
+					'#bdt-cursor-effects-wrap-{{ID}} .bdt-cursor-image' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}}; max-width: none;',
 				],
 				'condition' => [ 
 					'element_pack_cursor_effects_source' => 'image',
@@ -464,7 +466,7 @@ class Module extends Element_Pack_Module_Base {
 			[ 
 				'name'      => 'element_pack_cursor_effects_image_border',
 				'label'     => esc_html__( 'Border', 'bdthemes-element-pack' ),
-				'selector'  => '{{WRAPPER}}.bdt-cursor-effects-yes .bdt-cursor-image',
+				'selector'  => '#bdt-cursor-effects-wrap-{{ID}} .bdt-cursor-image',
 				'condition' => [ 
 					'element_pack_cursor_effects_source' => 'image',	
 					'element_pack_cursor_effects_image_gsap_animation' => '',
@@ -478,7 +480,7 @@ class Module extends Element_Pack_Module_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', '%', 'em' ],
 				'selectors'  => [ 
-					'{{WRAPPER}}.bdt-cursor-effects-yes .bdt-cursor-image' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'#bdt-cursor-effects-wrap-{{ID}} .bdt-cursor-image' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 				'condition'  => [ 
 					'element_pack_cursor_effects_source' => 'image',
@@ -506,7 +508,8 @@ class Module extends Element_Pack_Module_Base {
 	}
 
 	public function enqueue_scripts() {
-		wp_register_script( 'cotton-js', BDTEP_ASSETS_URL . 'vendor/js/cotton.min.js', [], '5.3.5' );
+		wp_register_script( 'cotton-js', BDTEP_ASSETS_URL . 'vendor/js/cotton.min.js', [], '5.3.5', true );
+		// phpcs:ignore PluginCheck.CodeAnalysis.EnqueuedResourceOffloading.OffloadedContent -- GSAP CDN is required for cursor effects animation library.
 		wp_register_script( 'gsap-js', 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js', [], '3.12.5', true );
 
 		if ( \ElementPack\Element_Pack_Loader::elementor()->preview->is_preview_mode() || \ElementPack\Element_Pack_Loader::elementor()->editor->is_edit_mode() ) {
@@ -521,9 +524,22 @@ class Module extends Element_Pack_Module_Base {
 			wp_enqueue_style( 'ep-cursor-effects' );
 			wp_enqueue_script( 'ep-cursor-effects' );
 
-			if ( 'image' === $section->get_settings_for_display( 'element_pack_cursor_effects_source' )
-				&& 'yes' === $section->get_settings_for_display( 'element_pack_cursor_effects_image_gsap_animation' ) ) {
-				wp_enqueue_script( 'gsap-js' );
+			if ( 'image' === $section->get_settings_for_display( 'element_pack_cursor_effects_source' ) ) {
+				if ( 'yes' !== $section->get_settings_for_display( 'element_pack_cursor_effects_image_gsap_animation' ) ) {
+					$image_size = $section->get_settings_for_display( 'element_pack_cursor_effects_image_size' );
+
+					if ( ! empty( $image_size['size'] ) ) {
+						$section->add_render_attribute(
+							'_wrapper',
+							'data-bdt-cursor-image-size',
+							esc_attr( $image_size['size'] . ( $image_size['unit'] ?? 'px' ) )
+						);
+					}
+				}
+
+				if ( 'yes' === $section->get_settings_for_display( 'element_pack_cursor_effects_image_gsap_animation' ) ) {
+					wp_enqueue_script( 'gsap-js' );
+				}
 			}
 		}
 	}

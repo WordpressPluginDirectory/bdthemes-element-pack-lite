@@ -1,41 +1,26 @@
 /**
  * Start accordion widget script
- * Optimized version - No jQuery dependency
  */
 
 (() => {
   "use strict";
 
-  /**
-   * Check if device is mobile
-   * @returns {boolean}
-   */
   const isMobileDevice = () => window.matchMedia("(max-width: 767px)").matches;
 
-  /**
-   * Smooth scroll to element
-   * @param {HTMLElement} element - Target element
-   * @param {number} offset - Top offset in pixels
-   * @param {number} duration - Animation duration in milliseconds
-   * @returns {Promise}
-   */
-  const smoothScrollTo = (element, offset = 0, duration = 1000) => {
-    return new Promise((resolve) => {
-      const targetPosition = element.getBoundingClientRect().top + window.pageYOffset - offset;
-      const startPosition = window.pageYOffset;
-      const distance = targetPosition - startPosition;
+  const smoothScrollTo = (element, offset = 0, duration = 1000) =>
+    new Promise((resolve) => {
+      const startPosition = window.scrollY;
+      const distance = element.getBoundingClientRect().top - offset;
       let startTime = null;
 
       const animation = (currentTime) => {
         if (startTime === null) startTime = currentTime;
         const timeElapsed = currentTime - startTime;
         const progress = Math.min(timeElapsed / duration, 1);
-        
-        // Easing function (ease-in-out)
-        const ease = progress < 0.5 
-          ? 2 * progress * progress 
+        const ease = progress < 0.5
+          ? 2 * progress * progress
           : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-        
+
         window.scrollTo(0, startPosition + distance * ease);
 
         if (timeElapsed < duration) {
@@ -47,133 +32,75 @@
 
       requestAnimationFrame(animation);
     });
-  };
 
-  /**
-   * Get element by data-title attribute
-   * @param {HTMLElement} accordion - Accordion container
-   * @param {string} title - Data title value
-   * @returns {HTMLElement|null}
-   */
-  const getElementByDataTitle = (accordion, title) => {
-    return accordion.querySelector(`[data-title="${title}"]`);
-  };
-
-  /**
-   * Handle hash navigation and accordion toggle
-   * @param {HTMLElement} accordion - Accordion element
-   * @param {Object} settings - Accordion settings
-   * @param {number} scrollTime - Scroll animation time
-   */
-  const handleHash = async (accordion, settings, scrollTime) => {
+  const handleHash = async (accordion, settings, scrollTime, animate = true) => {
     const hash = window.location.hash;
     if (!hash) return;
 
-    const hashValue = hash.substring(1);
-    const targetElement = getElementByDataTitle(accordion, hashValue);
-    
+    const targetElement = accordion.querySelector(`[data-title="${hash.substring(1)}"]`);
     if (!targetElement) return;
 
     const accordionIndex = targetElement.dataset.accordionIndex;
-    const accordionContainer = targetElement.closest('.bdt-ep-accordion');
-    const accordionId = accordionContainer?.id;
-
+    const accordionContainer = targetElement.closest(".bdt-ep-accordion");
     if (!accordionIndex || !accordionContainer) return;
 
+    const accordionId = accordionContainer.id;
     const bdtAccordion = window.bdtUIkit?.accordion(accordion);
     if (!bdtAccordion) return;
 
-    // Scroll if scrollspy is enabled
+    const index = parseInt(accordionIndex, 10);
+
     if (settings.activeScrollspy === "yes" && accordionId) {
       const targetContainer = document.getElementById(accordionId);
       if (targetContainer) {
         await smoothScrollTo(targetContainer, settings.hashTopOffset, scrollTime);
       }
-      bdtAccordion.toggle(parseInt(accordionIndex), false);
+      bdtAccordion.toggle(index, false);
     } else {
-      bdtAccordion.toggle(parseInt(accordionIndex), true);
+      bdtAccordion.toggle(index, animate);
     }
   };
 
-  /**
-   * Initialize accordion widget
-   * @param {HTMLElement|jQuery} scope - Widget scope element (can be jQuery object or DOM element)
-   */
   const widgetAccordion = (scope) => {
-    // Handle both jQuery objects and native DOM elements
-    const scopeElement = scope instanceof jQuery ? scope[0] : scope;
-    
+    const scopeElement = scope?.jquery ? scope[0] : scope;
+
     const accrContainer = scopeElement.querySelector(".bdt-ep-accordion-container");
     if (!accrContainer) return;
 
     const accordion = accrContainer.querySelector(".bdt-ep-accordion");
     if (!accordion) return;
 
-    const activeItems = accrContainer.querySelectorAll(".bdt-ep-accordion-item.bdt-open");
-    
-    // Get settings from data attribute
     const settingsData = accordion.dataset.settings;
     if (!settingsData) return;
 
     let settings;
     try {
-      settings = typeof settingsData === 'string' ? JSON.parse(settingsData) : settingsData;
+      settings = typeof settingsData === "string" ? JSON.parse(settingsData) : settingsData;
     } catch (e) {
-      console.error('Failed to parse accordion settings:', e);
+      console.error("Failed to parse accordion settings:", e);
       return;
     }
 
-    // Destructure settings with defaults
     const {
       activeHash = "no",
-      hashTopOffset = 0,
       hashScrollspyTime = 1000,
-      activeScrollspy = "no",
       closeAllItemsOnMobile = false
     } = settings;
 
-    // Update settings object with defaults
-    settings.activeScrollspy = activeScrollspy;
-
-    // Close all items on mobile if enabled
     if (closeAllItemsOnMobile && isMobileDevice()) {
-      activeItems.forEach(item => {
+      accrContainer.querySelectorAll(".bdt-ep-accordion-item.bdt-open").forEach((item) => {
         item.classList.remove("bdt-open");
         const content = item.querySelector(".bdt-ep-accordion-content");
-        if (content) {
-          content.hidden = true;
-        }
+        if (content) content.hidden = true;
       });
     }
 
-    // Hash navigation functionality
     if (activeHash === "yes") {
       const abortController = new AbortController();
       const signal = abortController.signal;
 
-      // Handle initial hash on page load
-      const handleLoad = () => {
-        const hash = window.location.hash;
-        if (!hash) return;
+      const handleLoad = () => handleHash(accordion, settings, hashScrollspyTime, false);
 
-        const hashValue = hash.substring(1);
-        const targetElement = getElementByDataTitle(accordion, hashValue);
-        
-        if (targetElement && targetElement.dataset.accordionIndex) {
-          const accordionIndex = parseInt(targetElement.dataset.accordionIndex);
-          const bdtAccordion = window.bdtUIkit?.accordion(accordion);
-          
-          if (bdtAccordion) {
-            if (activeScrollspy === "yes") {
-              handleHash(accordion, settings, hashScrollspyTime);
-            } else {
-              bdtAccordion.toggle(accordionIndex, false);
-            }
-          }
-        }
-      };
-
-      // Handle accordion title clicks
       const handleTitleClick = (event) => {
         const title = event.currentTarget.dataset.title;
         if (title) {
@@ -182,36 +109,24 @@
         }
       };
 
-      // Handle hash changes
-      const handleHashChange = () => {
-        handleHash(accordion, settings, 1000);
-      };
+      const handleHashChange = () => handleHash(accordion, settings, 1000);
 
-      // Check if page has already loaded
-      if (document.readyState === 'complete') {
-        // Page already loaded, handle hash immediately
+      if (document.readyState === "complete") {
         handleLoad();
       } else {
-        // Page still loading, wait for load event
         window.addEventListener("load", handleLoad, { signal, once: true });
       }
-      
-      // Always listen for hash changes
+
       window.addEventListener("hashchange", handleHashChange, { signal });
 
-      const accordionTitles = accordion.querySelectorAll(".bdt-ep-accordion-title");
-      accordionTitles.forEach(title => {
+      accordion.querySelectorAll(".bdt-ep-accordion-title").forEach((title) => {
         title.addEventListener("click", handleTitleClick, { signal });
       });
 
-      // Store cleanup function for potential future use
-      accordion._cleanupAccordion = () => {
-        abortController.abort();
-      };
+      accordion._cleanupAccordion = () => abortController.abort();
     }
   };
 
-  // Initialize on Elementor frontend ready
   window.addEventListener("elementor/frontend/init", () => {
     if (window.elementorFrontend?.hooks) {
       elementorFrontend.hooks.addAction(
@@ -238,7 +153,7 @@
     'use strict';
 
     const widgetDualButton = (scope) => {
-        const scopeEl = scope instanceof jQuery ? scope[0] : scope;
+        const scopeEl = scope?.jquery ? scope[0] : scope;
 
         const buttons = scopeEl.querySelectorAll('.bdt-dual-button .bdt-ep-button[data-onclick]');
         if (!buttons.length) return;
@@ -279,12 +194,7 @@
 (() => {
   "use strict";
 
-  /**
-   * Initialize business hours widget
-   * @param {HTMLElement|jQuery} scope - Widget scope element
-   */
   const widgetBusinessHours = (scope) => {
-    // Handle both jQuery objects and native DOM elements
     const scopeElement = scope instanceof jQuery ? scope[0] : scope;
 
     const businessHoursContainer = scopeElement.querySelector(".bdt-ep-business-hours");
@@ -295,7 +205,6 @@
     );
     if (!currentTimeElement) return;
 
-    // Get settings from data attribute
     const settingsData = businessHoursContainer.dataset.settings;
     if (!settingsData) return;
 
@@ -309,16 +218,13 @@
 
     const { business_hour_style, timeNotation, dynamic_timezone, dynamic_timezone_default } = settings;
 
-    // Only proceed if style is dynamic
     if (business_hour_style !== "dynamic") return;
 
-    // Validate jclock library (requires jQuery)
     if (typeof jQuery === "undefined" || !jQuery.fn.jclock) {
       console.error("jclock library is not loaded");
       return;
     }
 
-    // Determine timezone offset
     const offsetVal =
       business_hour_style === "static" ? dynamic_timezone_default : dynamic_timezone;
 
@@ -327,10 +233,8 @@
       return;
     }
 
-    // Determine time format based on notation
     const timeFormat = timeNotation === "12h" ? "%I:%M:%S %p" : "%H:%M:%S";
 
-    // Configure jclock options
     const options = {
       format: timeFormat,
       timeNotation: timeNotation,
@@ -339,11 +243,9 @@
       utc_offset: offsetVal,
     };
 
-    // Initialize jclock (requires jQuery)
     jQuery(currentTimeElement).jclock(options);
   };
 
-  // Initialize on Elementor frontend ready
   window.addEventListener("elementor/frontend/init", () => {
     if (window.elementorFrontend?.hooks) {
       elementorFrontend.hooks.addAction(
@@ -365,22 +267,12 @@
 (() => {
     'use strict';
 
-    /**
-     * Read optional notification z-index from the widget wrapper (set in Elementor).
-     * @param {HTMLFormElement|null|undefined} formEl
-     * @returns {string|null}
-     */
     const getNotificationZIndex = (formEl) => {
         const holder = formEl && formEl.closest('[data-bdt-notification-z-index]');
         const raw    = holder && holder.dataset ? holder.dataset.bdtNotificationZIndex : '';
         return raw !== undefined && raw !== '' ? raw : null;
     };
 
-    /**
-     * Apply z-index to the UIkit notification container (parent of the message node).
-     * @param {*} notificationInstance
-     * @param {string|null} zIndexRaw
-     */
     const applyNotificationZIndex = (notificationInstance, zIndexRaw) => {
         if (notificationInstance == null || zIndexRaw === null) {
             return;
@@ -395,11 +287,6 @@
         }
     };
 
-    /**
-     * Submit form data via fetch and handle response notifications
-     * @param {HTMLFormElement} formEl
-     * @param {string|false}    widgetID
-     */
     const sendContactForm = async (formEl, widgetID = false) => {
         const langStr = window.ElementPackConfig.contact_form;
         const zIndex  = getNotificationZIndex(formEl);
@@ -453,10 +340,6 @@
         }
     };
 
-    /**
-     * Google invisible reCAPTCHA callback
-     * @returns {Promise}
-     */
     const elementPackGIC = () => {
         const langStr = window.ElementPackConfig.contact_form;
 
@@ -497,15 +380,10 @@
         });
     };
 
-    // Expose reCAPTCHA callback globally
     window.elementPackGICCB = elementPackGIC;
 
-    /**
-     * Initialize contact form widget
-     * @param {jQuery} scope - Widget scope element
-     */
     const widgetSimpleContactForm = (scope) => {
-        const scopeElement = scope instanceof jQuery ? scope[0] : scope;
+        const scopeElement = scope?.jquery ? scope[0] : scope;
 
         const widgetID = scopeElement.dataset.id;
 
@@ -545,12 +423,8 @@
 (() => {
     'use strict';
 
-    /**
-     * Initialize cookie consent widget
-     * @param {jQuery} scope - Widget scope element
-     */
     const widgetCookieConsent = (scope) => {
-        const scopeElement = scope instanceof jQuery ? scope[0] : scope;
+        const scopeElement = scope?.jquery ? scope[0] : scope;
 
         const cookieConsentEl = scopeElement.querySelector('.bdt-cookie-consent');
         if (!cookieConsentEl) return;
@@ -574,7 +448,6 @@
 
         window.cookieconsent.initialise(settings);
 
-        // Append deny/close button to the compliance bar
         const compliance = document.querySelector('.cc-compliance');
         const denyBtn    = document.createElement('button');
         denyBtn.className = 'btn-denyCookie bdt-cc-close-btn cc-btn cc-dismiss';
@@ -635,12 +508,6 @@
 (() => {
     'use strict';
 
-    /**
-     * Set a cookie with an optional expiry in hours
-     * @param {string} name
-     * @param {string} value
-     * @param {number} hours
-     */
     const setCookie = (name, value, hours) => {
         let expires = '';
         if (hours) {
@@ -651,11 +518,6 @@
         document.cookie = `${name}=${value ?? ''}${expires}; path=/`;
     };
 
-    /**
-     * Read a cookie value by name, returns null if not found
-     * @param {string} name
-     * @returns {string|null}
-     */
     const getCookie = (name) => {
         const match = document.cookie
             .split(';')
@@ -663,19 +525,8 @@
         return match ? match.trimStart().slice(name.length + 1) : null;
     };
 
-    /**
-     * Random integer between min and max (inclusive)
-     * @param {number} min
-     * @param {number} max
-     * @returns {number}
-     */
     const randomInRange = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
-    /**
-     * Get remaining time components from a target date
-     * @param {Date} date
-     * @returns {{ total: number, seconds: number }}
-     */
     const getTimeSpan = (date) => {
         const total = date - Date.now();
         return {
@@ -684,11 +535,6 @@
         };
     };
 
-    /**
-     * POST to the admin AJAX endpoint and handle all countdown-end actions
-     * @param {object} settings
-     * @param {string|number} endTime
-     */
     const handleCountdownEnd = async (settings, endTime) => {
         try {
             const body = new URLSearchParams({
@@ -722,12 +568,8 @@
         }
     };
 
-    /**
-     * Initialize countdown widget
-     * @param {jQuery} scope - Widget scope element
-     */
     const widgetCountdown = (scope) => {
-        const scopeElement = scope instanceof jQuery ? scope[0] : scope;
+        const scopeElement = scope?.jquery ? scope[0] : scope;
 
         const countdownWrapper = scopeElement.querySelector('.bdt-countdown-wrapper');
         if (!countdownWrapper) return;
@@ -745,8 +587,6 @@
 
         const { endTime, loopHours, isLogged } = settings;
         const isEditMode = document.body.classList.contains('elementor-editor-active');
-
-        // ── Fixed countdown ──────────────────────────────────────────────────
 
         if (!loopHours) {
             const timerEl  = document.querySelector(`${settings.id}-timer`);
@@ -768,8 +608,6 @@
                 }
             }, 1000);
         }
-
-        // ── Loop countdown ───────────────────────────────────────────────────
 
         if (loopHours) {
             const randMinute        = randomInRange(6, 14);
@@ -822,7 +660,7 @@
     'use strict';
 
     const widgetCustomGallery = (scope) => {
-        const scopeEl = scope instanceof jQuery ? scope[0] : scope;
+        const scopeEl = scope?.jquery ? scope[0] : scope;
 
         const customGalleryEl = scopeEl.querySelector('.bdt-custom-gallery');
         if (!customGalleryEl) return;
@@ -1020,7 +858,7 @@
     'use strict';
 
     const widgetFlipBox = (scope) => {
-        const scopeEl = scope instanceof jQuery ? scope[0] : scope;
+        const scopeEl = scope?.jquery ? scope[0] : scope;
 
         const flipBoxes = scopeEl.querySelectorAll('.bdt-flip-box');
         if (!flipBoxes.length) return;
@@ -1072,7 +910,7 @@
     };
 
     const widgetImageAccordion = (scope) => {
-        const scopeEl = scope instanceof jQuery ? scope[0] : scope;
+        const scopeEl = scope?.jquery ? scope[0] : scope;
         const imageAccordion = scopeEl.querySelector('.bdt-ep-image-accordion');
         if (!imageAccordion) return;
 
@@ -1094,15 +932,14 @@
         }
 
         const mouseEvent = settings.mouse_event || 'click';
-        const siblings = (el) => getSiblings(el);
 
         accordionItems.forEach((item) => {
             item.addEventListener(mouseEvent, function () {
-                setActive(this, siblings(this));
+                setActive(this, getSiblings(this));
             });
 
             item.addEventListener('focus', function () {
-                setActive(this, siblings(this));
+                setActive(this, getSiblings(this));
             });
 
             item.addEventListener('keydown', function (e) {
@@ -1152,9 +989,9 @@
                     e.stopPropagation();
                     if (this.classList.contains('active')) {
                         this.classList.remove('bdt-inactive');
-                        siblings(this).forEach((s) => s.classList.add('bdt-inactive'));
+                        getSiblings(this).forEach((s) => s.classList.add('bdt-inactive'));
                     } else {
-                        siblings(this).forEach((s) => s.classList.remove('bdt-inactive'));
+                        getSiblings(this).forEach((s) => s.classList.remove('bdt-inactive'));
                     }
                 });
             });
@@ -1193,7 +1030,7 @@
     };
 
     const widgetImageCompare = (scope) => {
-        const scopeEl = scope instanceof jQuery ? scope[0] : scope;
+        const scopeEl = scope?.jquery ? scope[0] : scope;
         const imageCompareEls = scopeEl.querySelectorAll('.image-compare');
         if (!imageCompareEls.length) return;
 
@@ -1281,7 +1118,7 @@
     'use strict';
 
     const widgetImageStack = (scope) => {
-        const scopeEl = scope instanceof jQuery ? scope[0] : scope;
+        const scopeEl = scope?.jquery ? scope[0] : scope;
         const imageStack = scopeEl.querySelector('.bdt-image-stack');
         if (!imageStack) return;
 
@@ -1314,7 +1151,7 @@
     'use strict';
 
     const widgetIconMobileMenu = (scope) => {
-        const scopeEl = scope instanceof jQuery ? scope[0] : scope;
+        const scopeEl = scope?.jquery ? scope[0] : scope;
         const marker = scopeEl.querySelector('.bdt-icon-mobile-menu-wrap');
         if (!marker) return;
 
@@ -1347,7 +1184,7 @@
     'use strict';
 
     const widgetLogoGrid = (scope) => {
-        const scopeEl = scope instanceof jQuery ? scope[0] : scope;
+        const scopeEl = scope?.jquery ? scope[0] : scope;
         const logoGrid = scopeEl.querySelector('.bdt-logo-grid-wrapper');
         if (!logoGrid) return;
 
@@ -1380,18 +1217,37 @@
 
 	'use strict';
 
+	// Build popup markup while stripping scripts and inline event handlers to prevent XSS.
+	function createSafePopup( html ) {
+		var popupContent = document.createElement('div');
+		popupContent.innerHTML = html;
+
+		popupContent.querySelectorAll('script').forEach(function (script) {
+			script.remove();
+		});
+
+		popupContent.querySelectorAll('[onclick], [onload], [onerror], [onmouseover], [onmouseout]').forEach(function (el) {
+			el.removeAttribute('onclick');
+			el.removeAttribute('onload');
+			el.removeAttribute('onerror');
+			el.removeAttribute('onmouseover');
+			el.removeAttribute('onmouseout');
+		});
+
+		return popupContent;
+	}
+
 	var widgetOpenStreetMap = function( $scope, $ ) {
 
-		var $openStreetMap = $scope.find( '.bdt-open-street-map' ),
+		const $openStreetMap = $scope.find( '.bdt-open-street-map' ),
             settings       = $openStreetMap.data('settings'),
-            markers        = $openStreetMap.data('map_markers'),
-            tileSource = '';
+            markers        = $openStreetMap.data('map_markers');
 
         if ( ! $openStreetMap.length ) {
             return;
         }
 
-        var avdOSMap = L.map($openStreetMap[0], {
+        const avdOSMap = L.map($openStreetMap[0], {
                 zoomControl: settings.zoomControl,
                 scrollWheelZoom: false
             }).setView([
@@ -1402,7 +1258,7 @@
             );
 
         if (settings.mapboxToken !== '' && settings.mapboxToken !== false) {
-          tileSource = 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=' + settings.mapboxToken;
+          const tileSource = 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=' + settings.mapboxToken;
             L.tileLayer( tileSource, {
                 maxZoom: 18,
                 attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -1420,52 +1276,18 @@
 
         for (var i in markers) { 
             if( (markers[i]['iconUrl']) != '' && typeof (markers[i]['iconUrl']) !== 'undefined'){ 
-                var LeafIcon = L.Icon.extend({
+                const LeafIcon = L.Icon.extend({
                     options: {
                         iconSize   : [25, 41],
                         iconAnchor : [12, 41],
                         popupAnchor: [2, -41]
                     }
                 });
-                var greenIcon = new LeafIcon({iconUrl: markers[i]['iconUrl'] });
-                // Create a safe popup content that allows HTML formatting but prevents XSS
-                var popupContent = document.createElement('div');
-                popupContent.innerHTML = markers[i]['infoWindow'];
-                // Remove any script tags and event handlers for security
-                var scripts = popupContent.querySelectorAll('script');
-                for (var j = 0; j < scripts.length; j++) {
-                    scripts[j].remove();
-                }
-                // Remove any elements with event handlers
-                var elementsWithEvents = popupContent.querySelectorAll('[onclick], [onload], [onerror], [onmouseover], [onmouseout]');
-                for (var k = 0; k < elementsWithEvents.length; k++) {
-                    elementsWithEvents[k].removeAttribute('onclick');
-                    elementsWithEvents[k].removeAttribute('onload');
-                    elementsWithEvents[k].removeAttribute('onerror');
-                    elementsWithEvents[k].removeAttribute('onmouseover');
-                    elementsWithEvents[k].removeAttribute('onmouseout');
-                }
-                L.marker( [markers[i]['lat'], markers[i]['lng']], {icon: greenIcon} ).bindPopup(popupContent).addTo(avdOSMap);
+                const greenIcon = new LeafIcon({iconUrl: markers[i]['iconUrl'] });
+                L.marker( [markers[i]['lat'], markers[i]['lng']], {icon: greenIcon} ).bindPopup(createSafePopup(markers[i]['infoWindow'])).addTo(avdOSMap);
             } else {
                 if( (markers[i]['lat']) != '' && typeof (markers[i]['lat']) !== 'undefined'){ 
-                    // Create a safe popup content that allows HTML formatting but prevents XSS
-                    var popupContent = document.createElement('div');
-                    popupContent.innerHTML = markers[i]['infoWindow'];
-                    // Remove any script tags and event handlers for security
-                    var scripts = popupContent.querySelectorAll('script');
-                    for (var j = 0; j < scripts.length; j++) {
-                        scripts[j].remove();
-                    }
-                    // Remove any elements with event handlers
-                    var elementsWithEvents = popupContent.querySelectorAll('[onclick], [onload], [onerror], [onmouseover], [onmouseout]');
-                    for (var k = 0; k < elementsWithEvents.length; k++) {
-                        elementsWithEvents[k].removeAttribute('onclick');
-                        elementsWithEvents[k].removeAttribute('onload');
-                        elementsWithEvents[k].removeAttribute('onerror');
-                        elementsWithEvents[k].removeAttribute('onmouseover');
-                        elementsWithEvents[k].removeAttribute('onmouseout');
-                    }
-                    L.marker( [markers[i]['lat'], markers[i]['lng']] ).bindPopup(popupContent).addTo(avdOSMap);
+                    L.marker( [markers[i]['lat'], markers[i]['lng']] ).bindPopup(createSafePopup(markers[i]['infoWindow'])).addTo(avdOSMap);
                 }
             }
         }
@@ -1494,20 +1316,20 @@
 
 	var widgetPanelSlider = function ($scope, $) {
 
-		var $slider = $scope.find('.bdt-panel-slider');
+		const $slider = $scope.find('.bdt-panel-slider');
 
 		if (!$slider.length) {
 			return;
 		}
 
-		var $sliderContainer = $slider.find('.swiper-carousel'),
+		const $sliderContainer = $slider.find('.swiper-carousel'),
 			$settings = $slider.data('settings'),
 			$widgetSettings = $slider.data('widget-settings');
 
 		const Swiper = elementorFrontend.utils.swiper;
 		initSwiper();
 		async function initSwiper() {
-			var swiper = await new Swiper($sliderContainer, $settings);
+			const swiper = await new Swiper($sliderContainer, $settings);
 
 			if ($settings.pauseOnHover) {
 				$($sliderContainer).hover(function () {
@@ -1520,10 +1342,10 @@
 
 		if ($widgetSettings.mouseInteractivity == true) {
 			setTimeout(() => {
-				var data = $($widgetSettings.id).find('.bdt-panel-slide-item');
+				const data = $($widgetSettings.id).find('.bdt-panel-slide-item');
 				$(data).each((index, element) => {
-					var scene = $(element).get(0);
-					var parallaxInstance = new Parallax(scene, {
+					const scene = $(element).get(0);
+					new Parallax(scene, {
 						selector: '.bdt-panel-slide-thumb',
 						hoverOnly: true,
 						pointerEvents: true
@@ -1556,16 +1378,14 @@
 
     var widgetProgressPie = function ($scope, $) {
 
-        var $progressPie = $scope.find('.bdt-progress-pie');
+        const $progressPie = $scope.find('.bdt-progress-pie');
 
         if (!$progressPie.length) {
             return;
         }
 
         epObserveTarget($scope[0], function () {
-            var $this = $($progressPie);
-
-            $this.asPieProgress({
+            $progressPie.asPieProgress({
                 namespace: 'pieProgress',
                 classes: {
                     svg: 'bdt-progress-pie-svg',
@@ -1574,12 +1394,12 @@
                 }
             });
 
-            $this.asPieProgress('start');
+            $progressPie.asPieProgress('start');
 
         }, {
-            root: null, // Use the viewport as the root
-            rootMargin: '0px', // No margin around the root
-            threshold: 1 // 80% visibility (1 - 0.8)
+            root: null,
+            rootMargin: '0px',
+            threshold: 1
         });
 
     };
@@ -1622,10 +1442,9 @@
                 darkBorderColor: '#39B4CC'
             };
 
-            var colorBg = $settings.progress_bg;  //'red'
-            var progressColor = $settings.scroll_bg; //'green';
+            var colorBg = $settings.progress_bg;
+            var progressColor = $settings.scroll_bg;
             var innerHeight, offsetHeight, netHeight,
-            self = this,
             container = $($readingProgress),
             borderContainer = 'bdt-reading-progress-border',
             circleContainer = 'bdt-reading-progress-circle',
@@ -1672,7 +1491,7 @@
                     getHeight();
                     prepare();
                     $(window).on('scroll', function () {
-                        var getOffset = window.pageYOffset || document.documentElement.scrollTop;
+                        var getOffset = window.scrollY || document.documentElement.scrollTop;
                         var percnt = (typeof netHeight === 'number' && isFinite(netHeight) && netHeight > 0)
                             ? Math.max(0, Math.min(1, getOffset / netHeight))
                             : 0;
@@ -1692,7 +1511,7 @@
             });
 
     };
-    //	start progress with cursor
+
     var readingProgressCursorSkin = function($scope, $) {
 
         var $readingProgress = $scope.find('.bdt-progress-with-cursor');
@@ -1731,7 +1550,6 @@
         }
 
         $(document).ready(function() {
-            //Scroll indicator
             var progressPath = document.querySelector('.bdt-progress-wrap path');
             var pathLength = progressPath.getTotalLength();
             progressPath.style.transition = progressPath.style.WebkitTransition = 'none';
@@ -1752,10 +1570,6 @@
         });
 
     };
-    //	end  progress with cursor
-
-    // start progress horizontal 
-
 
     var readingProgressHorizontalSkin = function($scope, $) {
 
@@ -1768,11 +1582,6 @@
         $('#bdt-progress').progress({ size: '3px', wapperBg: '#eee', innerBg: '#DA4453' });
 
     };
-
-    // end progress horizontal 
-
-    // start  progress back to top 
-
 
     var readingProgressBackToTopSkin = function($scope, $) {
 
@@ -1813,8 +1622,6 @@
         });
 
     };
-
-    // end progress back to top
 
     jQuery(window).on('elementor/frontend/init', function() {
         elementorFrontend.hooks.addAction('frontend/element_ready/bdt-reading-progress.default', readingProgressWidget);
@@ -1882,14 +1689,14 @@
           ? this.settings("minute_text")
           : "min read";
 
-        var editMode = Boolean(elementorFrontend.isEditMode());
+        const editMode = Boolean(elementorFrontend.isEditMode());
         if (editMode) {
           $(widgetContainer).append("2 " + minText + "");
           return;
         }
         if (contentSelector) {
           ReadingContent = $(document).find(`#${contentSelector}`).text();
-          var readTime = this.calculateReadingTime(ReadingContent);
+          const readTime = this.calculateReadingTime(ReadingContent);
           $(widgetContainer).append(readTime);
         } else return;
       },
@@ -1928,7 +1735,7 @@
 		const Swiper = elementorFrontend.utils.swiper;
 		initSwiper();
 		async function initSwiper() {
-			var swiper = await new Swiper($reviewCardCarouselContainer, $settings); // this is an example
+			var swiper = await new Swiper($reviewCardCarouselContainer, $settings);
 
 			if ($settings.pauseOnHover) {
 				$($reviewCardCarouselContainer).hover(function () {
@@ -1963,18 +1770,17 @@
 
 	'use strict';
 
-	var widgetScrollButton = function( $scope, $ ) {
-	    
-			var $scrollButton = $scope.find('.bdt-scroll-button'),
-			$selector         = $scrollButton.data('selector'),
-			$settings         =  $scrollButton.data('settings');
+	const widgetScrollButton = function( $scope, $ ) {
+
+			const $scrollButton = $scope.find('.bdt-scroll-button');
 
 	    if ( ! $scrollButton.length ) {
 	    	return;
 	    }
 
-	    //$($scrollButton).find('.bdt-scroll-button').unbind();
-	    
+			const $selector = $scrollButton.data('selector'),
+			$settings = $scrollButton.data('settings');
+
 	    if ($settings.HideOnBeforeScrolling == true) {
 
 			$(window).scroll(function() {
@@ -2003,7 +1809,6 @@
 /**
  * End scroll button widget script
  */
-
 
 /**
  * Start search widget script
@@ -2137,8 +1942,6 @@
     elementorFrontend.hooks.addAction('frontend/element_ready/bdt-search.default', widgetAjaxSearch);
   });
 
-  //window.elementPackAjaxSearch = widgetAjaxSearch;
-
 })(jQuery, window.elementorFrontend);
 
 /**
@@ -2152,24 +1955,23 @@
 
 	'use strict';
 
-	var widgetSlider = function( $scope, $ ) {
+	const widgetSlider = function( $scope, $ ) {
 
-		var $slider = $scope.find( '.bdt-slider' );
-				
+		const $slider = $scope.find( '.bdt-slider' );
+
         if ( ! $slider.length ) {
             return;
         }
 
-        var $sliderContainer = $slider.find('.swiper-carousel'),
-			$settings 		 = $slider.data('settings');
+        const $sliderContainer = $slider.find('.swiper-carousel'),
+			$settings = $slider.data('settings');
 
-		// Access swiper class
         const Swiper = elementorFrontend.utils.swiper;
         initSwiper();
-        
+
         async function initSwiper() {
 
-			var swiper = await new Swiper($sliderContainer, $settings);
+			await new Swiper($sliderContainer, $settings);
 
 			if ($settings.pauseOnHover) {
 				 $($sliderContainer).hover(function() {
@@ -2194,7 +1996,6 @@
  * End slider widget script
  */
 
-
 /**
  * Start twitter carousel widget script
  */
@@ -2203,24 +2004,23 @@
 
 	'use strict';
 
-	var widgetStaticCarousel = function( $scope, $ ) {
+	const widgetStaticCarousel = function( $scope, $ ) {
 
-		var $StaticCarousel = $scope.find( '.bdt-static-carousel' );
-				
+		const $StaticCarousel = $scope.find( '.bdt-static-carousel' );
+
         if ( ! $StaticCarousel.length ) {
             return;
         }
 
-		var $StaticCarouselContainer = $StaticCarousel.find('.swiper-carousel'),
-			$settings 		 = $StaticCarousel.data('settings');
+		const $StaticCarouselContainer = $StaticCarousel.find('.swiper-carousel'),
+			$settings = $StaticCarousel.data('settings');
 
-		// Access swiper class
         const Swiper = elementorFrontend.utils.swiper;
         initSwiper();
-        
+
         async function initSwiper() {
 
-			var swiper = await new Swiper($StaticCarouselContainer, $settings);
+			await new Swiper($StaticCarouselContainer, $settings);
 
 			if ($settings.pauseOnHover) {
 				 $($StaticCarouselContainer).hover(function() {
@@ -2244,7 +2044,6 @@
  * End twitter carousel widget script
  */
 
-
 /**
  * Start post grid tab widget script
  */
@@ -2254,16 +2053,16 @@
 
 	'use strict';
 
-	var widgetStaticPostTab = function ($scope, $) {
+	const widgetStaticPostTab = function ($scope, $) {
 
-		var $postGridTab = $scope.find('.bdt-static-grid-tab'),
-			gridTab = $postGridTab.find('.gridtab');
-
-		var $settings = $postGridTab.data('settings');
+		const $postGridTab = $scope.find('.bdt-static-grid-tab');
 
 		if (!$postGridTab.length) {
 			return;
 		}
+
+		const gridTab = $postGridTab.find('.gridtab');
+		const $settings = $postGridTab.data('settings');
 
 		$(gridTab).gridtab($settings);
 
@@ -2279,6 +2078,7 @@
 /**
  * End post grid tab widget script
  */
+
 /**
  * Start step flow widget script
  */
@@ -2290,7 +2090,7 @@
     var widgetStepFlow = function ($scope, $) {
 
         var $avdDivider = $scope.find('.bdt-step-flow'),
-            divider = $($avdDivider).find('.bdt-title-separator-wrapper > img');
+            divider = $avdDivider.find('.bdt-title-separator-wrapper > img');
 
         if (!$avdDivider.length) {
             return;
@@ -2301,9 +2101,9 @@
                 strokeAnimation: true
             });
         }, {
-            root: null, // Use the viewport as the root
-            rootMargin: '0px', // No margin around the root
-            threshold: 0.8 // 80% visibility (1 - 0.8)
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.8
         });
 
     };
@@ -2437,7 +2237,6 @@
             }
         });
 
-        /* Function to animate height: auto */
         function autoHeightAnimate(element, time){
     var curHeight = element.height(), // Get Default Height
         autoHeight = element.css('height', 'auto').height(); // Get Auto Height
@@ -2453,9 +2252,6 @@
                     //#code
                 }).promise().then(function () {
                     if ( $(source_selector).hasClass('bdt-fold-close') ) {
-                        // $(source_selector).css({
-                        //     'max-height': '100%'
-                        // }).removeClass('bdt-fold-close toggle_initially_open').addClass('bdt-fold-open');
                         $(source_selector).removeClass('bdt-fold-close toggle_initially_open').addClass('bdt-fold-open');
                         autoHeightAnimate($(source_selector), 500);
                     } else {
@@ -2466,9 +2262,6 @@
                 });
             } else {
                 if ( $(source_selector).hasClass('bdt-fold-close') ) {
-                    // $(source_selector).css({
-                    //     'max-height': '100%'
-                    // }).removeClass('bdt-fold-close toggle_initially_open').addClass('bdt-fold-open');
                     $(source_selector).removeClass('bdt-fold-close toggle_initially_open').addClass('bdt-fold-open');
                     autoHeightAnimate($(source_selector), 500);
 
@@ -2506,9 +2299,6 @@
                     'height': widget_visibility_filtered + 'px'
                 });
             } else {
-                // $(source_selector).css({
-                //     'max-height': '100%'
-                // });
                 autoHeightAnimate($(source_selector), 500);
             }
         }
@@ -2535,12 +2325,13 @@
 
 	var widgetTutorLMSGrid = function ($scope, $) {
 
-		var $tutorLMS = $scope.find('.bdt-tutor-lms-course-grid'),
-			$settings = $tutorLMS.data('settings');
+		var $tutorLMS = $scope.find('.bdt-tutor-lms-course-grid');
 
 		if (!$tutorLMS.length) {
 			return;
 		}
+
+		var $settings = $tutorLMS.data('settings');
 
 		if ($settings.tiltShow == true) {
 			var elements = document.querySelectorAll($settings.id + " .bdt-tutor-course-item");
@@ -2578,13 +2369,12 @@
 		var $tutorCarouselContainer = $tutorCarousel.find('.swiper-carousel'),
 			$settings = $tutorCarousel.data('settings');
 
-		// Access swiper class
 		const Swiper = elementorFrontend.utils.swiper;
 		initSwiper();
 
 		async function initSwiper() {
 
-			var swiper = await new Swiper($tutorCarouselContainer, $settings);
+			await new Swiper($tutorCarouselContainer, $settings);
 
 			if ($settings.pauseOnHover) {
 				$($tutorCarouselContainer).hover(function () {
@@ -2679,7 +2469,6 @@
                 reCaptchaFields.each(function () {
                     var self = $(this),
                         attrWidget = self.attr('data-widgetid');
-                    // alert(self.data('sitekey'))
                     // Avoid re-rendering as it's throwing API error
                     if ((typeof attrWidget !== typeof undefined && attrWidget !== false)) {
                         return;
@@ -2869,99 +2658,222 @@ jQuery(document).ready(function () {
 });
 
 ; (function ($, elementor) {
-$(window).on('elementor/frontend/init', function () {
-    var ModuleHandler = elementorModules.frontend.handlers.Base,
-        ThreedText;
+	'use strict';
 
-    ThreedText = ModuleHandler.extend({
+	$(window).on('elementor/frontend/init', function () {
+		var ModuleHandler = elementorModules.frontend.handlers.Base,
+			ThreedText;
 
-        bindEvents: function () {
-            this.run();
-        },
+		function parseJSON(value) {
+			if (!value || 'string' !== typeof value) {
+				return null;
+			}
 
-        getDefaultSettings: function () {
-            return {
-                depth: '30px',
-                layers: 8,
-            };
-        },
+			try {
+				return JSON.parse(value);
+			} catch (error) {
+				return null;
+			}
+		}
 
-        onElementChange: debounce(function (prop) {
-            if (prop.indexOf('ep_threed_text_') !== -1) {
-                this.run();
-            }
-        }, 400),
+		function unwrapAtomicValue(value) {
+			if (value && 'object' === typeof value && Object.prototype.hasOwnProperty.call(value, 'value')) {
+				return unwrapAtomicValue(value.value);
+			}
 
-        settings: function (key) {
-            return this.getElementSettings('ep_threed_text_' + key);
-        },
+			return value;
+		}
 
-        run: function () {
-            var options = this.getDefaultSettings(),
-                $element = this.findElement('.elementor-heading-title, .bdt-main-heading-inner'),
-                $widgetId = 'ep-' + this.getID(),
-                $widgetIdSelect = '#' + $widgetId;
+		function normalizeAtomicSettings(settings) {
+			if (!settings) {
+				return null;
+			}
 
-            jQuery($element).attr('id', $widgetId);
+			if (settings.active || settings.depth || settings.layers) {
+				return settings;
+			}
 
-            if (this.settings('depth.size')) {
-                options.depth = this.settings('depth.size') + this.settings('depth.unit') || '30px';
-            }
-            if (this.settings('layers')) {
-                options.layers = this.settings('layers') || 8;
-            }
-            if (this.settings('perspective.size')) {
-                options.perspective = this.settings('perspective.size') + 'px' || '500px';
-            }
-            if (this.settings('fade')) {
-                options.fade = !!this.settings('fade');
-            }
-            // if (this.settings('direction')) {
-            //     options.direction = this.settings('direction') || 'forwards';
-            // }
-            if (this.settings('event')) {
-                options.event = this.settings('event') || 'pointer';
-            }
-            if (this.settings('event_rotation') && this.settings('event') != 'none') {
-                options.eventRotation = this.settings('event_rotation.size') + 'deg' || '35deg';
-            }
-            if (this.settings('event_direction') && this.settings('event') != 'none') {
-                options.eventDirection = this.settings('event_direction') || 'default';
-            }
+			if (unwrapAtomicValue(settings.ep_threed_text_active) !== true && unwrapAtomicValue(settings.ep_threed_text_active) !== 'yes') {
+				return null;
+			}
 
-            if (this.settings('active') == 'yes') {
+			return {
+				active: 'yes',
+				depth: { size: parseFloat(unwrapAtomicValue(settings.ep_threed_text_depth) || 30), unit: 'px' },
+				layers: parseInt(unwrapAtomicValue(settings.ep_threed_text_layers) || 8, 10),
+				depth_color: unwrapAtomicValue(settings.ep_threed_text_depth_color) || '',
+				perspective: { size: parseFloat(unwrapAtomicValue(settings.ep_threed_text_perspective) || 500), unit: 'px' },
+				fade: unwrapAtomicValue(settings.ep_threed_text_fade) ? 'yes' : '',
+				event: unwrapAtomicValue(settings.ep_threed_text_event) || 'none',
+				event_rotation: { size: parseFloat(unwrapAtomicValue(settings.ep_threed_text_event_rotation) || 35), unit: 'deg' },
+				event_direction: unwrapAtomicValue(settings.ep_threed_text_event_direction) || 'default'
+			};
+		}
 
-                var $text = $($widgetIdSelect).html();
-                $($widgetIdSelect).parent().append('<div class="ep-z-text-duplicate" style="display:none;">' + $text + '</div>');
+		function applyThreeDText($heading, settings, forcedId) {
+			if (!$heading.length || !settings || settings.active !== 'yes') {
+				return;
+			}
 
-                $text = $($widgetIdSelect).parent().find('.ep-z-text-duplicate:first').html();
+			var node = $heading.get(0);
+			var headingId = forcedId || $heading.attr('id') || ('ep-atomic-' + Date.now() + '-' + Math.floor(Math.random() * 10000));
+			var selector = '#' + headingId;
+			var options = {
+				depth: '30px',
+				layers: 8
+			};
 
-                $($widgetIdSelect).find('.z-text').remove();
+			$heading.attr('id', headingId);
 
-                var ztxt = new Ztextify($widgetIdSelect, options, $text);
-            }
+			if (settings.depth && settings.depth.size) {
+				options.depth = settings.depth.size + (settings.depth.unit || 'px');
+			}
+			if (settings.layers) {
+				options.layers = settings.layers;
+			}
+			if (settings.perspective && settings.perspective.size) {
+				options.perspective = settings.perspective.size + 'px';
+			}
+			if (settings.fade) {
+				options.fade = settings.fade === 'yes' || settings.fade === true;
+			}
+			if (settings.event) {
+				options.event = settings.event;
+			}
+			if (settings.event_rotation && settings.event !== 'none') {
+				options.eventRotation = settings.event_rotation.size + 'deg';
+			}
+			if (settings.event_direction && settings.event !== 'none') {
+				options.eventDirection = settings.event_direction;
+			}
 
-            if (this.settings('depth_color')) {
-                var depthColor = this.settings('depth_color') || '#fafafa';
-                $($widgetIdSelect).find('.z-layers .z-layer:not(:first-child)').css('color', depthColor);
-            }
+			var text = $heading.html();
+			$heading.parent().find('.ep-z-text-duplicate').remove();
+			$heading.parent().append('<div class="ep-z-text-duplicate" style="display:none;">' + text + '</div>');
+			text = $heading.parent().find('.ep-z-text-duplicate:first').html();
 
-            // if (this.settings('bg_color')) {
-            //     var bgColor = this.settings('bg_color') || 'rgba(96, 125, 139, .5)';
-            //     $($widgetIdSelect).find('.z-text > .z-layers').css('background', bgColor);
-            // }
+			$heading.find('.z-text').remove();
+			new Ztextify(selector, options, text);
 
-        }
-    });
+			if (settings.depth_color) {
+				$(selector).find('.z-layers .z-layer:not(:first-child)').css('color', settings.depth_color);
+			} else if (node) {
+				var computedColor = window.getComputedStyle(node).color;
+				$(selector).find('.z-layers .z-layer:not(:first-child)').css('color', computedColor);
+			}
+		}
 
-    elementorFrontend.hooks.addAction('frontend/element_ready/widget', function ($scope) {
-        elementorFrontend.elementsHandler.addHandler(ThreedText, {
-            $element: $scope
-        });
-    });
+		function runAtomicThreedText() {
+			jQuery('.elementor-widget-e-heading .e-heading-base, [data-widget_type^="e-heading"] .e-heading-base, .e-heading-base[data-ep-threed-text]').each(function () {
+				var heading = this;
+				var wrapper = heading.closest('[data-id]');
+				var settings = parseJSON(heading.getAttribute('data-ep-threed-text'));
 
-});
-}) (jQuery, window.elementorFrontend);
+				if (!settings && wrapper) {
+					settings = parseJSON(wrapper.getAttribute('data-ep-threed-text'));
+				}
+
+				if (!settings && wrapper) {
+					settings = jQuery(wrapper).data('settings') || parseJSON(wrapper.getAttribute('data-settings'));
+				}
+
+				settings = normalizeAtomicSettings(settings);
+
+				if (!settings) {
+					return;
+				}
+
+				applyThreeDText(jQuery(heading), settings, 'ep-atomic-' + (wrapper ? wrapper.getAttribute('data-id') : Date.now()));
+			});
+		}
+
+		ThreedText = ModuleHandler.extend({
+
+			bindEvents: function () {
+				this.run();
+			},
+
+			getDefaultSettings: function () {
+				return {
+					depth: '30px',
+					layers: 8,
+				};
+			},
+
+			onElementChange: debounce(function (prop) {
+				if (prop.indexOf('ep_threed_text_') !== -1) {
+					this.run();
+				}
+			}, 400),
+
+			settings: function (key) {
+				return this.getElementSettings('ep_threed_text_' + key);
+			},
+
+			run: function () {
+				var options = this.getDefaultSettings(),
+					$element = this.findElement('.elementor-heading-title, .bdt-main-heading-inner'),
+					$widgetId = 'ep-' + this.getID(),
+					$widgetIdSelect = '#' + $widgetId;
+
+				jQuery($element).attr('id', $widgetId);
+
+				if (this.settings('depth.size')) {
+					options.depth = this.settings('depth.size') + this.settings('depth.unit') || '30px';
+				}
+				if (this.settings('layers')) {
+					options.layers = this.settings('layers') || 8;
+				}
+				if (this.settings('perspective.size')) {
+					options.perspective = this.settings('perspective.size') + 'px' || '500px';
+				}
+				if (this.settings('fade')) {
+					options.fade = !!this.settings('fade');
+				}
+				if (this.settings('event')) {
+					options.event = this.settings('event') || 'pointer';
+				}
+				if (this.settings('event_rotation') && this.settings('event') != 'none') {
+					options.eventRotation = this.settings('event_rotation.size') + 'deg' || '35deg';
+				}
+				if (this.settings('event_direction') && this.settings('event') != 'none') {
+					options.eventDirection = this.settings('event_direction') || 'default';
+				}
+
+				if (this.settings('active') == 'yes') {
+
+					var $text = $($widgetIdSelect).html();
+					$($widgetIdSelect).parent().append('<div class="ep-z-text-duplicate" style="display:none;">' + $text + '</div>');
+
+					$text = $($widgetIdSelect).parent().find('.ep-z-text-duplicate:first').html();
+
+					$($widgetIdSelect).find('.z-text').remove();
+
+					new Ztextify($widgetIdSelect, options, $text);
+				}
+
+				if (this.settings('depth_color')) {
+					var depthColor = this.settings('depth_color') || '#fafafa';
+					$($widgetIdSelect).find('.z-layers .z-layer:not(:first-child)').css('color', depthColor);
+				}
+			}
+		});
+
+		elementorFrontend.hooks.addAction('frontend/element_ready/widget', function ($scope) {
+			elementorFrontend.elementsHandler.addHandler(ThreedText, {
+				$element: $scope
+			});
+		});
+
+		elementorFrontend.hooks.addAction('frontend/element_ready/e-heading.default', function () {
+			runAtomicThreedText();
+		});
+
+		runAtomicThreedText();
+		jQuery(window).on('load', runAtomicThreedText);
+	});
+})(jQuery, window.elementorFrontend);
+
 /**
  * Start twitter carousel widget script
  */
@@ -2972,28 +2884,27 @@ $(window).on('elementor/frontend/init', function () {
 
 	var widgetProductCarousel = function( $scope, $ ) {
 
-		var $ProductCarousel = $scope.find( '.bdt-ep-product-carousel' );
+		const $ProductCarousel = $scope.find( '.bdt-ep-product-carousel' );
 				
         if ( ! $ProductCarousel.length ) {
             return;
         }
 
-		var $ProductCarouselContainer = $ProductCarousel.find('.swiper-carousel'),
+		const $ProductCarouselContainer = $ProductCarousel.find('.swiper-carousel'),
 			$settings 		 = $ProductCarousel.data('settings');
 
-		// Access swiper class
         const Swiper = elementorFrontend.utils.swiper;
         initSwiper();
         
         async function initSwiper() {
 
-			var swiper = await new Swiper($ProductCarouselContainer, $settings);
+			await new Swiper($ProductCarouselContainer, $settings);
 
 			if ($settings.pauseOnHover) {
 				 $($ProductCarouselContainer).hover(function() {
-					(this).swiper.autoplay.stop();
+					this.swiper.autoplay.stop();
 				}, function() {
-					(this).swiper.autoplay.start();
+					this.swiper.autoplay.start();
 				});
 			}
 		};
@@ -3014,15 +2925,11 @@ $(window).on('elementor/frontend/init', function () {
 
 /**
  * Start age-gate script
- * Optimized version - No jQuery dependency
  */
 
 (() => {
   "use strict";
 
-  /**
-   * Age Gate Modal Handler Class
-   */
   class AgeGateModal {
     constructor(element, settings, isEditMode) {
       this.element = element;
@@ -3033,9 +2940,6 @@ $(window).on('elementor/frontend/init', function () {
       this.signal = this.abortController.signal;
     }
 
-    /**
-     * Set localStorage with expiration
-     */
     setLocalize() {
       if (this.isEditMode) {
         this.clearLocalize();
@@ -3055,18 +2959,15 @@ $(window).on('elementor/frontend/init', function () {
       }
 
       if (localStorage.getItem(this.widgetId) !== null) {
-        let count = parseInt(localStorage.getItem(this.widgetId)) || 0;
+        let count = parseInt(localStorage.getItem(this.widgetId), 10) || 0;
         count++;
         localStorage.setItem(this.widgetId, count.toString());
       }
     }
 
-    /**
-     * Clear expired localStorage
-     */
     clearLocalize() {
       const localizeExpiry = parseInt(
-        localStorage.getItem(`${this.widgetId}_expiresIn`)
+        localStorage.getItem(`${this.widgetId}_expiresIn`), 10
       );
       const now = Date.now();
 
@@ -3076,12 +2977,9 @@ $(window).on('elementor/frontend/init', function () {
       }
     }
 
-    /**
-     * Show modal based on display times
-     */
     modalFire() {
       const displayTimes = this.settings.displayTimes || 1;
-      const firedNotify = parseInt(localStorage.getItem(this.widgetId)) || 0;
+      const firedNotify = parseInt(localStorage.getItem(this.widgetId), 10) || 0;
 
       if (displayTimes !== false && firedNotify >= displayTimes) {
         return;
@@ -3095,11 +2993,8 @@ $(window).on('elementor/frontend/init', function () {
       }
     }
 
-    /**
-     * Handle age verification
-     */
     setupAgeVerify() {
-      let firedNotify = parseInt(localStorage.getItem(this.widgetId)) || 0;
+      let firedNotify = parseInt(localStorage.getItem(this.widgetId), 10) || 0;
       const modal = this.element;
       const buttons = modal.querySelectorAll(".bdt-button");
       const redirectLink = this.isEditMode ? false : this.settings.redirect_link;
@@ -3110,9 +3005,8 @@ $(window).on('elementor/frontend/init', function () {
           "click",
           () => {
             const ageInput = modal.querySelector(".bdt-age-input");
-            let inputAge = parseInt(ageInput?.value) || 0;
+            let inputAge = parseInt(ageInput?.value, 10) || 0;
 
-            // Handle yes/no buttons
             if (button.classList.contains("data-val-yes")) {
               inputAge = 18;
             }
@@ -3121,7 +3015,6 @@ $(window).on('elementor/frontend/init', function () {
               inputAge = 1;
             }
 
-            // Verify age
             if (inputAge >= requiredAge) {
               this.setLocalize();
               firedNotify += 1;
@@ -3129,13 +3022,11 @@ $(window).on('elementor/frontend/init', function () {
                 window.bdtUIkit.modal(this.element).hide();
               }
             } else {
-              // Show error message
               const msgText = document.querySelector(".modal-msg-text");
               if (msgText) {
                 msgText.classList.remove("bdt-hidden");
               }
 
-              // Redirect if link is provided
               if (redirectLink !== false) {
                 window.location.replace(redirectLink);
               }
@@ -3145,7 +3036,6 @@ $(window).on('elementor/frontend/init', function () {
         );
       });
 
-      // Handle modal hidden event
       if (window.bdtUIkit?.util) {
         window.bdtUIkit.util.on(this.element, "hidden", () => {
           if (this.isEditMode) {
@@ -3166,9 +3056,6 @@ $(window).on('elementor/frontend/init', function () {
       }
     }
 
-    /**
-     * Handle close button delay
-     */
     setupCloseBtnDelay() {
       const { widgetId, delayTime } = this.settings;
       const modalElement = document.getElementById(widgetId);
@@ -3179,10 +3066,8 @@ $(window).on('elementor/frontend/init', function () {
       const closeButton = modalElement.querySelector("#bdt-modal-close-button");
       if (!closeButton) return;
 
-      // Hide initially so it doesn't show before the delay
       closeButton.style.display = "none";
 
-      // Show on modal shown, after configured delay
       if (window.bdtUIkit?.util) {
         window.bdtUIkit.util.on(modalElement, "shown", () => {
           closeButton.style.display = "none";
@@ -3204,9 +3089,6 @@ $(window).on('elementor/frontend/init', function () {
       }
     }
 
-    /**
-     * Initialize modal
-     */
     init() {
       this.modalFire();
       this.setupAgeVerify();
@@ -3216,21 +3098,13 @@ $(window).on('elementor/frontend/init', function () {
       }
     }
 
-    /**
-     * Cleanup
-     */
     destroy() {
       this.abortController.abort();
     }
   }
 
-  /**
-   * Initialize age gate widget
-   * @param {HTMLElement|jQuery} scope - Widget scope element
-   */
   const widgetAgeGate = (scope) => {
-    // Handle both jQuery objects and native DOM elements
-    const scopeElement = scope instanceof jQuery ? scope[0] : scope;
+    const scopeElement = scope?.jquery ? scope[0] : scope;
 
     const modals = scopeElement.querySelectorAll(".bdt-age-gate");
     if (modals.length === 0) return;
@@ -3238,7 +3112,6 @@ $(window).on('elementor/frontend/init', function () {
     const isEditMode = Boolean(window.elementorFrontend?.isEditMode());
 
     modals.forEach((modal) => {
-      // Get settings from data attribute
       const settingsData = modal.dataset.settings;
       if (!settingsData) return;
 
@@ -3250,16 +3123,13 @@ $(window).on('elementor/frontend/init', function () {
         return;
       }
 
-      // Create and initialize modal instance
       const ageGateModal = new AgeGateModal(modal, settings, isEditMode);
       ageGateModal.init();
 
-      // Store instance for cleanup
       modal._ageGateInstance = ageGateModal;
     });
   };
 
-  // Initialize on Elementor frontend ready
   window.addEventListener("elementor/frontend/init", () => {
     if (window.elementorFrontend?.hooks) {
       elementorFrontend.hooks.addAction(
@@ -3349,7 +3219,6 @@ $(window).on('elementor/frontend/init', function () {
                     options.buttonColorLight = darkToggleBg;
                 }
 
-                // Remove any previously applied dark-mode position classes
                 const toRemove = [...document.body.classList].filter(c => /^bdt-dark-mode-\S+/.test(c));
                 document.body.classList.remove(...toRemove);
                 document.body.classList.add('bdt-dark-mode-position-' + this.settings('toggle_position'));
@@ -3422,7 +3291,6 @@ $(window).on('elementor/frontend/init', function () {
 
 /**
  * Start animated gradient background widget script
- * Optimized version - No jQuery dependency
  */
 
 (() => {
@@ -3430,9 +3298,8 @@ $(window).on('elementor/frontend/init', function () {
 
   window.addEventListener("elementor/frontend/init", () => {
     const ModuleHandler = elementorModules.frontend.handlers.Base;
-    let AnimatedGradientBackground;
 
-    AnimatedGradientBackground = ModuleHandler.extend({
+    const AnimatedGradientBackground = ModuleHandler.extend({
       bindEvents: function () {
         this.run();
       },
@@ -3453,11 +3320,6 @@ $(window).on('elementor/frontend/init', function () {
         return this.getElementSettings(`element_pack_agbg_${key}`);
       },
 
-      /**
-       * Parse and standardize colors to desired formats
-       * @param {string} color - Color string to parse
-       * @returns {string} Standardized color
-       */
       parseColor: function (color) {
         // Convert RGBA to 6-digit HEX if alpha is 1
         if (/^rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*([\d.]*)\)$/.test(color)) {
@@ -3468,7 +3330,7 @@ $(window).on('elementor/frontend/init', function () {
 
           if (alpha === 1) {
             // Convert to 6-digit HEX format
-            return `#${((1 << 24) + (parseInt(r) << 16) + (parseInt(g) << 8) + parseInt(b))
+            return `#${((1 << 24) + (parseInt(r, 10) << 16) + (parseInt(g, 10) << 8) + parseInt(b, 10))
               .toString(16)
               .slice(1)}`;
           }
@@ -3525,11 +3387,9 @@ $(window).on('elementor/frontend/init', function () {
 
         if (!widgetContainer) return;
 
-        // Check if canvas already exists
         let canvasElement = widgetContainer.querySelector(".bdt-animated-gradient-background");
 
         if (!canvasElement) {
-          // Create canvas element
           canvasElement = document.createElement("canvas");
           canvasElement.id = `canvas-basic-${sectionID}`;
           canvasElement.className = "bdt-animated-gradient-background";
@@ -3538,24 +3398,20 @@ $(window).on('elementor/frontend/init', function () {
 
         const gradientID = canvasElement.id;
 
-        // Parse colors
         const colorList = this.settings("color_list");
         const colors = colorList.map((color) => [
           this.parseColor(color.start_color),
           this.parseColor(color.end_color),
         ]);
 
-        // Get settings with defaults
         const direction = this.settings("direction") || "diagonal";
         const transitionSpeed = this.settings("transitionSpeed.size") || 5500;
 
-        // Validate Granim library
         if (typeof Granim === "undefined") {
           console.error("Granim library is not loaded");
           return;
         }
 
-        // Initialize Granim
         const granimInstance = new Granim({
           element: `#${gradientID}`,
           direction: direction,
@@ -3570,7 +3426,6 @@ $(window).on('elementor/frontend/init', function () {
       },
     });
 
-    // Register handlers for sections
     elementorFrontend.hooks.addAction(
       "frontend/element_ready/section",
       (scope) => {
@@ -3580,7 +3435,6 @@ $(window).on('elementor/frontend/init', function () {
       }
     );
 
-    // Register handlers for containers
     elementorFrontend.hooks.addAction(
       "frontend/element_ready/container",
       (scope) => {
@@ -3595,6 +3449,989 @@ $(window).on('elementor/frontend/init', function () {
 /**
  * End animated gradient background widget script
  */
+
+;
+(function ($, elementorFrontend) {
+    'use strict';
+
+    var STYLE_PRESETS = [
+        'default',
+        'custom-layout',
+        'stripe',
+        'ribbon',
+        'corner',
+        'flag',
+        'pill',
+        'bubble',
+        'normal',
+        'bookmark',
+        'bookmark-vertical',
+    ];
+
+    $(window).on('elementor/frontend/init', function () {
+        if (!elementorFrontend?.hooks || window.__epGlobalBadgeInitialized) {
+            return;
+        }
+
+        window.__epGlobalBadgeInitialized = true;
+
+        var GlobalBadge = elementorModules.frontend.handlers.Base.extend({
+
+            bindEvents: function () {
+                this.run();
+            },
+
+            settings: function (key) {
+                return this.getElementSettings('ep_global_badge_' + key);
+            },
+
+            isEditMode: function () {
+                return $('body').hasClass('elementor-editor-active')
+                    || (elementorFrontend.isEditMode && elementorFrontend.isEditMode());
+            },
+
+            shouldRenderBadgeViaJs: function () {
+                return this.isEditMode();
+            },
+
+            getSvgCode: function () {
+                var code = this.getElementSettings('ep_global_badge_svg_code');
+
+                if (typeof code === 'string' && code.trim()) {
+                    return code;
+                }
+
+                return this.settings('svg_code') || '';
+            },
+
+            hasSvgLayer: function () {
+                return this.settings('svg_layer') === 'yes' && !!this.getSvgCode();
+            },
+
+            getSvgInnerStyle: function () {
+                var width, size, unit;
+
+                if (!this.hasSvgLayer()) {
+                    return '';
+                }
+
+                width = this.getElementSettings('ep_global_badge_svg_width');
+                size = width && width.size !== undefined && width.size !== '' ? width.size : 100;
+                unit = width && width.unit ? width.unit : 'px';
+
+                return 'overflow:visible;min-inline-size:' + size + unit + ';min-block-size:' + size + unit + ';';
+            },
+
+            getEditor: function () {
+                return window.elementor || (window.parent && window.parent.elementor);
+            },
+
+            getElementorHelpers: function () {
+                var editor = this.getEditor();
+
+                return editor && editor.helpers ? editor.helpers : null;
+            },
+
+            refreshBadgeAfterSvgIconLoad: function () {
+                if (!this.shouldRenderBadgeViaJs() || this.settings('enable') !== 'yes') {
+                    return;
+                }
+
+                this.updateBadgeMarkup();
+                this.syncBadgePositionClass();
+                this.syncBadgeStyleClass();
+                this.syncBadgeLayoutStyles();
+                this.ensureBadgePlacement();
+                this.initFloatingIfNeeded();
+                this.initBadgeLottie(this.getBadgeElement());
+            },
+
+            getSvgIconHtml: function (icon) {
+                var helpers = this.getElementorHelpers(),
+                    rendered,
+                    svgValue = icon.value,
+                    self = this;
+
+                if (!svgValue || !svgValue.url) {
+                    return '';
+                }
+
+                if (helpers && helpers.renderIcon) {
+                    rendered = helpers.renderIcon(null, icon, { 'aria-hidden': true });
+
+                    if (rendered && rendered.value) {
+                        return rendered.value;
+                    }
+                }
+
+                if (svgValue.id && helpers && helpers.fetchInlineSvg && this._pendingSvgIconId !== svgValue.id) {
+                    this._pendingSvgIconId = svgValue.id;
+
+                    helpers.fetchInlineSvg(svgValue.url, function (data) {
+                        self._pendingSvgIconId = null;
+
+                        if (!data) {
+                            return;
+                        }
+
+                        if (helpers._inlineSvg) {
+                            helpers._inlineSvg[svgValue.id] = data;
+                        }
+
+                        self.refreshBadgeAfterSvgIconLoad();
+                    });
+                }
+
+                return '';
+            },
+
+            needsMarkupRefresh: function (prop) {
+                var keys = [
+                    'ep_global_badge_enable',
+                    'ep_global_badge_text',
+                    'ep_global_badge_icon',
+                    'ep_global_badge_icon_type',
+                    'ep_global_badge_icon_selected',
+                    'ep_global_badge_lottie_json_source',
+                    'ep_global_badge_lottie_json_path',
+                    'ep_global_badge_lottie_upload_json_file',
+                    'ep_global_badge_lottie_json_code',
+                    'ep_global_badge_lottie_loop',
+                    'ep_global_badge_lottie_speed',
+                    'ep_global_badge_lottie_start_point',
+                    'ep_global_badge_lottie_end_point',
+                    'ep_global_badge_lottie_renderer',
+                    'ep_global_badge_clip_path',
+                    'ep_global_badge_clip_path_value',
+                    'ep_global_badge_svg_layer',
+                    'ep_global_badge_svg_code',
+                ];
+
+                return keys.some(function (key) {
+                    return prop === key || prop.indexOf(key) === 0;
+                });
+            },
+
+            getBadgeIconType: function () {
+                return this.settings('icon_type') === 'lottie' ? 'lottie' : 'icon';
+            },
+
+            hasLottieContent: function () {
+                var source = this.settings('lottie_json_source') || 'url',
+                    uploadFile;
+
+                if (source === 'url') {
+                    return !!this.settings('lottie_json_path');
+                }
+
+                if (source === 'local') {
+                    uploadFile = this.getElementSettings('ep_global_badge_lottie_upload_json_file');
+
+                    if (typeof uploadFile === 'string' && uploadFile) {
+                        return true;
+                    }
+
+                    if (uploadFile && (uploadFile.url || uploadFile.id)) {
+                        return true;
+                    }
+
+                    return !!this.settings('lottie_upload_json_file');
+                }
+
+                if (source === 'custom') {
+                    return !!(this.settings('lottie_json_code') || '').trim();
+                }
+
+                return false;
+            },
+
+            hasBadgeIconContent: function () {
+                var icon;
+
+                if (this.settings('icon') !== 'yes') {
+                    return false;
+                }
+
+                if (this.getBadgeIconType() === 'lottie') {
+                    return this.hasLottieContent();
+                }
+
+                icon = this.settings('icon_selected');
+
+                return !!(icon && icon.value);
+            },
+
+            getLottieDataSettings: function () {
+                var source = this.settings('lottie_json_source') || 'url',
+                    jsonPath = '',
+                    jsonCode = '',
+                    isJsonUrl = true,
+                    uploadFile,
+                    startPoint,
+                    endPoint,
+                    speed;
+
+                if (source === 'url') {
+                    jsonPath = this.settings('lottie_json_path') || '';
+                } else if (source === 'local') {
+                    uploadFile = this.getElementSettings('ep_global_badge_lottie_upload_json_file');
+
+                    if (typeof uploadFile === 'string') {
+                        jsonPath = uploadFile;
+                    } else if (uploadFile && uploadFile.url) {
+                        jsonPath = uploadFile.url;
+                    } else {
+                        jsonPath = this.settings('lottie_upload_json_file') || '';
+                    }
+                } else if (source === 'custom') {
+                    jsonCode = this.settings('lottie_json_code') || '';
+                    isJsonUrl = false;
+                }
+
+                startPoint = this.getElementSettings('ep_global_badge_lottie_start_point');
+                endPoint = this.getElementSettings('ep_global_badge_lottie_end_point');
+                speed = this.getElementSettings('ep_global_badge_lottie_speed');
+
+                return {
+                    loop: this.settings('lottie_loop') === 'yes',
+                    is_json_url: isJsonUrl,
+                    json_path: jsonPath,
+                    json_code: jsonCode,
+                    speed: speed && speed.size !== undefined ? speed.size : 1,
+                    play_action: 'autoplay',
+                    start_point: startPoint && startPoint.size !== undefined ? startPoint.size : 0,
+                    end_point: endPoint && endPoint.size !== undefined ? endPoint.size : 100,
+                    lottie_renderer: this.settings('lottie_renderer') || 'svg',
+                };
+            },
+
+            getLottieHtml: function () {
+                var lottieId = 'bdt-ep-global-badge-lottie-' + this.getID(),
+                    dataSettings;
+
+                if (!this.hasLottieContent()) {
+                    return '';
+                }
+
+                dataSettings = JSON.stringify(this.getLottieDataSettings())
+                    .replace(/"/g, '&quot;');
+
+                return '<div id="' + lottieId + '" class="bdt-lottie-container" data-settings="' + dataSettings + '" aria-hidden="true"></div>';
+            },
+
+            initBadgeLottie: function ($badge) {
+                var self = this;
+
+                if (!$badge || !$badge.length || typeof window.lottie === 'undefined') {
+                    return;
+                }
+
+                $badge.find('.bdt-lottie-container').each(function () {
+                    var lottieEl = this,
+                        settings = {},
+                        jsonPathUrl,
+                        animation;
+
+                    if (lottieEl._epGlobalBadgeLottie) {
+                        lottieEl._epGlobalBadgeLottie.destroy();
+                        lottieEl._epGlobalBadgeLottie = null;
+                    }
+
+                    try {
+                        settings = lottieEl.dataset.settings ? JSON.parse(lottieEl.dataset.settings) : {};
+                    } catch (e) {
+                        settings = {};
+                    }
+
+                    if (settings.is_json_url == 1 || settings.is_json_url === true) {
+                        if (settings.json_path) {
+                            jsonPathUrl = settings.json_path;
+                        }
+                    } else if (settings.json_code) {
+                        jsonPathUrl = URL.createObjectURL(new Blob([settings.json_code], { type: 'application/javascript' }));
+                    }
+
+                    if (!jsonPathUrl) {
+                        return;
+                    }
+
+                    animation = window.lottie.loadAnimation({
+                        container: lottieEl,
+                        path: jsonPathUrl,
+                        renderer: settings.lottie_renderer || 'svg',
+                        autoplay: settings.play_action === 'autoplay',
+                        loop: settings.loop,
+                    });
+
+                    if (jsonPathUrl.indexOf('blob:') === 0) {
+                        URL.revokeObjectURL(jsonPathUrl);
+                    }
+
+                    animation.addEventListener('DOMLoaded', function () {
+                        var firstFrame = animation.firstFrame,
+                            totalFrame = animation.totalFrames,
+                            getFrameNumberByPercent = function (percent) {
+                                percent = Math.min(100, Math.max(0, percent));
+                                return firstFrame + (totalFrame - firstFrame) * percent / 100;
+                            },
+                            startPoint = getFrameNumberByPercent(settings.start_point ?? 0),
+                            endPoint = getFrameNumberByPercent(settings.end_point ?? 100);
+
+                        animation.playSegments([startPoint, endPoint], true);
+                    });
+
+                    animation.setSpeed(settings.speed ?? 1);
+                    lottieEl._epGlobalBadgeLottie = animation;
+                });
+            },
+
+            needsLayoutRefresh: function (prop) {
+                return /ep_global_badge_(offset_x|offset_y|rotate|horizontal|vertical|style)/.test(prop);
+            },
+
+            normalizeStyleSlug: function (style) {
+                if ('custom-layout' === style) {
+                    return 'custom-layout';
+                }
+
+                return 'default';
+            },
+
+            onElementChange: function (prop) {
+                if (prop.indexOf('ep_global_badge_') === -1) {
+                    return;
+                }
+
+                if (this.animeInstance) {
+                    this.animeInstance.pause();
+                    this.animeInstance = null;
+                }
+
+                if (prop === 'ep_global_badge_enable') {
+                    this.syncWrapperClasses();
+
+                    if (this.settings('enable') === 'yes') {
+                        this.updateBadgeMarkup();
+                        this.initFloatingIfNeeded();
+                    } else {
+                        this.removeAllBadges();
+                    }
+
+                    return;
+                }
+
+                if (this.needsMarkupRefresh(prop)) {
+                    this.debouncedMarkupRefresh();
+                    return;
+                }
+
+                if (this.needsLayoutRefresh(prop)) {
+                    this.scheduleLayoutRefresh();
+                    return;
+                }
+
+                if (this.isEditMode()) {
+                    this.ensureBadgeExists();
+                    this.ensureBadgePlacement();
+                }
+            },
+
+            debouncedMarkupRefresh: debounce(function () {
+                if (!this.shouldRenderBadgeViaJs()) {
+                    return;
+                }
+
+                this.updateBadgeMarkup();
+                this.ensureBadgePlacement();
+                this.initFloatingIfNeeded();
+                this.initBadgeLottie(this.getBadgeElement());
+            }, 200),
+
+            scheduleLayoutRefresh: function () {
+                var self = this;
+
+                if (this._layoutRaf) {
+                    return;
+                }
+
+                this._layoutRaf = requestAnimationFrame(function () {
+                    self._layoutRaf = null;
+                    self.syncBadgePositionClass();
+                    self.syncBadgeStyleClass();
+                    self.syncBadgeLayoutStyles();
+                    self.ensureBadgePlacement();
+                });
+            },
+
+            onDestroy: function () {
+                if (this._layoutRaf) {
+                    cancelAnimationFrame(this._layoutRaf);
+                    this._layoutRaf = null;
+                }
+
+                if (this.animeInstance) {
+                    this.animeInstance.pause();
+                    this.animeInstance = null;
+                }
+            },
+
+            escapeHtml: function (text) {
+                return $('<div/>').text(text || '').html();
+            },
+
+            getBadgeMountElement: function () {
+                var id = this.getID(),
+                    $mount;
+
+                if (id) {
+                    $mount = $('.elementor-element-' + id);
+
+                    if ($mount.length) {
+                        return $mount.first();
+                    }
+                }
+
+                $mount = this.$element;
+
+                if ($mount.hasClass('e-con-inner')) {
+                    $mount = $mount.closest('.e-con.elementor-element');
+                }
+
+                if ($mount.hasClass('elementor-widget') || $mount.hasClass('e-con')) {
+                    return $mount;
+                }
+
+                if ($mount.hasClass('elementor-element')) {
+                    return $mount;
+                }
+
+                $mount = $mount.closest('.elementor-element.e-con, .elementor-element.elementor-widget');
+
+                return $mount.length ? $mount.first() : this.$element;
+            },
+
+            getElementType: function () {
+                return this.getBadgeMountElement().attr('data-element_type') || '';
+            },
+
+            isContainerElement: function () {
+                return this.getElementType() === 'container';
+            },
+
+            isWidgetElement: function () {
+                return this.getElementType() === 'widget';
+            },
+
+            getBadgeForAttr: function () {
+                return String(this.getID() || '');
+            },
+
+            unwrapWidgetMount: function () {
+                var $mount = this.getBadgeMountElement(),
+                    $wrap = $mount.parent('.bdt-ep-global-badge-mount');
+
+                if (!$wrap.length) {
+                    return;
+                }
+
+                $wrap.children('.bdt-ep-global-badge').appendTo($mount);
+                $mount.unwrap();
+            },
+
+            getBadgeInsertParent: function () {
+                var $mount = this.getBadgeMountElement(),
+                    $inner;
+
+                if (this.isWidgetElement()) {
+                    return $mount;
+                }
+
+                if (this.isContainerElement()) {
+                    $inner = $mount.children('.e-con-inner').first();
+
+                    if ($inner.length) {
+                        return $inner;
+                    }
+                }
+
+                $inner = $mount.children('.elementor-container, .elementor-widget-wrap').first();
+
+                return $inner.length ? $inner : $mount;
+            },
+
+            syncWrapperClasses: function () {
+                var $mount = this.getBadgeMountElement();
+
+                if (this.settings('enable') === 'yes') {
+                    $mount.addClass('bdt-ep-global-badge-active');
+                } else {
+                    $mount.removeClass('bdt-ep-global-badge-active');
+                }
+            },
+
+            getBadgeElement: function () {
+                var forId = this.getBadgeForAttr();
+
+                if (!forId) {
+                    return $();
+                }
+
+                return $('.bdt-ep-global-badge[data-ep-global-badge-for="' + forId + '"]').first();
+            },
+
+            dedupeBadges: function () {
+                var forId = this.getBadgeForAttr(),
+                    $badges;
+
+                if (!forId) {
+                    return;
+                }
+
+                $badges = $('.bdt-ep-global-badge[data-ep-global-badge-for="' + forId + '"]');
+
+                if ($badges.length <= 1) {
+                    return;
+                }
+
+                $badges.slice(1).remove();
+            },
+
+            removeAllBadges: function () {
+                var forId = this.getBadgeForAttr();
+
+                if (!forId) {
+                    return;
+                }
+
+                $('.bdt-ep-global-badge[data-ep-global-badge-for="' + forId + '"]').remove();
+            },
+
+            /**
+             * Container: badge inside .e-con-inner (or section/column inner wrap).
+             * Widget: badge inside data-element_type="widget" element.
+             */
+            ensureBadgePlacement: function () {
+                var $mount = this.getBadgeMountElement(),
+                    $badge = this.getBadgeElement(),
+                    $parent;
+
+                if (!$badge.length) {
+                    return;
+                }
+
+                if (this.isWidgetElement()) {
+                    this.unwrapWidgetMount();
+
+                    if ($badge.parent()[0] !== $mount[0]) {
+                        $badge.detach().appendTo($mount);
+                    }
+
+                    return;
+                }
+
+                $parent = this.getBadgeInsertParent();
+
+                if (!$parent.length) {
+                    return;
+                }
+
+                if ($badge.parent()[0] !== $parent[0]) {
+                    $badge.detach().appendTo($parent);
+                }
+            },
+
+            rehomeBadgeIntoMount: function () {
+                this.dedupeBadges();
+                this.ensureBadgePlacement();
+            },
+
+            getPositionClass: function () {
+                var horizontal = this.settings('horizontal') || 'right',
+                    vertical = this.settings('vertical') || 'top',
+                    map = {
+                        left: { top: 'top-left', bottom: 'bottom-left' },
+                        right: { top: 'top-right', bottom: 'bottom-right' },
+                    };
+
+                return (map[horizontal] && map[horizontal][vertical]) ? map[horizontal][vertical] : 'top-right';
+            },
+
+            getSliderCSSValue: function (key) {
+                var data = this.getElementSettings('ep_global_badge_' + key);
+
+                if (!data || data.size === '' || data.size === undefined || data.size === null) {
+                    return null;
+                }
+
+                return String(data.size) + (data.unit || 'px');
+            },
+
+            getLayoutTransformValue: function () {
+                var offsetX = this.getSliderCSSValue('offset_x') || '0px',
+                    offsetY = this.getSliderCSSValue('offset_y') || '0px',
+                    rotate = this.getSliderCSSValue('rotate') || '0deg';
+
+                return 'translate(' + offsetX + ', ' + offsetY + ') rotate(' + rotate + ')';
+            },
+
+            clearWrapperLayoutVars: function () {
+                var mount = this.getBadgeMountElement()[0];
+
+                if (!mount) {
+                    return;
+                }
+
+                mount.style.removeProperty('--ep-global-badge-offset-x');
+                mount.style.removeProperty('--ep-global-badge-offset-y');
+                mount.style.removeProperty('--ep-global-badge-rotate');
+            },
+
+            syncBadgeLayoutStyles: function () {
+                var $badge = this.getBadgeElement();
+
+                this.clearWrapperLayoutVars();
+
+                if (!$badge.length) {
+                    return;
+                }
+
+                $badge.css('transform', this.getLayoutTransformValue());
+            },
+
+            syncBadgePositionClass: function () {
+                var $badge = this.getBadgeElement(),
+                    positionClass,
+                    positionClasses,
+                    i;
+
+                if (!$badge.length) {
+                    return;
+                }
+
+                positionClass = this.getPositionClass();
+                positionClasses = ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'top', 'bottom', 'left', 'right'];
+
+                for (i = 0; i < positionClasses.length; i++) {
+                    $badge.removeClass('bdt-position-' + positionClasses[i]);
+                }
+
+                $badge.addClass('bdt-position-' + positionClass);
+            },
+
+            syncBadgeStyleClass: function () {
+                var $badge = this.getBadgeElement(),
+                    style,
+                    i;
+
+                if (!$badge.length) {
+                    return;
+                }
+
+                style = this.normalizeStyleSlug(this.settings('style') || 'default');
+
+                for (i = 0; i < STYLE_PRESETS.length; i++) {
+                    $badge.removeClass('bdt-ep-global-badge--' + STYLE_PRESETS[i]);
+                }
+
+                $badge.addClass('bdt-ep-global-badge--' + style);
+            },
+
+            getIconHtml: function () {
+                var icon = this.settings('icon_selected'),
+                    helpers,
+                    iconType = this.getBadgeIconType();
+
+                if (!this.hasBadgeIconContent()) {
+                    return '';
+                }
+
+                if (iconType === 'lottie') {
+                    return this.getLottieHtml();
+                }
+
+                if (!icon || !icon.value) {
+                    return '';
+                }
+
+                if (icon.library === 'svg') {
+                    return this.getSvgIconHtml(icon);
+                }
+
+                helpers = this.getElementorHelpers();
+
+                if (helpers && helpers.enqueueIconFonts && icon.library) {
+                    helpers.enqueueIconFonts(icon.library);
+                }
+
+                return '<i class="' + icon.value + '" aria-hidden="true"></i>';
+            },
+
+            getBadgeIconWrapHtml: function (iconHtml) {
+                if (!iconHtml) {
+                    return '';
+                }
+
+                return '<span class="bdt-ep-global-badge-icon bdt-ep-global-badge-icon--' + this.getBadgeIconType() + '">' + iconHtml + '</span>';
+            },
+
+            updateBadgeMarkup: function () {
+                var $mount = this.getBadgeMountElement(),
+                    style, positionClass, text, innerStyle, svgHtml, iconHtml, textHtml, badgeHtml,
+                    transform = this.getLayoutTransformValue(),
+                    forId = this.getBadgeForAttr(),
+                    $parent;
+
+                this.removeAllBadges();
+
+                if (this.settings('enable') !== 'yes') {
+                    return;
+                }
+
+                style = this.normalizeStyleSlug(this.settings('style') || 'default');
+                positionClass = this.getPositionClass();
+                text = this.settings('text') || '';
+                var hasSvg = this.hasSvgLayer();
+
+                innerStyle = this.getSvgInnerStyle();
+
+                if (this.settings('clip_path') === 'yes' && this.settings('clip_path_value')) {
+                    innerStyle += 'clip-path:' + this.settings('clip_path_value') + ';-webkit-clip-path:' + this.settings('clip_path_value') + ';';
+                }
+
+                svgHtml = '';
+
+                if (hasSvg) {
+                    svgHtml = '<div class="bdt-ep-global-badge-svg" aria-hidden="true">' + this.getSvgCode() + '</div>';
+                }
+
+                iconHtml = this.getIconHtml();
+                textHtml = '';
+
+                if (text) {
+                    textHtml = '<span class="bdt-ep-global-badge-text">' + this.escapeHtml(text) + '</span>';
+                }
+
+                badgeHtml =
+                    '<div class="bdt-ep-global-badge bdt-position-small bdt-position-' + positionClass + ' bdt-ep-global-badge--' + style + (hasSvg ? ' bdt-ep-global-badge-has-svg' : '') + '" data-ep-global-badge-for="' + forId + '" style="transform:' + transform + '">' +
+                        '<div class="bdt-ep-global-badge-inner"' + (innerStyle ? ' style="' + innerStyle + '"' : '') + '>' +
+                            svgHtml +
+                            '<div class="bdt-ep-global-badge-content">' +
+                                this.getBadgeIconWrapHtml(iconHtml) +
+                                textHtml +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+
+                $parent = this.getBadgeInsertParent();
+
+                if ($parent.length) {
+                    $parent.append(badgeHtml);
+                } else {
+                    $mount.append(badgeHtml);
+                }
+
+                this.ensureBadgePlacement();
+                this.initBadgeLottie(this.getBadgeElement());
+            },
+
+            ensureBadgeExists: function () {
+                if (this.settings('enable') === 'yes' && !this.getBadgeElement().length && this.shouldRenderBadgeViaJs()) {
+                    this.updateBadgeMarkup();
+                }
+            },
+
+            getSpeedDuration: function (speedKey) {
+                var speed = parseFloat(this.settings(speedKey + '.size')) || 1;
+                return Math.max(300, Math.round(3000 / speed));
+            },
+
+            hasRangeValue: function (key) {
+                var from = this.settings(key + '.sizes.from'),
+                    to = this.settings(key + '.sizes.to');
+
+                if (from === undefined && to === undefined) {
+                    return false;
+                }
+
+                return Number(from) !== Number(to);
+            },
+
+            initFloatingIfNeeded: function () {
+                var $badgeInner = this.getBadgeElement().find('.bdt-ep-global-badge-inner').first();
+
+                if (!$badgeInner.length || this.settings('floating') !== 'yes') {
+                    return;
+                }
+
+                this.initFloating($badgeInner[0]);
+            },
+
+            run: function () {
+                if (this.settings('enable') !== 'yes') {
+                    this.removeAllBadges();
+                    this.syncWrapperClasses();
+                    return;
+                }
+
+                if (this.isWidgetElement()) {
+                    this.unwrapWidgetMount();
+                }
+
+                this.syncWrapperClasses();
+                this.rehomeBadgeIntoMount();
+
+                if (this.getBadgeElement().find('.bdt-ep-global-badge-svg').length) {
+                    this.getBadgeElement().addClass('bdt-ep-global-badge-has-svg');
+                }
+
+                if (!this.getBadgeElement().length && this.shouldRenderBadgeViaJs()) {
+                    this.updateBadgeMarkup();
+                }
+
+                this.syncBadgePositionClass();
+                this.syncBadgeStyleClass();
+                this.syncBadgeLayoutStyles();
+                this.ensureBadgePlacement();
+                this.initFloatingIfNeeded();
+                this.initBadgeLottie(this.getBadgeElement());
+            },
+
+            initFloating: function (target) {
+                var options, hasAnimation, self = this;
+
+                if (typeof window.anime !== 'function') {
+                    return;
+                }
+
+                options = {
+                    targets: target,
+                    direction: 'alternate',
+                    loop: true,
+                    easing: 'easeInOutSine',
+                };
+
+                hasAnimation = false;
+
+                if (this.settings('floating_translate_toggle') === 'yes') {
+                    var duration = this.getSpeedDuration('floating_translate_speed');
+
+                    if (this.hasRangeValue('floating_translate_x')) {
+                        options.translateX = {
+                            value: [
+                                this.settings('floating_translate_x.sizes.from') || 0,
+                                this.settings('floating_translate_x.sizes.to') || 0,
+                            ],
+                            duration: duration,
+                        };
+                        hasAnimation = true;
+                    }
+
+                    if (this.hasRangeValue('floating_translate_y')) {
+                        options.translateY = {
+                            value: [
+                                this.settings('floating_translate_y.sizes.from') || 0,
+                                this.settings('floating_translate_y.sizes.to') || 0,
+                            ],
+                            duration: duration,
+                        };
+                        hasAnimation = true;
+                    }
+                }
+
+                if (this.settings('floating_rotate_toggle') === 'yes') {
+                    var rotateDuration = this.getSpeedDuration('floating_rotate_speed');
+
+                    ['x', 'y', 'z'].forEach(function (axis) {
+                        var key = 'floating_rotate_' + axis;
+
+                        if (!self.hasRangeValue(key)) {
+                            return;
+                        }
+
+                        var prop = 'rotate' + axis.toUpperCase();
+
+                        options[prop] = {
+                            value: [
+                                self.settings(key + '.sizes.from') || 0,
+                                self.settings(key + '.sizes.to') || 0,
+                            ],
+                            duration: rotateDuration,
+                        };
+                        hasAnimation = true;
+                    });
+                }
+
+                if (this.settings('floating_opacity_toggle') === 'yes') {
+                    var start = this.settings('floating_opacity_start.size'),
+                        end = this.settings('floating_opacity_end.size');
+
+                    if (start !== undefined || end !== undefined) {
+                        options.opacity = {
+                            value: [start !== undefined ? start : 1, end !== undefined ? end : 0.5],
+                            duration: this.getSpeedDuration('floating_opacity_speed'),
+                            easing: 'linear',
+                        };
+                        hasAnimation = true;
+                    }
+                }
+
+                if (this.settings('floating_blur_toggle') === 'yes') {
+                    var blurStart = this.settings('floating_blur_start.size') || 0,
+                        blurEnd = this.settings('floating_blur_end.size') || 4;
+
+                    options.filter = {
+                        value: ['blur(' + blurStart + 'px)', 'blur(' + blurEnd + 'px)'],
+                        duration: this.getSpeedDuration('floating_blur_speed'),
+                    };
+                    hasAnimation = true;
+                }
+
+                if (!hasAnimation) {
+                    return;
+                }
+
+                this.animeInstance = window.anime(options);
+            },
+        });
+
+        var addBadgeHandler = function ($scope) {
+            var $target = $scope;
+
+            if ($scope.hasClass('e-con-inner')) {
+                $target = $scope.closest('.e-con.elementor-element');
+            }
+
+            if (!$target.length) {
+                $target = $scope;
+            }
+
+            elementorFrontend.elementsHandler.addHandler(GlobalBadge, {
+                $element: $target,
+            });
+        };
+
+        elementorFrontend.hooks.addAction('frontend/element_ready/widget', addBadgeHandler);
+        elementorFrontend.hooks.addAction('frontend/element_ready/container', addBadgeHandler);
+        elementorFrontend.hooks.addAction('frontend/element_ready/section', addBadgeHandler);
+        elementorFrontend.hooks.addAction('frontend/element_ready/column', addBadgeHandler);
+
+        // Containers enabled before script init (e.g. toggle in panel).
+        elementorFrontend.hooks.addAction('frontend/element_ready/global', function ($scope) {
+            var $mount = $scope.hasClass('e-con') ? $scope : $scope.find('.e-con').first();
+
+            if (!$mount.length || !$mount.hasClass('bdt-ep-global-badge-yes')) {
+                return;
+            }
+
+            if ($mount.find('.bdt-ep-global-badge[data-ep-global-badge-for]').length) {
+                return;
+            }
+
+            addBadgeHandler($mount);
+        });
+    });
+
+}(jQuery, window.elementorFrontend));
 
 ; (function ($, elementor) {
     $(window).on('elementor/frontend/init', function () {
@@ -3647,9 +4484,6 @@ $(window).on('elementor/frontend/init', function () {
                         options.trigger = this.settings('tooltip_trigger');
                     }
                 }
-                // if (this.settings('tooltip_animation_duration')) {
-                //     options.duration = this.settings('tooltip_animation_duration.sizes.from');
-                // }
                 if (this.settings('tooltip_animation')) {
                     if (this.settings('tooltip_animation') === 'fill') {
                         options.animateFill = true;
@@ -3699,6 +4533,72 @@ $(window).on('elementor/frontend/init', function () {
                 return this.getElementSettings('element_pack_cursor_effects_' + key);
             },
 
+            copyCursorVarsToWrapper: function (wrapper, source) {
+                var elementEl = this.$element[0];
+                var computed = window.getComputedStyle(elementEl);
+                var cursorVars = [
+                    "cursor-ball-color",
+                    "cursor-ball-size",
+                    "cursor-circle-color",
+                    "cursor-circle-size",
+                    "cursor-text-label",
+                    "cursor-image-size"
+                ];
+
+                cursorVars.forEach(function (name) {
+                    var val = computed.getPropertyValue("--" + name).trim();
+
+                    if (val) {
+                        wrapper.style.setProperty("--" + name, val);
+                    }
+                });
+
+                if (source === "image") {
+                    var sizeAttr = this.$element.attr("data-bdt-cursor-image-size");
+                    var sizeSetting = this.settings("image_size");
+                    var imageSize = sizeAttr;
+
+                    if (!imageSize && sizeSetting && sizeSetting.size) {
+                        imageSize = sizeSetting.size + (sizeSetting.unit || "px");
+                    }
+
+                    if (!imageSize) {
+                        imageSize = computed.getPropertyValue("--cursor-image-size").trim();
+                    }
+
+                    if (imageSize) {
+                        wrapper.style.setProperty("--cursor-image-size", imageSize);
+                    }
+                }
+            },
+
+            applyImageSize: function (wrapper) {
+                var imageSize = wrapper.style.getPropertyValue("--cursor-image-size").trim();
+
+                if (!imageSize) {
+                    imageSize = this.$element.attr("data-bdt-cursor-image-size");
+                }
+
+                if (!imageSize) {
+                    var sizeSetting = this.settings("image_size");
+
+                    if (sizeSetting && sizeSetting.size) {
+                        imageSize = sizeSetting.size + (sizeSetting.unit || "px");
+                    }
+                }
+
+                if (!imageSize) {
+                    return;
+                }
+
+                wrapper.style.setProperty("--cursor-image-size", imageSize);
+                wrapper.querySelectorAll(".bdt-cursor-image").forEach(function (img) {
+                    img.style.width = imageSize;
+                    img.style.height = imageSize;
+                    img.style.maxWidth = "none";
+                });
+            },
+
             run: function () {
                 var elementID = this.$element.data("id");
                 var cursorWrapId = "bdt-cursor-effects-wrap-" + elementID;
@@ -3708,7 +4608,6 @@ $(window).on('elementor/frontend/init', function () {
                     return;
                 }
 
-                // Disable on mobile
                 const disableOnMobile = this.settings("disable_on_mobile") === "yes";
                 const isMobile = window.innerWidth <= 767;
                 if (disableOnMobile && isMobile) {
@@ -3728,7 +4627,6 @@ $(window).on('elementor/frontend/init', function () {
                     && this.settings("image_gsap_animation") === "yes"
                     && $element.hasClass("cursor-effects-smooth-animation-yes");
 
-                // ── GSAP cleanup: runs whenever GSAP mode is toggled off ──────────
                 if (!isGsap) {
                     var staleGsap = document.getElementById(gsapId);
                     if (staleGsap) staleGsap.remove();
@@ -3745,7 +4643,6 @@ $(window).on('elementor/frontend/init', function () {
                     }
                 }
 
-                // ── GSAP Image Animation Mode ────────────────────────────────────
                 if (isGsap) {
                     var staleWrap = document.getElementById(cursorWrapId);
                     if (staleWrap) staleWrap.remove();
@@ -3771,13 +4668,11 @@ $(window).on('elementor/frontend/init', function () {
 
                     gsap.set(galleryEl, { autoAlpha: 0, xPercent: -50, yPercent: -50 });
 
-                    // Remove any stale listeners before re-attaching
                     if (elementEl._bdtGsapHandlers) {
                         elementEl.removeEventListener("mousemove", elementEl._bdtGsapHandlers.move);
                         elementEl.removeEventListener("mouseleave", elementEl._bdtGsapHandlers.leave);
                     }
 
-                    // transform x/y + quickTo: GPU-accelerated, instant response, smooth deceleration
                     var xTo = gsap.quickTo(galleryEl, "x", { duration: 0.5, ease: "power3.out" });
                     var yTo = gsap.quickTo(galleryEl, "y", { duration: 0.5, ease: "power3.out" });
 
@@ -3804,7 +4699,6 @@ $(window).on('elementor/frontend/init', function () {
 
                     return; // Skip Cotton.js initialisation
                 }
-                // ── End GSAP Mode ────────────────────────────────────────────────
 
                 var cursorInnerHtml = "";
                     if (source === "image") {
@@ -3812,7 +4706,7 @@ $(window).on('elementor/frontend/init', function () {
                         cursorInnerHtml =
                             '<div class="bdt-cursor-effects"><div id="bdt-ep-cursor-ball-effects-' +
                             elementID +
-                            '" class="ep-cursor-ball"><img class="bdt-cursor-image"src="' +
+                            '" class="ep-cursor-ball"><img class="bdt-cursor-image" src="' +
                             image +
                             '"></div></div>';
                     } else if (source === "icons") {
@@ -3856,15 +4750,14 @@ $(window).on('elementor/frontend/init', function () {
                         document.getElementById(cursorWrapId) && document.getElementById(cursorWrapId).remove();
                         var wrapper = document.createElement("div");
                         wrapper.id = cursorWrapId;
-                        wrapper.className = "bdt-cursor-effects-yes bdt-cursor-effects-body-wrap" + (source === "icons" ? " bdt-cursor-effects--icons" : "");
+                        wrapper.className = "bdt-cursor-effects-yes bdt-cursor-effects-body-wrap" + (source === "icons" ? " bdt-cursor-effects--icons" : "") + (source === "image" ? " bdt-cursor-effects--image" : "");
                         wrapper.innerHTML = cursorInnerHtml;
-                        var computed = window.getComputedStyle(elementEl);
-                        var cursorVars = ["cursor-ball-color", "cursor-ball-size", "cursor-circle-color", "cursor-circle-size", "cursor-text-label", "cursor-image-size"];
-                        cursorVars.forEach(function (name) {
-                            var val = computed.getPropertyValue("--" + name).trim();
-                            if (val) wrapper.style.setProperty("--" + name, val);
-                        });
+                        this.copyCursorVarsToWrapper(wrapper, source);
                         document.body.appendChild(wrapper);
+
+                        if (source === "image") {
+                            this.applyImageSize(wrapper);
+                        }
                     }
                 var cursorBallID =
                     "#bdt-ep-cursor-ball-effects-" + this.$element.data("id");
@@ -3892,21 +4785,18 @@ $(window).on('elementor/frontend/init', function () {
             }
         });
 
-        // Handle widgets
         elementorFrontend.hooks.addAction('frontend/element_ready/widget', function ($scope) {
             elementorFrontend.elementsHandler.addHandler(CursorEffect, {
                 $element: $scope
             });
         });
 
-        // Handle sections
         elementorFrontend.hooks.addAction('frontend/element_ready/section', function ($scope) {
             elementorFrontend.elementsHandler.addHandler(CursorEffect, {
                 $element: $scope
             });
         });
 
-        // Handle containers
         elementorFrontend.hooks.addAction('frontend/element_ready/container', function ($scope) {
             elementorFrontend.elementsHandler.addHandler(CursorEffect, {
                 $element: $scope
@@ -3922,12 +4812,8 @@ $(window).on('elementor/frontend/init', function () {
 (() => {
     'use strict';
 
-    /**
-     * Initialize content switcher widget
-     * @param {jQuery} scope - Widget scope element
-     */
     const widgetContentSwitcher = (scope) => {
-        const scopeElement = scope instanceof jQuery ? scope[0] : scope;
+        const scopeElement = scope?.jquery ? scope[0] : scope;
 
         const contentSwitcher = scopeElement.querySelector('.bdt-content-switcher');
         if (!contentSwitcher) return;
@@ -3948,8 +4834,6 @@ $(window).on('elementor/frontend/init', function () {
         const linkedWidgets  = parseData('linkedWidgets');
         const editMode       = Boolean(elementorFrontend.isEditMode());
 
-        // ── Shared helpers ──────────────────────────────────────────────────
-
         const sectionContainerId = linkedSections ? `bdt-content-switcher-section-${linkedSections.id}` : null;
 
         const updateLinkedSectionActive = (index) => {
@@ -3969,8 +4853,6 @@ $(window).on('elementor/frontend/init', function () {
                 widget.style.display = isActive ? 'block' : 'none';
             });
         };
-
-        // ── Handle linked sections ───────────────────────────────────────────
 
         if (linkedSections !== undefined && !editMode) {
             Object.entries(linkedSections.sections).forEach(([index, sectionId]) => {
@@ -4009,8 +4891,6 @@ $(window).on('elementor/frontend/init', function () {
             });
         }
 
-        // ── Handle linked widgets initial state ──────────────────────────────
-
         if (linkedWidgets !== undefined && !editMode) {
             Object.entries(linkedWidgets.widgets).forEach(([index, widgetId]) => {
                 const widget = document.getElementById(widgetId);
@@ -4041,8 +4921,6 @@ $(window).on('elementor/frontend/init', function () {
             });
         }
 
-        // ── Toggle switcher (checkbox style) ────────────────────────────────
-
         if (settings?.switcherStyle !== 'button') {
             const checkbox        = contentSwitcher.querySelector('input[type="checkbox"]');
             const primarySwitcher = contentSwitcher.querySelector('.bdt-primary-switcher');
@@ -4068,8 +4946,6 @@ $(window).on('elementor/frontend/init', function () {
             checkbox?.addEventListener('change', (e) => toggleCheckboxState(e.target.checked));
 
         } else {
-
-        // ── Button / tab switcher ────────────────────────────────────────────
 
             const tabs = contentSwitcher.querySelectorAll('.bdt-content-switcher-tab');
 
@@ -4112,7 +4988,7 @@ $(window).on('elementor/frontend/init', function () {
     'use strict';
 
     const widgetInteractiveCard = (scope) => {
-        const scopeEl = scope instanceof jQuery ? scope[0] : scope;
+        const scopeEl = scope?.jquery ? scope[0] : scope;
         const iCardMain = scopeEl.querySelector('.bdt-interactive-card');
         if (!iCardMain) return;
 
@@ -4157,22 +5033,22 @@ $(window).on('elementor/frontend/init', function () {
 
 	'use strict';
 
-	var widgetScrollNav = function( $scope, $ ) {
+	const widgetScrollNav = function( $scope, $ ) {
 
-		var $scrollnav = $scope.find( '.bdt-dotnav > li' );
+		const $scrollnav = $scope.find( '.bdt-dotnav > li' );
 
         if ( ! $scrollnav.length ) {
             return;
         }
 
-		var $tooltip = $scrollnav.find('> .bdt-tippy-tooltip'),
+		const $tooltip = $scrollnav.find('> .bdt-tippy-tooltip'),
 			widgetID = $scope.data('id');
-		
-		$tooltip.each( function( index ) {
+
+		$tooltip.each( function() {
 			tippy( this, {
 				allowHTML: true,
 				theme: 'bdt-tippy-' + widgetID
-			});				
+			});
 		});
 
 	};
@@ -4187,7 +5063,6 @@ $(window).on('elementor/frontend/init', function () {
 /**
  * End scrollnav widget script
  */
-
 
 // Common js for review card, review card carousel, review card grid, testimonial carousel, testimonial grid
 (function ($, elementor) {

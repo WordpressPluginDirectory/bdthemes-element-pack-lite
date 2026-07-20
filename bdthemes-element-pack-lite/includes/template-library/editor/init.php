@@ -69,6 +69,27 @@ class ElementPack_Template_Library_Editor_Init {
 					"activated": true,
 					"link": "https://google.com"
 				},
+				"progress": {
+					"action": "bdt_element_pack_template_import_progress",
+					"nonce": "<?php echo esc_js( wp_create_nonce( 'ep-template-library-progress' ) ); ?>",
+					"interval": 700,
+					"labels": {
+						"pending": "<?php echo esc_js( __( 'Preparing…', 'bdthemes-element-pack' ) ); ?>",
+						"fetching": "<?php echo esc_js( __( 'Fetching template…', 'bdthemes-element-pack' ) ); ?>",
+						"preparing": "<?php echo esc_js( __( 'Preparing elements…', 'bdthemes-element-pack' ) ); ?>",
+						"importing": "<?php echo esc_js( __( 'Importing content…', 'bdthemes-element-pack' ) ); ?>",
+						"finalizing": "<?php echo esc_js( __( 'Finalizing…', 'bdthemes-element-pack' ) ); ?>",
+						"complete": "<?php echo esc_js( __( 'Done', 'bdthemes-element-pack' ) ); ?>",
+						"detail_elements": "<?php
+							/* translators: 1: number of elements imported so far, 2: total number of elements. */
+							echo esc_js( __( '%1$s of %2$s elements', 'bdthemes-element-pack' ) );
+						?>",
+						"detail_images": "<?php
+							/* translators: %s: number of images downloaded so far. */
+							echo esc_js( __( '%s images', 'bdthemes-element-pack' ) );
+						?>"
+					}
+				},
 				"tabs": {
 					"bdt_elementpack_page": {
 						"title": "Ready Pages",
@@ -104,7 +125,7 @@ class ElementPack_Template_Library_Editor_Init {
 					},
 				},
 				"defaultTab": "bdt_elementpack_page",
-				"new_demo_rang_date": "<?php echo esc_html( date( 'Ymd', strtotime( '-31 days' ) ) ); ?>"
+				"new_demo_rang_date": "<?php echo esc_html( gmdate( 'Ymd', strtotime( '-31 days' ) ) ); ?>"
 			};
 		</script>
 		<?php
@@ -114,6 +135,7 @@ class ElementPack_Template_Library_Editor_Init {
 			$name = basename( $file, '.php' );
 			ob_start();
 			include $file;
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Buffered output from trusted local view template (JS/HTML underscore template).
 			printf( '<script type="text/html" id="view-bdt-elementpack-%1$s">%2$s</script>', esc_html( $name ), ob_get_clean() );
 		}
 	}

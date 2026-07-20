@@ -18,6 +18,46 @@ defined( 'ABSPATH' ) || die();
 
 trait Global_Widget_Controls {
 
+	protected function register_deprecated_widget_controls() {
+		$this->start_controls_section(
+			'deprecated_controls_section',
+			[ 
+				'label' => esc_html__( 'Deprecated Widget', 'bdthemes-element-pack' ),
+			]
+		);
+		$this->add_control(
+			'deprecated_widget_note',
+			[ 
+				'type' => Controls_Manager::RAW_HTML,
+				'raw' => esc_html__( 'Note: This widget is deprecated and will be removed in a future version. Please use the new widget instead.', 'bdthemes-element-pack' ),
+				'content_classes' => 'elementor-panel-alert elementor-panel-alert-warning',
+			]
+		);
+		$this->end_controls_section();
+	}
+
+	protected function register_deprecated_post_widget_controls() {
+		$this->start_controls_section(
+			'deprecated_post_widget_section',
+			[ 
+				'label' => esc_html__( 'Deprecated Widget', 'bdthemes-element-pack' ),
+			]
+		);
+		$this->add_control(
+			'deprecated_post_widget_note',
+			[ 
+				'type' => Controls_Manager::RAW_HTML,
+				'raw' => sprintf(
+					esc_html__( 'Note: This widget is deprecated and will be removed in a future version. Please use %1$sUltimate Post Kit%2$s plugin instead. You can find all post type widgets in this plugin.', 'bdthemes-element-pack' ),
+					'<a href="' . esc_url( 'https://postkit.pro/' ) . '" target="_blank">',
+					'</a>'
+				),
+				'content_classes' => 'elementor-panel-alert elementor-panel-alert-warning',
+			]
+		);
+		$this->end_controls_section();
+	}
+
 	protected function register_bdt_link_new_tab_controls() {
 		$this->add_control(
 			'bdt_link_new_tab',
@@ -4247,7 +4287,7 @@ trait Global_Widget_Controls {
 					],
 				],
 				'prefix_class' => 'elementor%s-align-',
-				'description'  => 'Use align to match position',
+				'description'  => esc_html__( 'Use align to match position', 'bdthemes-element-pack' ),
 				'default'      => 'center',
 			]
 		);
@@ -4698,7 +4738,7 @@ trait Global_Widget_Controls {
 				'name' => 'overlay_color',
 				'label' => esc_html__('Background', 'bdthemes-element-pack'),
 				'types' => ['classic', 'gradient'],
-				'exclude' => ['image'],
+				'exclude' => ['image'], // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- Elementor control option, not WP_Query.
 				'selector' => '{{WRAPPER}} .bdt-slider .bdt-slide-item .bdt-slider-image-wrapper:before',
 				'fields_options' => [
 					'background' => [
@@ -7378,7 +7418,7 @@ trait Global_Widget_Controls {
 			[
 				'name'      => 'icon_background',
 				'selector'  => '{{WRAPPER}} .bdt-tab .bdt-tabs-item-title .bdt-tab-title-icon',
-				'exclude'   => [ 'image' ],
+				'exclude'   => [ 'image' ], // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- Elementor control option, not WP_Query.
 			]
 		);
 		$this->add_group_control(
@@ -7456,7 +7496,7 @@ trait Global_Widget_Controls {
 			[
 				'name'      => 'icon_hover_background',
 				'selector'  => '{{WRAPPER}} .bdt-tabs .bdt-tabs-item:hover .bdt-tabs-item-title .bdt-tab-title-icon',
-				'exclude'   => [ 'image' ],
+				'exclude'   => [ 'image' ], // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- Elementor control option, not WP_Query.
 			]
 		);
 		$this->add_control(
@@ -7498,7 +7538,7 @@ trait Global_Widget_Controls {
 			[
 				'name'      => 'icon_active_background',
 				'selector'  => '{{WRAPPER}} .bdt-tabs .bdt-tabs-item.bdt-active .bdt-tabs-item-title .bdt-tab-title-icon',
-				'exclude'   => [ 'image' ],
+				'exclude'   => [ 'image' ], // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- Elementor control option, not WP_Query.
 			]
 		);
 		$this->add_control(

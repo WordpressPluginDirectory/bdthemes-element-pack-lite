@@ -4,6 +4,7 @@
     EpControler = {
         EpTemplateHeaderView            : null,
         EpTemplateLoadingView           : null,
+        EpTemplateImportProgressView    : null,
         EpTemplateLayoutView            : null,
         EpTemplateErrorView             : null,
         EpTemplateBodyView              : null,
@@ -58,7 +59,10 @@
                 e.EpTemplateLoadingView = Marionette.ItemView.extend({
                     id      : 'bdt-elementpack-template-library-loading',
                     template: '#view-bdt-elementpack-template-library-loading'
-                }), e.EpTemplateErrorView = Marionette.ItemView.extend({
+                }), e.EpTemplateImportProgressView = Marionette.ItemView.extend({
+                id      : 'bdt-elementpack-template-library-import-progress',
+                template: '#view-bdt-elementpack-template-library-import-progress'
+            }), e.EpTemplateErrorView = Marionette.ItemView.extend({
                 id      : 'bdt-elementpack-template-library-error',
                 template: '#view-bdt-elementpack-template-library-error'
             }), e.EpTemplateHeaderView = Marionette.LayoutView.extend({
@@ -166,20 +170,29 @@
                 ui                 : {insertButton: '.bdt-elementpack-template-library-template-insert'},
                 events             : {'click @ui.insertButton': 'onInsertButtonClick'},
                 onInsertButtonClick: function () {
-                    var viewModel = this.view.model, template_id, requestFn, params;
-                    EpModel.layout.showLoadingView();
+                    var viewModel = this.view.model, template_id, requestFn, params,
+                        importId = EpModel.startImportProgress();
                     template_id = viewModel.get('template_id'), params = {
                         unique_id: template_id,
-                        data     : {edit_mode: !0, display: !0, template_id: template_id}
+                        data     : {edit_mode: !0, display: !0, template_id: template_id, import_id: importId}
                     }, (requestFn = {
-                        success: function (e) {
-                            $e.run('document/elements/import', {
+                        success: function (data) {
+                            EpModel.stopImportProgress(), EpModel.renderProgress({stage: 'complete', percent: 100});
+                            var importArgs = {
                                 model  : window.elementor.elementsModel,
-                                data   : e,
+                                data   : data,
                                 options: {}
-                            }), EpModel.closeModal();
+                            };
+                            if (EpModel.importContainer) {
+                                importArgs.container = EpModel.importContainer;
+                            }
+                            if (null !== EpModel.importAt && void 0 !== EpModel.importAt) {
+                                importArgs.options.at = EpModel.importAt;
+                            }
+                            $e.run('document/elements/import', importArgs), EpModel.dismissInlineAddStripAfterInsert(), EpModel.clearImportPlacement(), EpModel.closeModal();
                         },
                         error  : function error(data) {
+                            EpModel.stopImportProgress();
                             if (data == 'required_activated_license') {
                                 EpModel.layout.showLicenseError();
                             } else {
@@ -331,6 +344,8 @@
                     return this.getRegion("modalContent").currentView
                 }, showLoadingView  : function () {
                     this.modalContent.show(new e.EpTemplateLoadingView)
+                }, showImportProgressView: function () {
+                    this.modalContent.show(new e.EpTemplateImportProgressView)
                 }, showLicenseError : function () {
                     this.modalContent.show(new e.EpTemplateErrorView)
                 }, showPreviewError : function (errorMessage) {
@@ -356,29 +371,48 @@
         defaultTab        : "",
         countResult       : 0,
         channels          : {},
-        atIndex           : null,
+        importContainer   : null,
+        importAt          : null,
+        stripReferenceElementId: null,
+        progressPoll      : null,
+        progressPercent   : 0,
+        progressActive    : !1,
         init              : function () {
             window.elementor.on("preview:loaded", window._.bind(EpModel.onPreviewLoaded, EpModel)), EpControler.init();
         },
         onPreviewLoaded   : function () {
-            let e = setInterval(() => {
-                window.elementor.$previewContents.find(".elementor-add-new-section").length && (this.initLibraryButton(), clearInterval(e))
+            let epAddSectionInterval = setInterval(() => {
+                window.elementor.$previewContents.find(".elementor-add-new-section").length && (this.initLibraryButton(), clearInterval(epAddSectionInterval))
             }, 100);
-            window.elementor.$previewContents.on("click", ".elementor-editor-element-setting.elementor-editor-element-add", this.initLibraryButton), window.elementor.$previewContents.on("click.addBdtElementPackTemplate", ".elementor-add-ep-button", _.bind(this.showTemplatesModal, this)), this.channels = {
+            window.elementor.$previewContents.on("click", ".elementor-editor-element-setting.elementor-editor-element-add", function () {
+                setTimeout(function () {
+                    EpModel.initLibraryButton();
+                }, 0);
+            }), window.elementor.$previewContents.on("click.addBdtElementPackTemplate", ".elementor-add-ep-button", function (ev) {
+                EpModel.captureImportPlacementFromEpButton(ev.currentTarget), EpModel.showTemplatesModal();
+            }), window.elementor.$previewContents.on("click.addBdtElementPackSectionAdd", ".elementor-editor-section-settings .elementor-editor-element-add", function () {
+                var btnHtml = '<div class="elementor-add-section-area-button elementor-add-ep-button"><i class="ep-icon-element-pack"></i></div>',
+                    topSection = e(this).closest(".elementor-top-section");
+                EpConfig.libraryButton && topSection.prev(".elementor-add-section").find(".elementor-add-new-section").each(function () {
+                    var $row = e(this);
+                    $row.find(".elementor-add-ep-button").length || $row.prepend(btnHtml)
+                })
+            }), this.channels = {
                 templates: Backbone.Radio.channel("EP_THEME_EDITOR:templates"),
                 tabs     : Backbone.Radio.channel("EP_THEME_EDITOR:tabs"),
                 layout   : Backbone.Radio.channel("EP_THEME_EDITOR:layout")
             }, this.tabs = EpConfig.tabs, this.defaultTab = EpConfig.defaultTab
         },
         initLibraryButton : function () {
-            var sectionBtnArea = window.elementor.$previewContents.find(".elementor-add-new-section"),
-                btnHtml        = '<div class="elementor-add-section-area-button elementor-add-ep-button"><i class="ep-icon-element-pack"></i></div>';
-            sectionBtnArea.find(".elementor-add-ep-button").length || (sectionBtnArea.length && EpConfig.libraryButton && e(btnHtml).prependTo(sectionBtnArea), window.elementor.$previewContents.on("click.addBdtElementPackTemplate", ".elementor-editor-section-settings .elementor-editor-element-add", function () {
-                var topSection = e(this).closest(".elementor-top-section"), l = topSection.data("model-cid");
-                (window.elementor.sections && window.elementor.sections.currentView.collection.length && e.each(window.elementor.sections.currentView.collection.models, function (e, topSection) {
-                    l === topSection.cid && (EpModel.atIndex = e)
-                }), EpConfig.libraryButton) && topSection.prev(".elementor-add-section").find(".elementor-add-new-section").prepend(btnHtml)
-            }))
+            var btnHtml = '<div class="elementor-add-section-area-button elementor-add-ep-button"><i class="ep-icon-element-pack"></i></div>',
+                $areas = window.elementor.$previewContents.find(".elementor-add-new-section");
+            if (!EpConfig.libraryButton) {
+                return;
+            }
+            $areas.each(function () {
+                var $area = e(this);
+                $area.find(".elementor-add-ep-button").length || $area.prepend(btnHtml)
+            })
         },
         getFilter         : function (e) {
             return this.channels.templates.request("filter:" + e)
@@ -403,6 +437,136 @@
         },
         setPreview        : function (e, t) {
             this.channels.layout.reply("preview", e), t || this.channels.layout.trigger("preview:change")
+        },
+        captureImportPlacementFromEpButton: function (epButtonEl) {
+            this.clearImportPlacement();
+            if (!window.$e || !$e.components) {
+                return;
+            }
+            var $addSection = e(epButtonEl).closest(".elementor-add-section");
+            if (!$addSection.length) {
+                return;
+            }
+            var $next = $addSection.next(".elementor-element");
+            if (!$next.length) {
+                return;
+            }
+            var id = $next.data("id");
+            if (!id) {
+                return;
+            }
+            var docUtils = $e.components.get("document") && $e.components.get("document").utils;
+            if (!docUtils || !docUtils.findViewById) {
+                return;
+            }
+            var view = docUtils.findViewById(id);
+            if (!view || !view.getContainer || !view.model || !view.model.collection) {
+                return;
+            }
+            var childContainer = view.getContainer(),
+                parentContainer = childContainer.parent;
+            if (!parentContainer) {
+                return;
+            }
+            var at = view.model.collection.indexOf(view.model);
+            if (at < 0) {
+                return;
+            }
+            this.importContainer = parentContainer;
+            this.importAt = at;
+            this.stripReferenceElementId = id;
+        },
+        dismissInlineAddStripAfterInsert: function () {
+            var refId = this.stripReferenceElementId;
+            this.stripReferenceElementId = null;
+            if (!refId || !window.$e || !$e.components) {
+                return;
+            }
+            var docUtils = $e.components.get("document") && $e.components.get("document").utils;
+            if (!docUtils || !docUtils.findViewById) {
+                return;
+            }
+            var view = docUtils.findViewById(refId);
+            if (!view || !view.addSectionView || view.addSectionView.isDestroyed) {
+                return;
+            }
+            view.addSectionView.fadeToDeath();
+        },
+        clearImportPlacement: function () {
+            this.importContainer = null;
+            this.importAt = null;
+            this.stripReferenceElementId = null;
+        },
+        // The import runs in one blocking request, so progress has to be read
+        // out-of-band: the server stores it against this id, we poll for it.
+        startImportProgress: function () {
+            var _this = this, cfg = EpConfig.progress || {},
+                importId = 'ep' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+
+            this.stopImportProgress();
+            this.progressActive = !0;
+            this.progressPercent = 0;
+            this.layout.showImportProgressView();
+            this.renderProgress({stage: 'pending', percent: 0});
+
+            if (!cfg.action || !cfg.nonce) {
+                return importId;
+            }
+
+            this.progressPoll = setInterval(function () {
+                e.ajax({
+                    url     : ajaxurl,
+                    type    : 'post',
+                    dataType: 'json',
+                    data    : {action: cfg.action, nonce: cfg.nonce, import_id: importId},
+                    success : function (res) {
+                        // A poll can land after the import already finished or failed.
+                        if (!_this.progressActive || !res || !res.success || !res.data) {
+                            return;
+                        }
+                        _this.renderProgress(res.data);
+                    }
+                });
+            }, cfg.interval || 700);
+
+            return importId;
+        },
+        stopImportProgress: function () {
+            this.progressActive = !1;
+            if (this.progressPoll) {
+                clearInterval(this.progressPoll), this.progressPoll = null;
+            }
+        },
+        renderProgress    : function (state) {
+            var labels = (EpConfig.progress && EpConfig.progress.labels) || {},
+                $root = e('#bdt-elementpack-template-library-import-progress'),
+                percent, label, detail = [];
+
+            if (!$root.length) {
+                return;
+            }
+
+            // Element processing is post-order, so the server's percentage only
+            // ever climbs; clamp anyway so a late poll can't drag the bar back.
+            percent = Math.min(100, parseInt(state.percent, 10) || 0);
+            percent = this.progressPercent = Math.max(this.progressPercent, percent);
+
+            label = labels[state.stage] || labels.pending || '';
+
+            if (state.total && labels.detail_elements) {
+                detail.push(labels.detail_elements.replace('%1$s', state.done).replace('%2$s', state.total));
+            }
+            if (state.images && labels.detail_images) {
+                detail.push(labels.detail_images.replace('%s', state.images));
+            }
+            if (detail.length) {
+                label += ' — ' + detail.join(', ');
+            }
+
+            $root.find('.bdt-ep-import-progress__fill').css('width', percent + '%');
+            $root.find('.bdt-ep-import-progress__track').attr('aria-valuenow', percent);
+            $root.find('.bdt-ep-import-progress__percent').text(percent + '%');
+            $root.find('.bdt-ep-import-progress__label').text(label);
         },
         showTemplatesModal: function () {
             this.getModal().show(), this.layout || (this.layout = new EpControler.EpTemplateLayoutView, this.layout.showLoadingView()), this.setTab(this.defaultTab, !0), this.getTemplatedata(this.defaultTab), this.setPreview("initial")
@@ -475,8 +639,7 @@
             e('#bdt-elementpack-template-library-content .search-result-counter span').html(0);
         },
         closeModal        : function () {
-            this.getModal().hide()
-            this.showHeaderLogo();
+            this.stopImportProgress(), this.clearImportPlacement(), this.getModal().hide(), this.showHeaderLogo();
         },
         getModal          : function () {
             return this.modal || (this.modal = elementor.dialogsManager.createWidget("lightbox", {

@@ -70,7 +70,7 @@ class Module extends Element_Pack_Module_Base {
 			[ 
 				'label'              => esc_html__( 'Description', 'bdthemes-element-pack' ),
 				'type'               => Controls_Manager::TEXTAREA,
-				'default'            => 'This is Tooltip',
+				'default'            => esc_html__('This is Tooltip', 'bdthemes-element-pack'),
 				'dynamic'            => [ 'active' => true ],
 				'condition'          => [ 
 					'element_pack_widget_tooltip' => 'yes',
@@ -427,8 +427,8 @@ class Module extends Element_Pack_Module_Base {
 	public function enqueue_scripts() {
 
 		wp_register_style( 'tippy', BDTEP_ASSETS_URL . 'css/tippy.css', [], BDTEP_VER );
-		wp_register_script( 'popper', BDTEP_ASSETS_URL . 'vendor/js/popper.min.js', [ 'jquery' ], null );
-		wp_register_script( 'tippyjs', BDTEP_ASSETS_URL . 'vendor/js/tippy.all.min.js', [ 'jquery' ], null );
+		wp_register_script( 'popper', BDTEP_ASSETS_URL . 'vendor/js/popper.min.js', [ 'jquery' ], BDTEP_VER, true );
+		wp_register_script( 'tippyjs', BDTEP_ASSETS_URL . 'vendor/js/tippy.all.min.js', [ 'jquery' ], BDTEP_VER, true );
 
 		if ( \ElementPack\Element_Pack_Loader::elementor()->preview->is_preview_mode() || \ElementPack\Element_Pack_Loader::elementor()->editor->is_edit_mode() ) {
 			wp_enqueue_script( 'popper' );

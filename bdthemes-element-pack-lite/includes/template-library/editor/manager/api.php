@@ -15,7 +15,33 @@ class ElementPackTemplateLibraryEditorApi extends ElementPack_Template_Library_B
         parent::__construct();
         add_action('wp_ajax_bdt_element_pack_template_library_get_layouts', [$this, 'get_layouts']);
         add_action('wp_ajax_bdt_element_pack_template_library_making_syncing', [$this, 'sync_now']);
+        add_action('wp_ajax_bdt_element_pack_template_import_progress', [$this, 'get_import_progress']);
         add_action( 'elementor/ajax/register_actions', [ $this, 'register_ajax_actions_data' ] );
+    }
+
+    /**
+     * Report how far an in-flight import has got.
+     *
+     * Polled by the editor while the blocking get_bdt_elementpack_template_data
+     * request is still open, so it must stay cheap: one transient read.
+     */
+    public function get_import_progress() {
+        check_ajax_referer( 'ep-template-library-progress', 'nonce' );
+
+        // Mirrors the capability the import itself requires.
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( [ 'message' => esc_html__( 'Access Denied', 'bdthemes-element-pack' ) ], 403 );
+        }
+
+        $import_id = isset( $_REQUEST['import_id'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['import_id'] ) ) : '';
+        $state     = Import_Progress::read( $import_id );
+
+        if ( ! is_array( $state ) ) {
+            // The import request hasn't written its first update yet.
+            wp_send_json_success( [ 'stage' => 'pending', 'percent' => 0 ] );
+        }
+
+        wp_send_json_success( $state );
     }
 
     public function register_ajax_actions_data( Ajax $ajax ) {
@@ -71,7 +97,7 @@ class ElementPackTemplateLibraryEditorApi extends ElementPack_Template_Library_B
     public function getCategoriesItems() {
 
         $this->checkDemoData();
-        $demoDataType = $this->demoType;
+        $demoDataType = absint( $this->demoType );
         // Table Info
         global $wpdb;
         $table_prefix = $wpdb->prefix;
@@ -79,10 +105,11 @@ class ElementPackTemplateLibraryEditorApi extends ElementPack_Template_Library_B
         $postCatTable   = $this->table_cat_post;
         $catTable       = $this->table_cat;
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table names are internal ($wpdb->prefix based) and $demoDataType is cast via absint().
         $demoData = $this->wpdb->get_results("SELECT COUNT(*) as ttotal, {$catTable}.* FROM {$postTable}
- LEFT JOIN {$postCatTable}  ON {$postTable}.demo_id = {$postCatTable} .demo_id
-LEFT JOIN {$catTable} ON {$catTable}.term_id = {$table_prefix}ep_template_library_cat_post.term_id
- WHERE type={$demoDataType} GROUP BY term_id", ARRAY_A);
+ LEFT JOIN {$postCatTable} ON {$postTable}.demo_id = {$postCatTable}.demo_id
+ LEFT JOIN {$catTable} ON {$catTable}.term_id = {$postCatTable}.term_id
+ WHERE {$postTable}.type={$demoDataType} GROUP BY {$catTable}.term_id", ARRAY_A);
 
         $navItems = array();
         $totalDemo = 0;
@@ -94,7 +121,7 @@ LEFT JOIN {$catTable} ON {$catTable}.term_id = {$table_prefix}ep_template_librar
         $this->demo_total = $totalDemo;
         $firstItem = array( 'term_slug' => '', 'term_name' => 'All Templates','term_id' => 0,'count'=> $totalDemo);
 
-        return array_merge_recursive([$firstItem], $navItems);
+        return array_merge([$firstItem], $navItems);
     }
 
     public function get_layouts()
@@ -120,17 +147,17 @@ LEFT JOIN {$catTable} ON {$catTable}.term_id = {$table_prefix}ep_template_librar
 
         $this->termSlug = 'demo_term_all';
         if(isset($_REQUEST['term_slug']) && !empty($_REQUEST['term_slug'])){
-            $this->termSlug = $_REQUEST['term_slug'];
+            $this->termSlug = sanitize_text_field($_REQUEST['term_slug']);
         }
 
         $this->perPage = 500000;
 
-        echo wp_send_json([
-            'data'=>[
-                'categories'    => $this->getCategoriesItems(),
-                'templates'     => $this->getElementorLibraryData()
-            ]
-        ],200);
+        wp_send_json([
+            'data' => [
+                'categories' => $this->getCategoriesItems(),
+                'templates'  => $this->getElementorLibraryData(),
+            ],
+        ], 200);
 
     }
 

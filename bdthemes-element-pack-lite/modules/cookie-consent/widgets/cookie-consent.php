@@ -74,7 +74,7 @@ class Cookie_Consent extends Module_Base {
 			[ 
 				'label'   => esc_html__( 'Message', 'bdthemes-element-pack' ),
 				'type'    => Controls_Manager::TEXTAREA,
-				'default' => 'This website uses cookies to ensure you get the best experience on our website. ',
+				'default' => esc_html__('This website uses cookies to ensure you get the best experience on our website. ', 'bdthemes-element-pack'),
 				'dynamic' => [ 'active' => true ],
 			]
 		);
@@ -86,7 +86,7 @@ class Cookie_Consent extends Module_Base {
 				'type'        => Controls_Manager::TEXT,
 				'placeholder' => esc_html__( 'Learn more', 'bdthemes-element-pack' ),
 				'dynamic'     => [ 'active' => true ],
-				'default'     => 'Learn more',
+				'default'     => esc_html__('Learn more', 'bdthemes-element-pack'),
 			]
 		);
 
@@ -110,7 +110,7 @@ class Cookie_Consent extends Module_Base {
 				'label'   => esc_html__( 'Button Text', 'bdthemes-element-pack' ),
 				'type'    => Controls_Manager::TEXT,
 				'dynamic' => [ 'active' => true ],
-				'default' => 'Got it!',
+				'default' => esc_html__('Got it!', 'bdthemes-element-pack'),
 			]
 		);
 
@@ -145,7 +145,7 @@ class Cookie_Consent extends Module_Base {
 			'expiry_days',
 			[ 
 				'label'       => esc_html__( 'Expiry Days', 'bdthemes-element-pack' ),
-				'description' => 'Specify -1 for no expiry',
+				'description' => esc_html__( 'Specify -1 for no expiry', 'bdthemes-element-pack' ),
 				'type'        => Controls_Manager::SLIDER,
 				'default'     => [ 
 					'size' => 7,
