@@ -25,7 +25,7 @@ class Svg_Image extends Module_Base {
 	}
 
 	public function get_title() {
-		return BDTEP . esc_html__( 'SVG Image', 'bdthemes-element-pack' );
+		return BDTEP . esc_html__( 'SVG Image', 'bdthemes-element-pack-lite' );
 	}
 
 	public function get_icon() {
@@ -42,13 +42,13 @@ class Svg_Image extends Module_Base {
 
 		public function get_script_depends() {
 		if ( $this->ep_is_edit_mode() ) {
-			if ( true == is_ep_pro() ) {
+			if ( true == element_pack_is_pro() ) {
 				return [ 'draw-svg-plugin-js', 'scroll-trigger', 'ep-scripts' ];
 			} else {
 				return [ 'ep-scripts' ];
 			}
 		} else {
-			if ( true == is_ep_pro() ) {
+			if ( true == element_pack_is_pro() ) {
 				return [ 'gsap', 'draw-svg-plugin-js', 'scroll-trigger', 'ep-svg-image' ];
 			} else {
 				return [];
@@ -69,14 +69,14 @@ class Svg_Image extends Module_Base {
 		$this->start_controls_section(
 			'section_image',
 			[ 
-				'label' => esc_html__( 'SVG', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'SVG', 'bdthemes-element-pack-lite' ),
 			]
 		);
 
 		$this->add_control(
 			'image',
 			[ 
-				'label'   => esc_html__( 'Choose SVG', 'bdthemes-element-pack' ),
+				'label'   => esc_html__( 'Choose SVG', 'bdthemes-element-pack-lite' ),
 				'type'    => Controls_Manager::MEDIA,
 				'dynamic' => [ 
 					'active' => true,
@@ -91,19 +91,19 @@ class Svg_Image extends Module_Base {
 		$this->add_responsive_control(
 			'align',
 			[ 
-				'label'     => esc_html__( 'Alignment', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Alignment', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::CHOOSE,
 				'options'   => [ 
 					'left'   => [ 
-						'title' => esc_html__( 'Left', 'bdthemes-element-pack' ),
+						'title' => esc_html__( 'Left', 'bdthemes-element-pack-lite' ),
 						'icon'  => 'eicon-text-align-left',
 					],
 					'center' => [ 
-						'title' => esc_html__( 'Center', 'bdthemes-element-pack' ),
+						'title' => esc_html__( 'Center', 'bdthemes-element-pack-lite' ),
 						'icon'  => 'eicon-text-align-center',
 					],
 					'right'  => [ 
-						'title' => esc_html__( 'Right', 'bdthemes-element-pack' ),
+						'title' => esc_html__( 'Right', 'bdthemes-element-pack-lite' ),
 						'icon'  => 'eicon-text-align-right',
 					],
 				],
@@ -116,12 +116,12 @@ class Svg_Image extends Module_Base {
 		$this->add_control(
 			'caption_source',
 			[ 
-				'label'   => esc_html__( 'Caption', 'bdthemes-element-pack' ),
+				'label'   => esc_html__( 'Caption', 'bdthemes-element-pack-lite' ),
 				'type'    => Controls_Manager::SELECT,
 				'options' => [ 
-					'none'       => esc_html__( 'None', 'bdthemes-element-pack' ),
-					'attachment' => esc_html__( 'Attachment Caption', 'bdthemes-element-pack' ),
-					'custom'     => esc_html__( 'Custom Caption', 'bdthemes-element-pack' ),
+					'none'       => esc_html__( 'None', 'bdthemes-element-pack-lite' ),
+					'attachment' => esc_html__( 'Attachment Caption', 'bdthemes-element-pack-lite' ),
+					'custom'     => esc_html__( 'Custom Caption', 'bdthemes-element-pack-lite' ),
 				],
 				'default' => 'none',
 			]
@@ -130,10 +130,10 @@ class Svg_Image extends Module_Base {
 		$this->add_control(
 			'caption',
 			[ 
-				'label'       => esc_html__( 'Custom Caption', 'bdthemes-element-pack' ),
+				'label'       => esc_html__( 'Custom Caption', 'bdthemes-element-pack-lite' ),
 				'type'        => Controls_Manager::TEXT,
 				'default'     => '',
-				'placeholder' => esc_html__( 'Enter your image caption', 'bdthemes-element-pack' ),
+				'placeholder' => esc_html__( 'Enter your image caption', 'bdthemes-element-pack-lite' ),
 				'condition'   => [ 
 					'caption_source' => 'custom',
 				],
@@ -146,13 +146,13 @@ class Svg_Image extends Module_Base {
 		$this->add_control(
 			'link_to',
 			[ 
-				'label'   => esc_html__( 'Link', 'bdthemes-element-pack' ),
+				'label'   => esc_html__( 'Link', 'bdthemes-element-pack-lite' ),
 				'type'    => Controls_Manager::SELECT,
 				'default' => 'none',
 				'options' => [ 
-					'none'   => esc_html__( 'None', 'bdthemes-element-pack' ),
-					'file'   => esc_html__( 'Media File', 'bdthemes-element-pack' ),
-					'custom' => esc_html__( 'Custom URL', 'bdthemes-element-pack' ),
+					'none'   => esc_html__( 'None', 'bdthemes-element-pack-lite' ),
+					'file'   => esc_html__( 'Media File', 'bdthemes-element-pack-lite' ),
+					'custom' => esc_html__( 'Custom URL', 'bdthemes-element-pack-lite' ),
 				],
 			]
 		);
@@ -160,12 +160,12 @@ class Svg_Image extends Module_Base {
 		$this->add_control(
 			'link',
 			[ 
-				'label'       => esc_html__( 'Link', 'bdthemes-element-pack' ),
+				'label'       => esc_html__( 'Link', 'bdthemes-element-pack-lite' ),
 				'type'        => Controls_Manager::URL,
 				'dynamic'     => [ 
 					'active' => true,
 				],
-				'placeholder' => esc_html__( 'https://your-link.com', 'bdthemes-element-pack' ),
+				'placeholder' => esc_html__( 'https://your-link.com', 'bdthemes-element-pack-lite' ),
 				'condition'   => [ 
 					'link_to' => 'custom',
 				],
@@ -176,7 +176,7 @@ class Svg_Image extends Module_Base {
 		$this->add_control(
 			'view',
 			[ 
-				'label'   => esc_html__( 'View', 'bdthemes-element-pack' ),
+				'label'   => esc_html__( 'View', 'bdthemes-element-pack-lite' ),
 				'type'    => Controls_Manager::HIDDEN,
 				'default' => 'traditional',
 			]
@@ -188,19 +188,19 @@ class Svg_Image extends Module_Base {
 		$this->start_controls_section(
 			'section_svg_additionl',
 			[ 
-				'label' => esc_html__( 'SVG Animation', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'SVG Animation', 'bdthemes-element-pack-lite' ),
 			]
 		);
 
-		if ( true === is_ep_pro() ) {
+		if ( true === element_pack_is_pro() ) {
 
 			$this->add_control(
 				'svg_image_draw',
 				[ 
-					'label'              => esc_html__( 'Draw SVG', 'bdthemes-element-pack' ) . BDTEP_NC,
+					'label'              => esc_html__( 'Draw SVG', 'bdthemes-element-pack-lite' ) . BDTEP_NC,
 					'type'               => Controls_Manager::SWITCHER,
-					'label_on'           => esc_html__( 'Yes', 'bdthemes-element-pack' ),
-					'label_off'          => esc_html__( 'No', 'bdthemes-element-pack' ),
+					'label_on'           => esc_html__( 'Yes', 'bdthemes-element-pack-lite' ),
+					'label_off'          => esc_html__( 'No', 'bdthemes-element-pack-lite' ),
 					'return_value'       => 'yes',
 					'frontend_available' => true,
 					'render_type'        => 'template',
@@ -211,12 +211,12 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_drawer_type',
 				[ 
-					'label'              => esc_html__( 'Drawer Type', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'Drawer Type', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SELECT,
 					'options'            => [ 
-						'hover'     => esc_html__( ' On Hover', 'bdthemes-element-pack' ),
-						'viewport'  => esc_html__( 'On Scroll', 'bdthemes-element-pack' ),
-						'automatic' => esc_html__( 'Automatic', 'bdthemes-element-pack' ),
+						'hover'     => esc_html__( ' On Hover', 'bdthemes-element-pack-lite' ),
+						'viewport'  => esc_html__( 'On Scroll', 'bdthemes-element-pack-lite' ),
+						'automatic' => esc_html__( 'Automatic', 'bdthemes-element-pack-lite' ),
 					],
 					'default'            => 'hover',
 					'frontend_available' => true,
@@ -230,12 +230,12 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_animate_trigger',
 				[ 
-					'label'              => esc_html__( 'When the draw should start?', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'When the draw should start?', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SELECT,
 					'options'            => [ 
-						'top'    => esc_html__( 'Top of Viewport Hits The Widget', 'bdthemes-element-pack' ),
-						'center' => esc_html__( 'Center of Viewport Hits The Widget', 'bdthemes-element-pack' ),
-						'custom' => esc_html__( 'Custom Offset', 'bdthemes-element-pack' ),
+						'top'    => esc_html__( 'Top of Viewport Hits The Widget', 'bdthemes-element-pack-lite' ),
+						'center' => esc_html__( 'Center of Viewport Hits The Widget', 'bdthemes-element-pack-lite' ),
+						'custom' => esc_html__( 'Custom Offset', 'bdthemes-element-pack-lite' ),
 					],
 					'separator'          => 'before',
 					'default'            => 'center',
@@ -250,7 +250,7 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_anim_rev',
 				[ 
-					'label'              => esc_html__( 'Reset Animation on Scroll Up', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'Reset Animation on Scroll Up', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SWITCHER,
 					'render_type'        => 'template',
 					'default'            => 'yes',
@@ -264,7 +264,7 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_animate_offset',
 				[ 
-					'label'              => esc_html__( 'Offset (%)', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'Offset (%)', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SLIDER,
 					'default'            => [ 
 						'size' => 50,
@@ -281,10 +281,10 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_repeat',
 				[ 
-					'label'              => esc_html__( 'Repeat', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'Repeat', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SWITCHER,
-					'label_on'           => esc_html__( 'Yes', 'bdthemes-element-pack' ),
-					'label_off'          => esc_html__( 'No', 'bdthemes-element-pack' ),
+					'label_on'           => esc_html__( 'Yes', 'bdthemes-element-pack-lite' ),
+					'label_off'          => esc_html__( 'No', 'bdthemes-element-pack-lite' ),
 					'separator'          => 'before',
 					'default'            => 'yes',
 					'frontend_available' => true,
@@ -297,7 +297,7 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_yoyo',
 				[ 
-					'label'              => esc_html__( 'Yoyo Effect', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'Yoyo Effect', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SWITCHER,
 					'condition'          => [ 
 						'svg_image_drawer_type!' => 'viewport',
@@ -312,9 +312,9 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_animation_duration',
 				[ 
-					'label'              => esc_html__( 'Duration', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'Duration', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SLIDER,
-					'description'        => esc_html__( 'Larger value means longer drawing duration.', 'bdthemes-element-pack' ),
+					'description'        => esc_html__( 'Larger value means longer drawing duration.', 'bdthemes-element-pack-lite' ),
 					'range'              => [ 
 						'px' => [ 
 							'min'  => 0,
@@ -337,25 +337,25 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_easing',
 				[ 
-					'label'              => esc_html__( 'Easing', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'Easing', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SELECT,
 					'options'            => [ 
-						'none'         => esc_html__( 'None (Linear)', 'bdthemes-element-pack' ),
-						'power1.out'   => esc_html__( 'Power1 Out', 'bdthemes-element-pack' ),
-						'power1.in'    => esc_html__( 'Power1 In', 'bdthemes-element-pack' ),
-						'power1.inOut' => esc_html__( 'Power1 InOut', 'bdthemes-element-pack' ),
-						'power2.out'   => esc_html__( 'Power2 Out', 'bdthemes-element-pack' ),
-						'power2.in'    => esc_html__( 'Power2 In', 'bdthemes-element-pack' ),
-						'power2.inOut' => esc_html__( 'Power2 InOut', 'bdthemes-element-pack' ),
-						'power3.out'   => esc_html__( 'Power3 Out', 'bdthemes-element-pack' ),
-						'power3.in'    => esc_html__( 'Power3 In', 'bdthemes-element-pack' ),
-						'power3.inOut' => esc_html__( 'Power3 InOut', 'bdthemes-element-pack' ),
-						'power4.out'   => esc_html__( 'Power4 Out', 'bdthemes-element-pack' ),
-						'power4.inOut' => esc_html__( 'Power4 InOut', 'bdthemes-element-pack' ),
-						'back.out'     => esc_html__( 'Back Out', 'bdthemes-element-pack' ),
-						'back.inOut'   => esc_html__( 'Back InOut', 'bdthemes-element-pack' ),
-						'elastic.out'  => esc_html__( 'Elastic Out', 'bdthemes-element-pack' ),
-						'bounce.out'   => esc_html__( 'Bounce Out', 'bdthemes-element-pack' ),
+						'none'         => esc_html__( 'None (Linear)', 'bdthemes-element-pack-lite' ),
+						'power1.out'   => esc_html__( 'Power1 Out', 'bdthemes-element-pack-lite' ),
+						'power1.in'    => esc_html__( 'Power1 In', 'bdthemes-element-pack-lite' ),
+						'power1.inOut' => esc_html__( 'Power1 InOut', 'bdthemes-element-pack-lite' ),
+						'power2.out'   => esc_html__( 'Power2 Out', 'bdthemes-element-pack-lite' ),
+						'power2.in'    => esc_html__( 'Power2 In', 'bdthemes-element-pack-lite' ),
+						'power2.inOut' => esc_html__( 'Power2 InOut', 'bdthemes-element-pack-lite' ),
+						'power3.out'   => esc_html__( 'Power3 Out', 'bdthemes-element-pack-lite' ),
+						'power3.in'    => esc_html__( 'Power3 In', 'bdthemes-element-pack-lite' ),
+						'power3.inOut' => esc_html__( 'Power3 InOut', 'bdthemes-element-pack-lite' ),
+						'power4.out'   => esc_html__( 'Power4 Out', 'bdthemes-element-pack-lite' ),
+						'power4.inOut' => esc_html__( 'Power4 InOut', 'bdthemes-element-pack-lite' ),
+						'back.out'     => esc_html__( 'Back Out', 'bdthemes-element-pack-lite' ),
+						'back.inOut'   => esc_html__( 'Back InOut', 'bdthemes-element-pack-lite' ),
+						'elastic.out'  => esc_html__( 'Elastic Out', 'bdthemes-element-pack-lite' ),
+						'bounce.out'   => esc_html__( 'Bounce Out', 'bdthemes-element-pack-lite' ),
 					],
 					'default'            => 'power2.out',
 					'condition'          => [ 
@@ -368,9 +368,9 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_stagger',
 				[ 
-					'label'              => esc_html__( 'Stagger Delay', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'Stagger Delay', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SLIDER,
-					'description'        => esc_html__( 'Delay between each SVG path animation.', 'bdthemes-element-pack' ),
+					'description'        => esc_html__( 'Delay between each SVG path animation.', 'bdthemes-element-pack-lite' ),
 					'range'              => [ 
 						'px' => [ 
 							'min'  => 0,
@@ -392,14 +392,14 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_stagger_from',
 				[ 
-					'label'              => esc_html__( 'Stagger From', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'Stagger From', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SELECT,
 					'options'            => [ 
-						'start'  => esc_html__( 'Start', 'bdthemes-element-pack' ),
-						'center'  => esc_html__( 'Center', 'bdthemes-element-pack' ),
-						'end'     => esc_html__( 'End', 'bdthemes-element-pack' ),
-						'edges'   => esc_html__( 'Edges', 'bdthemes-element-pack' ),
-						'random'  => esc_html__( 'Random', 'bdthemes-element-pack' ),
+						'start'  => esc_html__( 'Start', 'bdthemes-element-pack-lite' ),
+						'center'  => esc_html__( 'Center', 'bdthemes-element-pack-lite' ),
+						'end'     => esc_html__( 'End', 'bdthemes-element-pack-lite' ),
+						'edges'   => esc_html__( 'Edges', 'bdthemes-element-pack-lite' ),
+						'random'  => esc_html__( 'Random', 'bdthemes-element-pack-lite' ),
 					],
 					'default'            => 'start',
 					'condition'          => [ 
@@ -412,9 +412,9 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_draw_live',
 				[ 
-					'label'              => esc_html__( 'Responsive (Live)', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'Responsive (Live)', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SWITCHER,
-					'description'        => esc_html__( 'Recalculate path length on resize for responsive SVGs.', 'bdthemes-element-pack' ),
+					'description'        => esc_html__( 'Recalculate path length on resize for responsive SVGs.', 'bdthemes-element-pack-lite' ),
 					'default'            => 'no',
 					'condition'          => [ 
 						'svg_image_draw' => 'yes'
@@ -426,9 +426,9 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_scrub',
 				[ 
-					'label'              => esc_html__( 'Scrub Smoothness', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'Scrub Smoothness', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SLIDER,
-					'description'        => esc_html__( 'Higher value = smoother scroll-linked animation. 0 = instant.', 'bdthemes-element-pack' ),
+					'description'        => esc_html__( 'Higher value = smoother scroll-linked animation. 0 = instant.', 'bdthemes-element-pack-lite' ),
 					'range'              => [ 
 						'px' => [ 
 							'min'  => 0,
@@ -451,9 +451,9 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_scroll_length',
 				[ 
-					'label'              => esc_html__( 'Scroll Length (px)', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'Scroll Length (px)', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SLIDER,
-					'description'        => esc_html__( 'Scroll distance to complete the draw animation.', 'bdthemes-element-pack' ),
+					'description'        => esc_html__( 'Scroll distance to complete the draw animation.', 'bdthemes-element-pack-lite' ),
 					'range'              => [ 
 						'px' => [ 
 							'min'  => 100,
@@ -475,9 +475,9 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_animation_start_point',
 				[ 
-					'label'              => esc_html__( 'Start Point (%)', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'Start Point (%)', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SLIDER,
-					'description'        => esc_html__( 'Set the point that the SVG should start from.', 'bdthemes-element-pack' ),
+					'description'        => esc_html__( 'Set the point that the SVG should start from.', 'bdthemes-element-pack-lite' ),
 					'default'            => [ 
 						'unit' => '%',
 						'size' => 0,
@@ -492,9 +492,9 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_image_animation_end_point',
 				[ 
-					'label'              => esc_html__( 'End Point (%)', 'bdthemes-element-pack' ),
+					'label'              => esc_html__( 'End Point (%)', 'bdthemes-element-pack-lite' ),
 					'type'               => Controls_Manager::SLIDER,
-					'description'        => esc_html__( 'Set the point that the SVG should end at.', 'bdthemes-element-pack' ),
+					'description'        => esc_html__( 'Set the point that the SVG should end at.', 'bdthemes-element-pack-lite' ),
 					'default'            => [ 
 						'unit' => '%',
 						'size' => 100,
@@ -508,12 +508,12 @@ class Svg_Image extends Module_Base {
 			);
 		}
 
-		if ( true !== is_ep_pro() ) {
+		if ( true !== element_pack_is_pro() ) {
 			$this->add_control(
 				'on_hover_animation',
 				[ 
-					'label'       => esc_html__( 'On Hover Animation', 'bdthemes-element-pack' ),
-					'description' => esc_html__( 'Make sure you select a stroke based svg image, otherwise hover animation will not work.', 'bdthemes-element-pack' ),
+					'label'       => esc_html__( 'On Hover Animation', 'bdthemes-element-pack-lite' ),
+					'description' => esc_html__( 'Make sure you select a stroke based svg image, otherwise hover animation will not work.', 'bdthemes-element-pack-lite' ),
 					'type'        => Controls_Manager::SWITCHER,
 					'separator'   => 'before',
 					// 'condition' => [
@@ -525,7 +525,7 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'on_hover_reverse_animation',
 				[ 
-					'label'     => esc_html__( 'Reverse Animation', 'bdthemes-element-pack' ),
+					'label'     => esc_html__( 'Reverse Animation', 'bdthemes-element-pack-lite' ),
 					'type'      => Controls_Manager::SWITCHER,
 					'condition' => [ 
 						'on_hover_animation' => 'yes',
@@ -536,8 +536,8 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'svg_parallax_effects_show',
 				[ 
-					'label'       => esc_html__( 'Stroke Parallax Animation', 'bdthemes-element-pack' ),
-					'description' => esc_html__( 'Make sure you select a stroke based svg image, otherwise parallax stroke animation will not work.', 'bdthemes-element-pack' ),
+					'label'       => esc_html__( 'Stroke Parallax Animation', 'bdthemes-element-pack-lite' ),
+					'description' => esc_html__( 'Make sure you select a stroke based svg image, otherwise parallax stroke animation will not work.', 'bdthemes-element-pack-lite' ),
 					'type'        => Controls_Manager::SWITCHER,
 					'separator'   => 'before',
 					// 'condition' => [
@@ -549,8 +549,8 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'parallax_effects_stroke_value',
 				[ 
-					'label'       => esc_html__( 'Stroke Start Point', 'bdthemes-element-pack' ),
-					'description' => esc_html__( 'Set your stroke start value where from you start the stroke parallax.', 'bdthemes-element-pack' ),
+					'label'       => esc_html__( 'Stroke Start Point', 'bdthemes-element-pack-lite' ),
+					'description' => esc_html__( 'Set your stroke start value where from you start the stroke parallax.', 'bdthemes-element-pack-lite' ),
 					'type'        => Controls_Manager::SLIDER,
 					'range'       => [ 
 						'%' => [ 
@@ -572,7 +572,7 @@ class Svg_Image extends Module_Base {
 			$this->add_control(
 				'parallax_effects_viewport_value',
 				[ 
-					'label'     => esc_html__( 'Viewport', 'bdthemes-element-pack' ),
+					'label'     => esc_html__( 'Viewport', 'bdthemes-element-pack-lite' ),
 					'type'      => Controls_Manager::SLIDER,
 					'range'     => [ 
 						'px' => [ 
@@ -599,7 +599,7 @@ class Svg_Image extends Module_Base {
 		$this->start_controls_section(
 			'section_style_image',
 			[ 
-				'label' => esc_html__( 'SVG', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'SVG', 'bdthemes-element-pack-lite' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
 			]
 		);
@@ -607,7 +607,7 @@ class Svg_Image extends Module_Base {
 		$this->add_control(
 			'svg_color_preserved',
 			[ 
-				'label' => esc_html__( 'Preserved Original Color', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'Preserved Original Color', 'bdthemes-element-pack-lite' ),
 				'type'  => Controls_Manager::SWITCHER,
 			]
 		);
@@ -615,7 +615,7 @@ class Svg_Image extends Module_Base {
 		$this->add_control(
 			'svg_fill_color',
 			[ 
-				'label'     => esc_html__( 'Fill Color', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Fill Color', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [ 
 					'{{WRAPPER}} .elementor-image svg *' => 'fill: {{VALUE}};',
@@ -626,7 +626,7 @@ class Svg_Image extends Module_Base {
 		$this->add_control(
 			'svg_stroke_color',
 			[ 
-				'label'     => esc_html__( 'Stroke Color', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Stroke Color', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [ 
 					'{{WRAPPER}} .elementor-image svg *' => 'stroke: {{VALUE}};',
@@ -637,7 +637,7 @@ class Svg_Image extends Module_Base {
 		$this->add_responsive_control(
 			'width',
 			[ 
-				'label'          => esc_html__( 'Width', 'bdthemes-element-pack' ),
+				'label'          => esc_html__( 'Width', 'bdthemes-element-pack-lite' ),
 				'type'           => Controls_Manager::SLIDER,
 				'default'        => [ 
 					'unit' => '%',
@@ -672,7 +672,7 @@ class Svg_Image extends Module_Base {
 		$this->add_responsive_control(
 			'space',
 			[ 
-				'label'          => esc_html__( 'Max Width', 'bdthemes-element-pack' ) . ' (%)',
+				'label'          => esc_html__( 'Max Width', 'bdthemes-element-pack-lite' ) . ' (%)',
 				'type'           => Controls_Manager::SLIDER,
 				'default'        => [ 
 					'unit' => '%',
@@ -709,14 +709,14 @@ class Svg_Image extends Module_Base {
 		$this->start_controls_tab(
 			'normal',
 			[ 
-				'label' => esc_html__( 'Normal', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'Normal', 'bdthemes-element-pack-lite' ),
 			]
 		);
 
 		$this->add_control(
 			'opacity',
 			[ 
-				'label'     => esc_html__( 'Opacity', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Opacity', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::SLIDER,
 				'range'     => [ 
 					'px' => [ 
@@ -744,14 +744,14 @@ class Svg_Image extends Module_Base {
 		$this->start_controls_tab(
 			'hover',
 			[ 
-				'label' => esc_html__( 'Hover', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'Hover', 'bdthemes-element-pack-lite' ),
 			]
 		);
 
 		$this->add_control(
 			'opacity_hover',
 			[ 
-				'label'     => esc_html__( 'Opacity', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Opacity', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::SLIDER,
 				'range'     => [ 
 					'px' => [ 
@@ -777,7 +777,7 @@ class Svg_Image extends Module_Base {
 		$this->add_control(
 			'background_hover_transition',
 			[ 
-				'label'     => esc_html__( 'Transition Duration', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Transition Duration', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::SLIDER,
 				'range'     => [ 
 					'px' => [ 
@@ -807,7 +807,7 @@ class Svg_Image extends Module_Base {
 		$this->add_responsive_control(
 			'image_border_radius',
 			[ 
-				'label'      => esc_html__( 'Border Radius', 'bdthemes-element-pack' ),
+				'label'      => esc_html__( 'Border Radius', 'bdthemes-element-pack-lite' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', '%' ],
 				'selectors'  => [ 
@@ -832,7 +832,7 @@ class Svg_Image extends Module_Base {
 		$this->start_controls_section(
 			'section_style_caption',
 			[ 
-				'label'     => esc_html__( 'Caption', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Caption', 'bdthemes-element-pack-lite' ),
 				'tab'       => Controls_Manager::TAB_STYLE,
 				'condition' => [ 
 					'caption_source!' => 'none',
@@ -843,23 +843,23 @@ class Svg_Image extends Module_Base {
 		$this->add_control(
 			'caption_align',
 			[ 
-				'label'     => esc_html__( 'Alignment', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Alignment', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::CHOOSE,
 				'options'   => [ 
 					'left'    => [ 
-						'title' => esc_html__( 'Left', 'bdthemes-element-pack' ),
+						'title' => esc_html__( 'Left', 'bdthemes-element-pack-lite' ),
 						'icon'  => 'eicon-text-align-left',
 					],
 					'center'  => [ 
-						'title' => esc_html__( 'Center', 'bdthemes-element-pack' ),
+						'title' => esc_html__( 'Center', 'bdthemes-element-pack-lite' ),
 						'icon'  => 'eicon-text-align-center',
 					],
 					'right'   => [ 
-						'title' => esc_html__( 'Right', 'bdthemes-element-pack' ),
+						'title' => esc_html__( 'Right', 'bdthemes-element-pack-lite' ),
 						'icon'  => 'eicon-text-align-right',
 					],
 					'justify' => [ 
-						'title' => esc_html__( 'Justified', 'bdthemes-element-pack' ),
+						'title' => esc_html__( 'Justified', 'bdthemes-element-pack-lite' ),
 						'icon'  => 'eicon-text-align-justify',
 					],
 				],
@@ -873,7 +873,7 @@ class Svg_Image extends Module_Base {
 		$this->add_control(
 			'text_color',
 			[ 
-				'label'     => esc_html__( 'Text Color', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Text Color', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::COLOR,
 				'default'   => '',
 				'selectors' => [ 
@@ -892,7 +892,7 @@ class Svg_Image extends Module_Base {
 		$this->add_control(
 			'caption_background_color',
 			[ 
-				'label'     => esc_html__( 'Background Color', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Background Color', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [ 
 					'{{WRAPPER}} .widget-image-caption' => 'background-color: {{VALUE}};',
@@ -903,7 +903,7 @@ class Svg_Image extends Module_Base {
 		$this->add_responsive_control(
 			'caption_padding',
 			[ 
-				'label'      => esc_html__( 'Padding', 'bdthemes-element-pack' ),
+				'label'      => esc_html__( 'Padding', 'bdthemes-element-pack-lite' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', 'em', '%' ],
 				'selectors'  => [ 
@@ -932,7 +932,7 @@ class Svg_Image extends Module_Base {
 		$this->add_responsive_control(
 			'caption_space',
 			[ 
-				'label'     => esc_html__( 'Spacing', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Spacing', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::SLIDER,
 				'range'     => [ 
 					'px' => [ 
@@ -971,128 +971,318 @@ class Svg_Image extends Module_Base {
 	}
 
 	/**
-	 * Sanitize raw SVG markup by removing all event handlers, script elements,
-	 * autofocus attributes, and javascript: URIs before the content is echoed.
+	 * Elements permitted in inline SVG output.
 	 *
-	 * Uses DOMDocument to parse the SVG so that sanitization is applied
-	 * regardless of attribute quoting style, whitespace, or encoding — unlike
-	 * the regex-only approach which can be bypassed with unquoted values.
+	 * This is a strict allowlist: anything not named here is dropped together
+	 * with its subtree, so scripting, external references and embedded content
+	 * cannot reach the page even when a new vector appears in a future browser.
+	 * Note the deliberate omissions — script, style, foreignObject, use, image,
+	 * a, animate, set, handler, audio, video, iframe and embed all either run
+	 * code or pull in external resources.
 	 *
-	 * @param string $svg_content Raw SVG string.
-	 * @return string Sanitized SVG string, or empty string on parse failure.
+	 * @return array Lowercase element names.
+	 */
+	private function allowed_svg_tags() {
+		return array(
+			'svg', 'g', 'defs', 'symbol', 'title', 'desc', 'metadata', 'switch',
+			'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon',
+			'text', 'tspan',
+			'lineargradient', 'radialgradient', 'stop',
+			'clippath', 'mask', 'pattern', 'marker',
+			'filter', 'fegaussianblur', 'feoffset', 'feblend', 'feflood',
+			'femerge', 'femergenode', 'fecolormatrix', 'fecomposite',
+			'fedropshadow',
+		);
+	}
+
+	/**
+	 * Attributes permitted on the elements above.
+	 *
+	 * Presentation and geometry only. Every attribute that can reference an
+	 * external document (href, xlink:href, src) is absent, as is every event
+	 * handler — they are rejected by not being listed, not by pattern matching.
+	 *
+	 * @return array Lowercase attribute names.
+	 */
+	private function allowed_svg_attributes() {
+		return array(
+			// Identity and layout.
+			'id', 'class', 'style', 'transform', 'transform-origin',
+			'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'rx', 'ry',
+			'width', 'height', 'd', 'points', 'dx', 'dy', 'rotate',
+			'viewbox', 'preserveaspectratio', 'overflow', 'version', 'baseprofile',
+			'xmlns', 'xmlns:xlink', 'xml:space',
+			// Painting.
+			'fill', 'fill-opacity', 'fill-rule',
+			'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin',
+			'stroke-dasharray', 'stroke-dashoffset', 'stroke-opacity', 'stroke-miterlimit',
+			'opacity', 'color', 'display', 'visibility', 'paint-order',
+			'vector-effect', 'shape-rendering', 'clip-path', 'clip-rule', 'mask', 'filter',
+			// Gradients, patterns, markers, masks.
+			'offset', 'stop-color', 'stop-opacity',
+			'gradientunits', 'gradienttransform', 'spreadmethod',
+			'patternunits', 'patterncontentunits', 'patterntransform',
+			'clippathunits', 'maskunits', 'maskcontentunits',
+			'markerwidth', 'markerheight', 'markerunits', 'orient', 'refx', 'refy',
+			// Filter primitives.
+			'filterunits', 'primitiveunits', 'result', 'in', 'in2', 'mode',
+			'stddeviation', 'flood-color', 'flood-opacity', 'values', 'type',
+			'operator', 'k1', 'k2', 'k3', 'k4',
+			// Text.
+			'font-family', 'font-size', 'font-weight', 'font-style',
+			'text-anchor', 'dominant-baseline', 'letter-spacing', 'word-spacing',
+			'writing-mode',
+		);
+	}
+
+	/**
+	 * Parse raw SVG markup and rebuild it from an allowlist of elements and
+	 * attributes, then tag the root with the widget's own classes.
+	 *
+	 * Everything outside the allowlist is discarded rather than patched, so the
+	 * output can only ever contain constructs this widget explicitly permits.
+	 *
+	 * @param string $svg_content Raw SVG string read from the media library.
+	 * @return string Sanitized SVG markup, or an empty string if it cannot be trusted.
 	 */
 	private function sanitize_svg( $svg_content ) {
-		// Strip script elements before DOM parsing as an extra layer of defence.
-		$svg_content = preg_replace( '/<script[\s\S]*?<\/script>/si', '', $svg_content );
-
-		$dom = new \DOMDocument();
-		libxml_use_internal_errors( true );
-		$loaded = $dom->loadXML( $svg_content );
-		libxml_clear_errors();
-
-		if ( ! $loaded || ! $dom->documentElement ) {
+		if ( ! is_string( $svg_content ) || '' === trim( $svg_content ) || ! class_exists( 'DOMDocument' ) ) {
 			return '';
 		}
 
-		$xpath = new \DOMXPath( $dom );
+		$previous_errors = libxml_use_internal_errors( true );
 
-		// Remove inherently dangerous elements entirely.
-		$dangerous_tags = array( 'script', 'foreignObject' );
-		foreach ( $dangerous_tags as $tag ) {
-			$nodes = $xpath->query( '//' . $tag );
-			if ( $nodes ) {
-				foreach ( iterator_to_array( $nodes ) as $node ) {
-					$node->parentNode->removeChild( $node );
+		$dom    = new \DOMDocument();
+		$loaded = $dom->loadXML( $svg_content, LIBXML_NONET );
+
+		libxml_clear_errors();
+		libxml_use_internal_errors( $previous_errors );
+
+		// A DOCTYPE can carry an internal subset declaring entities; refuse the
+		// whole document rather than reason about entity expansion.
+		if ( ! $loaded || ! $dom->documentElement || $dom->doctype ) {
+			return '';
+		}
+
+		if ( 'svg' !== strtolower( $dom->documentElement->nodeName ) ) {
+			return '';
+		}
+
+		$root = $dom->documentElement;
+
+		$this->clean_svg_attributes( $root );
+		$this->clean_svg_children( $root );
+
+		$root->setAttribute( 'class', trim( $root->getAttribute( 'class' ) . ' bdt-svg-image-inner' ) );
+		$root->setAttribute( 'data-bdt-svg', 'stroke-animation: true' );
+
+		$markup = $dom->saveXML( $root );
+
+		return is_string( $markup ) ? $markup : '';
+	}
+
+	/**
+	 * Recursively drop every child element outside the allowlist, along with
+	 * comments and processing instructions.
+	 *
+	 * @param \DOMNode $node Node whose children are filtered.
+	 * @return void
+	 */
+	private function clean_svg_children( \DOMNode $node ) {
+		$allowed_tags = $this->allowed_svg_tags();
+
+		// Iterate a snapshot: the live NodeList shifts as children are removed.
+		foreach ( iterator_to_array( $node->childNodes ) as $child ) {
+			if ( XML_COMMENT_NODE === $child->nodeType || XML_PI_NODE === $child->nodeType ) {
+				$node->removeChild( $child );
+				continue;
+			}
+
+			if ( XML_ELEMENT_NODE !== $child->nodeType ) {
+				// Text and CDATA are inert once the element allowlist holds.
+				continue;
+			}
+
+			if ( ! in_array( strtolower( $child->nodeName ), $allowed_tags, true ) ) {
+				$node->removeChild( $child );
+				continue;
+			}
+
+			$this->clean_svg_attributes( $child );
+			$this->clean_svg_children( $child );
+		}
+	}
+
+	/**
+	 * Strip every attribute outside the allowlist and reject values that point
+	 * anywhere other than this same document.
+	 *
+	 * @param \DOMElement $element Element to filter in place.
+	 * @return void
+	 */
+	private function clean_svg_attributes( \DOMElement $element ) {
+		$allowed_attributes = $this->allowed_svg_attributes();
+		$remove             = array();
+		$rewrite            = array();
+
+		foreach ( $element->attributes as $attribute ) {
+			$name  = strtolower( $attribute->nodeName );
+			$value = $attribute->nodeValue;
+
+			if ( ! in_array( $name, $allowed_attributes, true ) ) {
+				$remove[] = $attribute->nodeName;
+				continue;
+			}
+
+			if ( 'style' === $name ) {
+				$safe_style = $this->sanitize_svg_style( $value );
+
+				if ( '' === $safe_style ) {
+					$remove[] = $attribute->nodeName;
+				} elseif ( $safe_style !== $value ) {
+					$rewrite[ $attribute->nodeName ] = $safe_style;
 				}
+
+				continue;
+			}
+
+			// Presentation attributes such as fill or clip-path accept url();
+			// only same-document fragments are allowed.
+			if ( ! $this->svg_url_references_are_local( $value ) ) {
+				$remove[] = $attribute->nodeName;
 			}
 		}
 
-		// Walk every element and strip unsafe attributes.
-		$all_nodes = $xpath->query( '//*' );
-		if ( $all_nodes ) {
-			foreach ( $all_nodes as $element ) {
-				$remove = array();
-				foreach ( $element->attributes as $attr ) {
-					$name  = strtolower( $attr->nodeName );
-					$value = $attr->nodeValue;
+		foreach ( $rewrite as $name => $value ) {
+			$element->setAttribute( $name, $value );
+		}
 
-					// Remove all event-handler attributes (on*).
-					if ( substr( $name, 0, 2 ) === 'on' ) {
-						$remove[] = $attr->nodeName;
+		foreach ( $remove as $name ) {
+			$element->removeAttribute( $name );
+		}
+	}
 
-					// Remove javascript: URIs in link/source attributes.
-					} elseif ( in_array( $name, array( 'href', 'xlink:href', 'src', 'action', 'formaction' ), true )
-						&& preg_match( '/^\s*javascript:/i', $value ) ) {
-						$remove[] = $attr->nodeName;
+	/**
+	 * Validate an inline style attribute.
+	 *
+	 * @param string $value Raw style attribute value.
+	 * @return string The value if it is safe, otherwise an empty string.
+	 */
+	private function sanitize_svg_style( $value ) {
+		if ( ! is_string( $value ) || '' === trim( $value ) ) {
+			return '';
+		}
 
-					// Remove autofocus — prevents auto-fired focus events on load.
-					} elseif ( $name === 'autofocus' ) {
-						$remove[] = $attr->nodeName;
-					}
-				}
-				foreach ( $remove as $attr_name ) {
-					$element->removeAttribute( $attr_name );
-				}
+		if ( preg_match( '/(@import|expression\s*\(|behaviou?r\s*:|javascript\s*:|-moz-binding|<)/i', $value ) ) {
+			return '';
+		}
+
+		if ( ! $this->svg_url_references_are_local( $value ) ) {
+			return '';
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Check that every url() in a value is a same-document fragment such as
+	 * url(#gradient), never a remote or data URI.
+	 *
+	 * @param string $value Attribute or declaration value.
+	 * @return bool True when no external reference is present.
+	 */
+	private function svg_url_references_are_local( $value ) {
+		if ( ! is_string( $value ) || false === stripos( $value, 'url(' ) ) {
+			return true;
+		}
+
+		if ( ! preg_match_all( '/url\s*\(\s*([\'"]?)([^)\'"]*)\1\s*\)/i', $value, $matches ) ) {
+			// A malformed url() we cannot parse is not one we should trust.
+			return false;
+		}
+
+		foreach ( $matches[2] as $target ) {
+			$target = trim( $target );
+
+			if ( '' === $target || '#' !== $target[0] ) {
+				return false;
 			}
 		}
 
-		return $dom->saveXML( $dom->documentElement );
+		return true;
+	}
+
+	/**
+	 * Read an SVG attachment from this site's media library.
+	 *
+	 * Only local attachments are ever read. Remote URLs are deliberately not
+	 * fetched: inlining markup from an address the editor controls would let
+	 * arbitrary third-party content execute in the page's origin.
+	 *
+	 * @param int $attachment_id Media library attachment ID.
+	 * @return string File contents, or an empty string when unavailable.
+	 */
+	private function get_local_svg_contents( $attachment_id ) {
+		$attachment_id = absint( $attachment_id );
+
+		if ( ! $attachment_id || 'image/svg+xml' !== get_post_mime_type( $attachment_id ) ) {
+			return '';
+		}
+
+		$path = get_attached_file( $attachment_id );
+
+		if ( ! $path ) {
+			return '';
+		}
+
+		$upload_dir = wp_upload_dir();
+		$real_path  = realpath( $path );
+		$real_base  = empty( $upload_dir['basedir'] ) ? false : realpath( $upload_dir['basedir'] );
+
+		// Confine reads to the uploads directory, whatever the stored path says.
+		if ( false === $real_path || false === $real_base
+			|| 0 !== strpos( $real_path, $real_base . DIRECTORY_SEPARATOR )
+			|| ! is_file( $real_path ) ) {
+			return '';
+		}
+
+		// Guard against pathological files; inline SVG icons are tiny.
+		$max_bytes = (int) apply_filters( 'element_pack_svg_image_max_bytes', 512 * 1024 );
+
+		if ( filesize( $real_path ) > $max_bytes ) {
+			return '';
+		}
+
+		$contents = file_get_contents( $real_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading a validated local file, not a remote request.
+
+		return is_string( $contents ) ? $contents : '';
 	}
 
 	public function render_svg() {
-		$settings = $this->get_settings_for_display();
-		$svg_file = $settings['image']['url'];
-		$svg_content = '';
-		if ( ! empty( $svg_file ) ) {
-			// Try to get the SVG file contents
-			if ( strpos( $svg_file, get_site_url() ) === 0 ) {
-				// Local file, convert URL to path with path traversal protection
-				$upload_dir = wp_upload_dir();
-				$baseurl    = $upload_dir['baseurl'];
-				$basedir    = $upload_dir['basedir'];
-				if ( strpos( $svg_file, $baseurl ) === 0 ) {
-					$relative_path = substr( $svg_file, strlen( $baseurl ) );
-					$relative_path = ltrim( $relative_path, '/' );
-					// Reject path traversal sequences
-					if ( strpos( $relative_path, '..' ) === false ) {
-						$svg_path  = $basedir . ( $relative_path !== '' ? '/' . $relative_path : '' );
-						$real_path = realpath( $svg_path );
-						$real_base = realpath( $basedir );
-						// Ensure resolved path is inside upload directory
-						if ( $real_path !== false && $real_base !== false && ( $real_path === $real_base || strpos( $real_path, $real_base . DIRECTORY_SEPARATOR ) === 0 ) ) {
-							if ( file_exists( $real_path ) && is_file( $real_path ) ) {
-								$svg_content = file_get_contents( $real_path );
-							}
-						}
-					}
-				}
-			}
-			// If not found, fallback to remote fetch (not recommended, but for completeness)
-			if ( empty( $svg_content ) ) {
-				$response = wp_safe_remote_get( $svg_file );
-				if ( ! is_wp_error( $response ) && ! empty( $response['body'] ) ) {
-					$svg_content = $response['body'];
-				}
-			}
-		}
-		if ( ! empty( $svg_content ) ) {
-			$svg_content = $this->sanitize_svg( $svg_content );
+		$settings    = $this->get_settings_for_display();
+		$svg_url     = isset( $settings['image']['url'] ) ? $settings['image']['url'] : '';
+		$svg_id      = isset( $settings['image']['id'] ) ? $settings['image']['id'] : 0;
+		$svg_content = $this->sanitize_svg( $this->get_local_svg_contents( $svg_id ) );
+
+		if ( '' !== $svg_content ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Rebuilt from the element/attribute allowlist in sanitize_svg().
+			echo $svg_content;
+
+			return;
 		}
 
-		if ( ! empty( $svg_content ) ) {
-			$svg_content = preg_replace( '/<svg(\s|>)/', '<svg class="bdt-svg-image-inner" data-bdt-svg="stroke-animation: true" ', $svg_content, 1 );
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG markup already sanitized via sanitize_svg().
-			echo $svg_content;
-		} else {
-			// fallback to <img> if SVG can't be loaded
-			echo '<img src="' . esc_url( $svg_file ) . '" alt="' . esc_html( get_the_title() ) . '" class="bdt-svg-image-inner" data-bdt-svg="stroke-animation: true" data-bdt-svg />';
+		// Anything we will not inline still renders as a plain image.
+		if ( '' === $svg_url ) {
+			return;
 		}
+
+		echo '<img src="' . esc_url( $svg_url ) . '" alt="' . esc_attr( get_the_title() ) . '" class="bdt-svg-image-inner" data-bdt-svg="stroke-animation: true" />';
 	}
 
 	public function render_image() {
 		$settings = $this->get_settings_for_display();
 
-		if ( true !== is_ep_pro() ) {
+		if ( true !== element_pack_is_pro() ) {
 			if ( $settings['on_hover_animation'] ) {
 				$this->add_render_attribute( 'svg-image', 'class', 'bdt-animation-stroke' );
 				$this->add_render_attribute( 'svg-image', 'data-bdt-svg', 'stroke-animation: true' );
@@ -1126,7 +1316,7 @@ class Svg_Image extends Module_Base {
 		$has_caption = $this->has_caption( $settings );
 		$this->add_render_attribute( 'wrapper', 'class', 'elementor-image bdt-svg-image bdt-animation-toggle' );
 
-		if ( true !== is_ep_pro() ) {
+		if ( true !== element_pack_is_pro() ) {
 			$parallax_stroke   = 100 - ( isset( $settings['parallax_effects_stroke_value']['size'] ) ? $settings['parallax_effects_stroke_value']['size'] : 0 );
 			$parallax_viewport = ( isset( $settings['parallax_effects_viewport_value']['size'] ) ? $settings['parallax_effects_viewport_value']['size'] : 0.7 );
 			if ( $settings['svg_parallax_effects_show'] ) {

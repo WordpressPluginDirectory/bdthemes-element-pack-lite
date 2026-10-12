@@ -15,15 +15,6 @@ if (!defined('ABSPATH')) {
 } // Exit if accessed directly
 
 
-if (!defined('BDTEP_PC')) {
-    define('BDTEP_PC', '<span class="bdt-ep-pro-control"></span>');
-} // pro control badge
-define('BDTEP_IS_PC', 'bdt-ep-disabled-control');
-define('BDTEP_LOCK_CLASS', 'bdt-ep-lock-control');
-
-if (!defined('BDTEP_LOCK')) {
-    define('BDTEP_LOCK', ' - Pro ✨');
-} // lock control badge
 /**
  * Main class for element pack
  */
@@ -76,7 +67,7 @@ class Element_Pack_Loader {
      */
     public function __clone() {
         // Cloning instances of the class is forbidden
-        _doing_it_wrong(__FUNCTION__, esc_html__('Cheatin&#8217; huh?', 'bdthemes-element-pack'), '1.6.0');
+        _doing_it_wrong(__FUNCTION__, esc_html__('Cheatin&#8217; huh?', 'bdthemes-element-pack-lite'), '1.6.0');
     }
 
     /**
@@ -87,7 +78,7 @@ class Element_Pack_Loader {
      */
     public function __wakeup() {
         // Unserializing instances of the class is forbidden
-        _doing_it_wrong(__FUNCTION__, esc_html__('Cheatin&#8217; huh?', 'bdthemes-element-pack'), '1.6.0');
+        _doing_it_wrong(__FUNCTION__, esc_html__('Cheatin&#8217; huh?', 'bdthemes-element-pack-lite'), '1.6.0');
     }
 
     /**
@@ -139,6 +130,9 @@ class Element_Pack_Loader {
         require_once BDTEP_INC_PATH . 'class-json-file-upload-control.php';
         // svg support for full wordpress site
         require_once BDTEP_INC_PATH . 'class-svg-support.php';
+        // Keeps UIkit component attributes out of content saved by users without unfiltered_html
+        require_once BDTEP_INC_PATH . 'class-content-guard.php';
+        Includes\Content_Guard::init();
         // All modules loading from here
         require_once BDTEP_INC_PATH . 'modules-manager.php';
         // wpml compatibility class for wpml support
@@ -222,7 +216,7 @@ class Element_Pack_Loader {
         $api_settings = get_option('element_pack_api_settings');
 
         if ( element_pack_is_widget_enabled( 'social-share' ) ) {
-			wp_register_script( 'goodshare', BDTEP_ASSETS_URL . 'vendor/js/goodshare.min.js', [ 'jquery' ], '4.1.2', true );
+			wp_register_script( 'goodshare', BDTEP_ASSETS_URL . 'vendor/js/goodshare.min.js', [ 'jquery' ], '6.3.0', true );
 		}
         if (element_pack_is_widget_enabled('progress-pie')) {
             wp_register_script('aspieprogress', BDTEP_ASSETS_URL . 'vendor/js/jquery-asPieProgress.min.js', ['jquery'], '0.4.7', true);
@@ -234,31 +228,38 @@ class Element_Pack_Loader {
             wp_register_script('gridtab', BDTEP_ASSETS_URL . 'vendor/js/gridtab.min.js', ['jquery'], '2.1.1', true);
         }
         if (element_pack_is_widget_enabled('user-register') or element_pack_is_widget_enabled('contact-form')) {
-            wp_register_script('recaptcha', 'https://www.google.com/recaptcha/api.js', ['jquery'], null, true);
+            wp_register_script('recaptcha', 'https://www.google.com/recaptcha/api.js', ['jquery'], '2.0', true);
         }
         if (element_pack_is_widget_enabled('open-street-map')) {
-            wp_register_script('leaflet', BDTEP_ASSETS_URL . 'vendor/js/leaflet.min.js', ['jquery'], '', true);
+            wp_register_script('leaflet', BDTEP_ASSETS_URL . 'vendor/js/leaflet.min.js', ['jquery'], '1.9.4', true);
         }
         if (element_pack_is_widget_enabled('panel-slider')) {
-            wp_register_script('bdt-parallax', BDTEP_ASSETS_URL . 'vendor/js/parallax.min.js', ['jquery'], null, true);
+            wp_register_script('bdt-parallax', BDTEP_ASSETS_URL . 'vendor/js/parallax.min.js', ['jquery'], '3.1.0', true);
         }
         if (element_pack_is_widget_enabled('image-magnifier')) {
-            wp_register_script('imagezoom', BDTEP_ASSETS_URL . 'vendor/js/jquery.imagezoom.min.js', ['jquery'], null, true);
+            wp_register_script('imagezoom', BDTEP_ASSETS_URL . 'vendor/js/jquery.imagezoom.min.js', ['jquery'], BDTEP_VER, true);
         }
         if (element_pack_is_widget_enabled('logo-grid')) {
-            wp_register_script('popper', BDTEP_ASSETS_URL . 'vendor/js/popper.min.js', ['jquery'], null, true);
-            wp_register_script('tippyjs', BDTEP_ASSETS_URL . 'vendor/js/tippy.all.min.js', ['jquery'], null, true);
+            wp_register_script('popper', BDTEP_ASSETS_URL . 'vendor/js/popper.min.js', ['jquery'], '2.11.8', true);
+            wp_register_script('tippyjs', BDTEP_ASSETS_URL . 'vendor/js/tippy.all.min.js', ['jquery'], '6.3.7', true);
         }
         //advanced-image-gallery
         if (element_pack_is_widget_enabled('custom-gallery') or element_pack_is_widget_enabled('tutor-lms-course-grid')) {
-            wp_register_script('tilt', BDTEP_ASSETS_URL . 'vendor/js/vanilla-tilt.min.js', ['jquery'], null, true);
+            wp_register_script('tilt', BDTEP_ASSETS_URL . 'vendor/js/vanilla-tilt.min.js', ['jquery'], '1.8.1', true);
         }
         if (element_pack_is_widget_enabled('reading-progress')) {
             wp_register_script('progressHorizontal', BDTEP_ASSETS_URL . 'vendor/js/jquery.progressHorizontal.min.js', ['jquery'], '2.0.2', true);
             // wp_register_script('progressScroll', BDTEP_ASSETS_URL . 'vendor/js/jquery.progressScroll.min.js', ['jquery'], '2.0.2', true);
         }
         if (element_pack_is_widget_enabled('image-compare')) {
-            wp_register_script('image-compare-viewer', BDTEP_ASSETS_URL . 'vendor/js/image-compare-viewer.min.js', ['jquery'], '0.0.1', true);
+            wp_register_script('image-compare-viewer', BDTEP_ASSETS_URL . 'vendor/js/image-compare-viewer.min.js', ['jquery'], '1.6.2', true);
+        }
+        if (element_pack_is_widget_enabled('business-hours')) {
+            // The Business Hours widget lists 'jclock' in get_script_depends(), and
+            // its module script bails with "jclock library is not loaded" when the
+            // plugin is missing. The library ships with the plugin but the handle
+            // was never registered, so the dynamic clock never ran.
+            wp_register_script('jclock', BDTEP_ASSETS_URL . 'vendor/js/jquery.jclock.min.js', ['jquery'], '2.4.3', true);
         }
         if (element_pack_is_widget_enabled('calendly')) {
             wp_register_script('calendly', BDTEP_ASSETS_URL . 'vendor/js/calendly.min.js', ['jquery'], '0.0.1', true);
@@ -329,32 +330,34 @@ class Element_Pack_Loader {
             'nonce'         => wp_create_nonce('element-pack-site'),
             'data_table'    => [
                 'language' => [
-                    'lengthMenu' => sprintf(esc_html_x('Show %1s Entries', 'DataTable String', 'bdthemes-element-pack'), '_MENU_'),
-                    'info'       => sprintf(esc_html_x('Showing %1s to %2s of %3s entries', 'DataTable String', 'bdthemes-element-pack'), '_START_', '_END_', '_TOTAL_'),
-                    'search'     => esc_html_x('Search :', 'DataTable String', 'bdthemes-element-pack'),
+                    /* translators: %s: DataTables placeholder replaced with the page length dropdown. */
+                    'lengthMenu' => sprintf(esc_html_x('Show %s Entries', 'DataTable String', 'bdthemes-element-pack-lite'), '_MENU_'),
+                    /* translators: 1: First entry number on the page. 2: Last entry number on the page. 3: Total number of entries. */
+                    'info'       => sprintf(esc_html_x('Showing %1$s to %2$s of %3$s entries', 'DataTable String', 'bdthemes-element-pack-lite'), '_START_', '_END_', '_TOTAL_'),
+                    'search'     => esc_html_x('Search :', 'DataTable String', 'bdthemes-element-pack-lite'),
                     'paginate'   => [
-                        'previous' => esc_html_x('Previous', 'DataTable String', 'bdthemes-element-pack'),
-                        'next'     => esc_html_x('Next', 'DataTable String', 'bdthemes-element-pack'),
+                        'previous' => esc_html_x('Previous', 'DataTable String', 'bdthemes-element-pack-lite'),
+                        'next'     => esc_html_x('Next', 'DataTable String', 'bdthemes-element-pack-lite'),
                     ],
                 ],
             ],
             'contact_form'  => [
-                'sending_msg' => esc_html_x('Sending message please wait...', 'Contact Form String', 'bdthemes-element-pack'),
-                'captcha_nd'  => esc_html_x('Invisible captcha not defined!', 'Contact Form String', 'bdthemes-element-pack'),
-                'captcha_nr'  => esc_html_x('Could not get invisible captcha response!', 'Contact Form String', 'bdthemes-element-pack'),
+                'sending_msg' => esc_html_x('Sending message please wait...', 'Contact Form String', 'bdthemes-element-pack-lite'),
+                'captcha_nd'  => esc_html_x('Invisible captcha not defined!', 'Contact Form String', 'bdthemes-element-pack-lite'),
+                'captcha_nr'  => esc_html_x('Could not get invisible captcha response!', 'Contact Form String', 'bdthemes-element-pack-lite'),
 
             ],
             'mailchimp'     => [
-                'subscribing' => esc_html_x('Subscribing you please wait...', 'Mailchimp String', 'bdthemes-element-pack'),
+                'subscribing' => esc_html_x('Subscribing you please wait...', 'Mailchimp String', 'bdthemes-element-pack-lite'),
             ],
             'search'        => [ 
-                'more_result'   => esc_html_x( 'More Results', 'Search Widget String', 'bdthemes-element-pack' ),
-                'search_result' => esc_html_x( 'SEARCH RESULT', 'Search Widget String', 'bdthemes-element-pack' ),
-                'not_found'     => esc_html_x( 'not found', 'Search Widget String', 'bdthemes-element-pack' ),
+                'more_result'   => esc_html_x( 'More Results', 'Search Widget String', 'bdthemes-element-pack-lite' ),
+                'search_result' => esc_html_x( 'SEARCH RESULT', 'Search Widget String', 'bdthemes-element-pack-lite' ),
+                'not_found'     => esc_html_x( 'not found', 'Search Widget String', 'bdthemes-element-pack-lite' ),
             ],
             'words_limit'     => [ 
-				'read_more' => esc_html_x( '[read more]', 'Read More String', 'bdthemes-element-pack' ),
-				'read_less' => esc_html_x( '[read less]', 'Read Less String', 'bdthemes-element-pack' ),
+				'read_more' => esc_html_x( '[read more]', 'Read More String', 'bdthemes-element-pack-lite' ),
+				'read_less' => esc_html_x( '[read less]', 'Read Less String', 'bdthemes-element-pack-lite' ),
 			],
             'elements_data' => $this->elements_data,
         ];
@@ -374,8 +377,8 @@ class Element_Pack_Loader {
             array(
                 'ajaxurl'        => admin_url('admin-ajax.php'),
                 'language'       => substr(get_locale(), 0, 2),
-                'loadingmessage' => esc_html_x('Sending user info, please wait...', 'User Login and Register', 'bdthemes-element-pack'),
-                'unknownerror'   => esc_html_x('Unknown error, make sure access is correct!', 'User Login and Register', 'bdthemes-element-pack'),
+                'loadingmessage' => esc_html_x('Sending user info, please wait...', 'User Login and Register', 'bdthemes-element-pack-lite'),
+                'unknownerror'   => esc_html_x('Unknown error, make sure access is correct!', 'User Login and Register', 'bdthemes-element-pack-lite'),
             )
         );
 
@@ -411,9 +414,9 @@ class Element_Pack_Loader {
                 'isProActive' => element_pack_pro_installed(),
                 'upgradeUrl' => 'https://elementpack.pro/pricing/',
                 'proFeatures' => [
-                    'title' => esc_html__('Element Pack Pro', 'bdthemes-element-pack'),
-                    'content' => esc_html__('Unlock advanced dynamic content features with Element Pack Pro. Access dozens of dynamic tags to create more personalized and dynamic sites.', 'bdthemes-element-pack'),
-                    'upgradeText' => esc_html__('Upgrade to Pro', 'bdthemes-element-pack')
+                    'title' => esc_html__('Element Pack Pro', 'bdthemes-element-pack-lite'),
+                    'content' => esc_html__('Unlock advanced dynamic content features with Element Pack Pro. Access dozens of dynamic tags to create more personalized and dynamic sites.', 'bdthemes-element-pack-lite'),
+                    'upgradeText' => esc_html__('Upgrade to Pro', 'bdthemes-element-pack-lite')
                 ]
             ]
         ];
@@ -536,6 +539,7 @@ class Element_Pack_Loader {
             return '';
         }
 
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor renders and escapes this document markup itself; escaping again would corrupt the output.
         return self::elementor()->frontend->get_builder_content_for_display($id);
     }
 
@@ -559,7 +563,11 @@ class Element_Pack_Loader {
 
         // Nonce is checked, get the POST data and sign user on
         $access_info                  = [];
-        $access_info['user_login']    = !empty($_POST['user_login']) ? $_POST['user_login'] : "";
+        $access_info['user_login']    = !empty($_POST['user_login']) ? sanitize_text_field(wp_unslash($_POST['user_login'])) : "";
+        // The password is deliberately passed through untouched: unslashing or
+        // sanitizing it would corrupt legitimate credentials. This mirrors how
+        // wp_signon() reads $_POST['pwd'] in wp-login.php.
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Raw password required by wp_signon().
         $access_info['user_password'] = !empty($_POST['user_password']) ? $_POST['user_password'] : "";
         $access_info['remember']      = !empty($_POST['rememberme']) ? true : false;
         $user_signon                  = wp_signon($access_info, false);
@@ -568,14 +576,14 @@ class Element_Pack_Loader {
             echo wp_json_encode(
                 [
                     'loggedin' => true,
-                    'message'  => esc_html_x('Login successful, Redirecting...', 'User Login and Register', 'bdthemes-element-pack')
+                    'message'  => esc_html_x('Login successful, Redirecting...', 'User Login and Register', 'bdthemes-element-pack-lite')
                 ]
             );
         } else {
             echo wp_json_encode(
                 [
                     'loggedin' => false,
-                    'message'  => esc_html_x('Oops! Wrong username or password!', 'User Login and Register', 'bdthemes-element-pack')
+                    'message'  => esc_html_x('Oops! Wrong username or password!', 'User Login and Register', 'bdthemes-element-pack-lite')
                 ]
             );
         }
@@ -655,7 +663,13 @@ class Element_Pack_Loader {
         add_action('elementor/frontend/after_enqueue_scripts', [$this, 'enqueue_minified_js']);
 
 
-        add_shortcode('rooten_custom_template', [$this, 'shortcode_template']);
+        // Element_Pack_Rooten_Theme_Compatibility registers this same shortcode
+        // (with Elementor's CSS enabled) when the Rooten theme is active. Register
+        // the generic fallback only when that class is not in play, so the tag has
+        // exactly one owner.
+        if (!class_exists('\ElementPack\Includes\Element_Pack_Rooten_Theme_Compatibility')) {
+            add_shortcode('rooten_custom_template', [$this, 'shortcode_template']);
+        }
 
 
         // When user not login add this action
@@ -674,7 +688,6 @@ class Element_Pack_Loader {
 			new Admin();
 
             require_once( BDTEP_ADMIN_PATH . 'admin-biggopti.php' );
-            require_once( BDTEP_ADMIN_PATH . 'admin-api-biggopti.php' );
 		}
 	}
 

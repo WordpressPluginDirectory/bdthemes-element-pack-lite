@@ -22,9 +22,11 @@ class ElementPack_Others_Plugin_Manager {
      * Constructor
      */
     public function __construct() {
-        // Add AJAX handlers
-        add_action('wp_ajax_ep_get_plugins', [$this, 'ajax_get_plugins']);
-        add_action('wp_ajax_ep_install_plugin', [$this, 'install_plugin_ajax']);
+        // The ep_get_plugins and ep_install_plugin handlers are registered once,
+        // by Remote_Data_Handler and the admin settings class respectively. This
+        // class is only loaded while rendering the screen, so registering them
+        // again here both duplicated the hook and came too late to serve a real
+        // AJAX request.
     }
 
     /**
@@ -53,82 +55,57 @@ class ElementPack_Others_Plugin_Manager {
         );
 
         // Helper function for time formatting
-        if (!function_exists('format_last_updated_ep')) {
-            function format_last_updated_ep($date_string) {
+        if (!function_exists('element_pack_format_last_updated')) {
+            function element_pack_format_last_updated($date_string) {
                 if (empty($date_string)) {
-                    return __('Unknown', 'bdthemes-element-pack');
+                    return __('Unknown', 'bdthemes-element-pack-lite');
                 }
                 
                 $date = strtotime($date_string);
                 if (!$date) {
-                    return __('Unknown', 'bdthemes-element-pack');
+                    return __('Unknown', 'bdthemes-element-pack-lite');
                 }
                 
                 $diff = current_time('timestamp') - $date;
                 
                 if ($diff < 60) {
-                    return __('Just now', 'bdthemes-element-pack');
+                    return __('Just now', 'bdthemes-element-pack-lite');
                 } elseif ($diff < 3600) {
                     $minutes = floor($diff / 60);
                     /* translators: %d: Number of minutes */
-                    return sprintf(_n('%d minute ago', '%d minutes ago', $minutes, 'bdthemes-element-pack'), $minutes);
+                    return sprintf(_n('%d minute ago', '%d minutes ago', $minutes, 'bdthemes-element-pack-lite'), $minutes);
                 } elseif ($diff < 86400) {
                     $hours = floor($diff / 3600);
                     /* translators: %d: Number of hours */
-                    return sprintf(_n('%d hour ago', '%d hours ago', $hours, 'bdthemes-element-pack'), $hours);
+                    return sprintf(_n('%d hour ago', '%d hours ago', $hours, 'bdthemes-element-pack-lite'), $hours);
                 } elseif ($diff < 2592000) { // 30 days
                     $days = floor($diff / 86400);
                     /* translators: %d: Number of days */
-                    return sprintf(_n('%d day ago', '%d days ago', $days, 'bdthemes-element-pack'), $days);
+                    return sprintf(_n('%d day ago', '%d days ago', $days, 'bdthemes-element-pack-lite'), $days);
                 } elseif ($diff < 31536000) { // 1 year
                     $months = floor($diff / 2592000);
                     /* translators: %d: Number of months */
-                    return sprintf(_n('%d month ago', '%d months ago', $months, 'bdthemes-element-pack'), $months);
+                    return sprintf(_n('%d month ago', '%d months ago', $months, 'bdthemes-element-pack-lite'), $months);
                 } else {
                     $years = floor($diff / 31536000);
                     /* translators: %d: Number of years */
-                    return sprintf(_n('%d year ago', '%d years ago', $years, 'bdthemes-element-pack'), $years);
+                    return sprintf(_n('%d year ago', '%d years ago', $years, 'bdthemes-element-pack-lite'), $years);
                 }
             }
         }
 
         // Helper function for fallback URLs
-        if (!function_exists('get_plugin_fallback_urls_ep')) {
-            function get_plugin_fallback_urls_ep($plugin_slug) {
-                // Handle different plugin slug formats
-                if (strpos($plugin_slug, '/') !== false) {
-                    // If it's a file path like 'plugin-name/plugin-name.php', extract directory
-                    $plugin_slug_clean = dirname($plugin_slug);
-                } else {
-                    // If it's just the plugin directory name, use it directly
-                    $plugin_slug_clean = $plugin_slug;
-                }
-                
-                // Custom icon URLs for specific plugins that might not be on WordPress.org
-                $custom_icons = [
-                    'ar-viewer' => [
-                        'https://ps.w.org/ar-viewer/assets/icon-256x256.gif',
-                        'https://ps.w.org/ar-viewer/assets/icon-128x128.gif',
-                    ],
-                ];
-                
-                // Return custom icons if available, otherwise use default WordPress.org URLs
-                if (isset($custom_icons[$plugin_slug_clean])) {
-                    return $custom_icons[$plugin_slug_clean];
-                }
-                
-                return [
-                    "https://ps.w.org/{$plugin_slug_clean}/assets/icon-256x256.png",  // Then PNG
-                    "https://ps.w.org/{$plugin_slug_clean}/assets/icon-128x128.png",  // Medium PNG
-                    "https://ps.w.org/{$plugin_slug_clean}/assets/icon-256x256.gif",  // Try GIF first
-                    "https://ps.w.org/{$plugin_slug_clean}/assets/icon-128x128.gif",  // Medium GIF
-                ];
+        if (!function_exists('element_pack_get_plugin_fallback_urls')) {
+            function element_pack_get_plugin_fallback_urls($plugin_slug) {
+                // Icon URLs are derived from the slug by the shared helper rather
+                // than hardcoded here, so this file ships no asset URLs of its own.
+                return \ElementPack\SetupWizard\Plugin_Integration_Helper::plugin_icon_fallbacks($plugin_slug);
             }
         }
         ?>
         
         <div class="ep-dashboard-panel"
-            bdt-scrollspy="target: > div > div > .bdt-card; cls: bdt-animation-slide-bottom-small; delay: 300">
+            bdt-scrollspy="target: > div > div > .ep-plugin-item; cls: bdt-animation-slide-bottom-small; delay: 300">
             <div class="ep-dashboard-others-plugin" id="ep-others-plugin-container">
                 
                 <!-- Loading state -->
@@ -136,7 +113,7 @@ class ElementPack_Others_Plugin_Manager {
                     <div class="bdt-flex bdt-flex-center bdt-flex-middle bdt-text-center" style="min-height: 200px;">
                         <div>
                             <div class="bdt-spinner bdt-spinner-primary"></div>
-                            <p class="bdt-margin-small-top"><?php esc_html_e('Loading plugin data...', 'bdthemes-element-pack'); ?></p>
+                            <p class="bdt-margin-small-top"><?php esc_html_e('Loading plugin data...', 'bdthemes-element-pack-lite'); ?></p>
                         </div>
                     </div>
                 </div>
@@ -145,9 +122,9 @@ class ElementPack_Others_Plugin_Manager {
                 <div class="ep-plugins-error" id="ep-plugins-error" style="display: none;">
                     <div class="bdt-alert bdt-alert-warning" bdt-alert>
                         <a class="bdt-alert-close" bdt-close></a>
-                        <p><?php esc_html_e('Unable to load plugin data. Please try again later.', 'bdthemes-element-pack'); ?></p>
+                        <p><?php esc_html_e('Unable to load plugin data. Please try again later.', 'bdthemes-element-pack-lite'); ?></p>
                         <button class="bdt-button bdt-button-small bdt-margin-small-top" id="ep-retry-load-plugins">
-                            <?php esc_html_e('Retry', 'bdthemes-element-pack'); ?>
+                            <?php esc_html_e('Retry', 'bdthemes-element-pack-lite'); ?>
                         </button>
                     </div>
                 </div>
@@ -248,121 +225,137 @@ class ElementPack_Others_Plugin_Manager {
                 });
             }
             
+            // Escape remote-sourced strings before they are concatenated into
+            // markup. The plugin catalog comes from a remote endpoint; treat it
+            // as untrusted so a poisoned/compromised feed cannot inject HTML/JS
+            // into the admin dashboard (the 2026 notification-feed incident).
+            function epEsc(s) {
+                return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+                });
+            }
+            function epSafeUrl(u) {
+                u = String(u == null ? '' : u);
+                return /^https?:\/\//i.test(u) ? u : '';
+            }
+
             // Function to render plugins
+            // Cards use the same grid/card design as the setup wizard
+            // integration step (logo + badges, name, stats, rating, actions).
             function renderPlugins(plugins) {
                 var html = '';
                 
                 if (plugins.length === 0) {
-                    html = '<div class="bdt-text-center bdt-padding-large"><p><?php esc_html_e('No plugins available.', 'bdthemes-element-pack'); ?></p></div>';
+                    html = '<div class="bdt-text-center bdt-padding-large"><p><?php esc_html_e('No plugins available.', 'bdthemes-element-pack-lite'); ?></p></div>';
                 } else {
                     plugins.forEach(function(plugin) {
                         // Skip own plugin (Element Pack) when printing only; data still includes it for other plugins
                         if (plugin.slug === 'bdthemes-element-pack-lite') return;
-                        var isActive = false; // We'll determine this via PHP in the actual implementation
                         var logoUrl = plugin.logo || '';
                         var pluginName = plugin.name || '';
                         var pluginSlug = plugin.slug || '';
+                        var isActive = plugin.status === 'active';
+                        var isRecommended = plugin.recommended && !isActive;
                         
-                        // Generate fallback logo URL if needed
-                        if (!logoUrl) {
-                            var actualSlug = pluginSlug.replace('.php', '').split('/')[0];
-                            logoUrl = 'https://ps.w.org/' + actualSlug + '/assets/icon-256x256.png';
+                        // No client-side URL guessing: PHP supplies the logo, and the
+                        // <img onerror> handler below falls back to the placeholder icon.
+                        
+                        html += '<div class="ep-plugin-item">' +
+                            '<div class="ep-plugin-item-header">' +
+                                '<span class="bdt-plugin-logo">' +
+                                    '<img src="' + epEsc(epSafeUrl(logoUrl)) + '" alt="' + epEsc(pluginName) + '" ' +
+                                        'onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+                                    '<div class="default-plugin-icon" style="display:none;">📦</div>' +
+                                '</span>' +
+                                '<div class="ep-plugin-badge-wrap">';
+                        
+                        if (isRecommended) {
+                            html += '<span class="recommended-badge"><?php echo esc_js(__('Recommended', 'bdthemes-element-pack-lite')); ?></span>';
+                        }
+                        if (isActive) {
+                            html += '<span class="active-badge"><?php echo esc_js(__('ACTIVE', 'bdthemes-element-pack-lite')); ?></span>';
                         }
                         
-                        html += '<div class="bdt-card bdt-card-body bdt-flex bdt-flex-middle bdt-flex-between">' +
-                            '<div class="bdt-others-plugin-content">' +
-                                '<div class="bdt-plugin-logo-wrap bdt-flex bdt-flex-middle">' +
-                                    '<div class="bdt-plugin-logo-container">' +
-                                        '<img src="' + logoUrl + '" alt="' + pluginName + '" class="bdt-plugin-logo" ' +
-                                            'onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
-                                        '<div class="default-plugin-icon" style="display:none;">📦</div>' +
-                                    '</div>' +
-                                    '<div class="bdt-others-plugin-user-wrap bdt-flex bdt-flex-middle">' +
-                                        '<h1 class="ep-feature-title">' + pluginName + '</h1>' +
-                                    '</div>' +
-                                '</div>' +
-                                '<div class="bdt-others-plugin-content-text bdt-margin-top">';
-                        
-                        if (plugin.description) {
-                            html += '<p>' + plugin.description + '</p>';
-                        }
+                        html += '</div></div>' +
+                            '<h3 class="bdt-plugin-name">' + epEsc(pluginName) + '</h3>';
                         
                         // Active installs
-                        html += '<span class="active-installs bdt-margin-small-top">' +
-                            '<?php esc_html_e("Active Installs: ", "bdthemes-element-pack"); ?> ';
+                        html += '<span class="active-installs">' +
+                            '<?php esc_html_e("Active Installs: ", "bdthemes-element-pack-lite"); ?> ';
                         if (plugin.active_installs_count > 0) {
                             html += '<span class="installs-count">' + plugin.active_installs_count.toLocaleString() + '+</span>';
                         } else {
-                            html += '<span class="installs-count">Fewer than 10</span>';
+                            html += '<span class="installs-count"><?php echo esc_js(__('Fewer than 10', 'bdthemes-element-pack-lite')); ?></span>';
                         }
                         html += '</span>';
                         
-                        // Rating
-                        html += '<div class="bdt-others-plugin-rating bdt-margin-small-top bdt-flex bdt-flex-middle">' +
-                            '<span class="bdt-others-plugin-rating-stars">';
+                        // Downloads
+                        if (plugin.downloaded_formatted) {
+                            html += '<span class="downloads">' +
+                                '<?php esc_html_e("Downloads: ", "bdthemes-element-pack-lite"); ?>' + epEsc(plugin.downloaded_formatted) +
+                                '</span>';
+                        }
                         
+                        // Rating
                         var rating = parseFloat(plugin.rating) || 0;
                         var fullStars = Math.floor(rating);
                         var hasHalfStar = (rating - fullStars) >= 0.5;
                         var emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
                         
+                        html += '<div class="rating-section">' +
+                            '<div class="wporg-ratings" title="' + rating + ' <?php echo esc_js(__('out of 5 stars', 'bdthemes-element-pack-lite')); ?>">';
+                        
                         for (var i = 0; i < fullStars; i++) {
-                            html += '<i class="dashicons dashicons-star-filled"></i>';
+                            html += '<span class="dashicons dashicons-star-filled"></span>';
                         }
                         if (hasHalfStar) {
-                            html += '<i class="dashicons dashicons-star-half"></i>';
+                            html += '<span class="dashicons dashicons-star-half"></span>';
                         }
-                        for (var i = 0; i < emptyStars; i++) {
-                            html += '<i class="dashicons dashicons-star-empty"></i>';
+                        for (var j = 0; j < emptyStars; j++) {
+                            html += '<span class="dashicons dashicons-star-empty"></span>';
                         }
                         
-                        html += '</span>' +
-                            '<span class="bdt-others-plugin-rating-text bdt-margin-small-left">' +
-                                rating + ' <?php esc_html_e("out of 5 stars.", "bdthemes-element-pack"); ?>';
+                        html += '</div>' +
+                            '<span class="rating-text">' +
+                                rating + ' <?php esc_html_e("out of 5 stars.", "bdthemes-element-pack-lite"); ?>';
                         
                         if (plugin.num_ratings > 0) {
-                            html += '<span class="rating-count">(' + plugin.num_ratings.toLocaleString() + ' <?php esc_html_e("ratings", "bdthemes-element-pack"); ?>)</span>';
+                            html += '<span class="rating-count">(' + plugin.num_ratings.toLocaleString() + ' <?php esc_html_e("ratings", "bdthemes-element-pack-lite"); ?>)</span>';
                         }
                         
                         html += '</span></div>';
                         
-                        // Downloads
-                        if (plugin.downloaded_formatted) {
-                            html += '<div class="bdt-others-plugin-downloads bdt-margin-small-top">' +
-                                '<span><?php esc_html_e("Downloads: ", "bdthemes-element-pack"); ?>' + plugin.downloaded_formatted + '</span>' +
-                                '</div>';
-                        }
-                        
                         // Last updated
                         if (plugin.last_updated_formatted) {
-                            html += '<div class="bdt-others-plugin-updated bdt-margin-small-top">' +
-                                '<span><?php esc_html_e("Last Updated: ", "bdthemes-element-pack"); ?>' + plugin.last_updated_formatted + '</span>' +
-                                '</div>';
+                            html += '<span class="last-updated">' +
+                                '<?php esc_html_e("Last Updated: ", "bdthemes-element-pack-lite"); ?>' + epEsc(plugin.last_updated_formatted) +
+                                '</span>';
                         }
                         
-                        html += '</div></div>' +
-                            '<div class="bdt-others-plugins-link">';
+                        html += '<div class="bdt-others-plugins-link">';
                         
                         // Show different buttons based on plugin status
                         if (plugin.status === 'active') {
-                            html += '<span class="bdt-button bdt-button-success bdt-disabled">' +
-                                '<span class="dashicons dashicons-yes"></span> ' +
-                                '<?php esc_html_e("Active", "bdthemes-element-pack"); ?>' +
+                            // A status, not an action: the spacing comes from the
+                            // button's flex gap, so no literal space is emitted here.
+                            html += '<span class="bdt-button bdt-button-success bdt-disabled" aria-disabled="true">' +
+                                '<span class="dashicons dashicons-yes" aria-hidden="true"></span>' +
+                                '<?php esc_html_e("Active", "bdthemes-element-pack-lite"); ?>' +
                                 '</span>';
                         } else if (plugin.status === 'installed') {
                             var activateUrl = '<?php echo esc_url( admin_url("plugins.php?action=activate&plugin=") ); ?>' + plugin.plugin_file + '&_wpnonce=' + plugin.activate_nonce;
                             html += '<a class="bdt-button bdt-welcome-button" href="' + activateUrl + '">' +
-                                '<?php esc_html_e("Activate", "bdthemes-element-pack"); ?>' +
+                                '<?php esc_html_e("Activate", "bdthemes-element-pack-lite"); ?>' +
                                 '</a>';
                         } else {
-                            html += '<button class="bdt-button bdt-welcome-button ep-install-plugin" data-plugin-slug="' + pluginSlug + '" data-nonce="<?php echo esc_attr( wp_create_nonce('ep_install_plugin_nonce') ); ?>">' +
-                                '<?php esc_html_e("Install", "bdthemes-element-pack"); ?>' +
+                            html += '<button class="bdt-button bdt-welcome-button ep-install-plugin" data-plugin-slug="' + epEsc(pluginSlug) + '" data-nonce="<?php echo esc_attr( wp_create_nonce('ep_install_plugin_nonce') ); ?>">' +
+                                '<?php esc_html_e("Install", "bdthemes-element-pack-lite"); ?>' +
                                 '</button>';
                         }
                         
-                        if (plugin.homepage) {
-                            html += '<a class="bdt-button bdt-dashboard-sec-btn" target="_blank" href="' + plugin.homepage + '">' +
-                                '<?php esc_html_e("Learn More", "bdthemes-element-pack"); ?>' +
+                        if (plugin.homepage && epSafeUrl(plugin.homepage)) {
+                            html += '<a class="bdt-button bdt-dashboard-sec-btn" target="_blank" rel="noopener noreferrer" href="' + epEsc(epSafeUrl(plugin.homepage)) + '">' +
+                                '<?php esc_html_e("Learn More", "bdthemes-element-pack-lite"); ?>' +
                                 '</a>';
                         }
                         
@@ -372,67 +365,53 @@ class ElementPack_Others_Plugin_Manager {
                 
                 $list.html(html);
                 
-                // Handle plugin action buttons
-                $('.ep-install-plugin').on('click', function(e) {
-                    e.preventDefault();
-                    
-                    var $button = $(this);
-                    var pluginSlug = $button.data('plugin-slug');
-                    var nonce = $button.data('nonce');
-                    var originalText = $button.text();
-                    
-                    // Disable button and show loading state
-                    $button.prop('disabled', true)
-                           .text('<?php echo esc_js(__('Installing...', 'bdthemes-element-pack')); ?>')
-                           .addClass('bdt-installing');
-                    
-                    // Perform AJAX request
-                    $.ajax({
-                        url: '<?php echo esc_url( admin_url('admin-ajax.php') ); ?>',
-                        type: 'POST',
-                        data: {
-                            action: 'ep_install_plugin',
-                            plugin_slug: pluginSlug,
-                            nonce: nonce
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                // Show success message
-                                $button.text('<?php echo esc_js(__('Installed!', 'bdthemes-element-pack')); ?>')
-                                       .removeClass('bdt-installing')
-                                       .addClass('bdt-installed');
-                                
-                                // Show success notification
-                                if (typeof bdtUIkit !== 'undefined' && bdtUIkit.notification) {
-                                    bdtUIkit.notification({
-                                        message: '<span class="dashicons dashicons-yes"></span> ' + response.data.message,
-                                        status: 'success'
-                                    });
-                                }
-                                
-                                // Reload the page after 2 seconds to update button states
-                                setTimeout(function() {
-                                    window.location.reload();
-                                }, 2000);
-                                
-                            } else {
-                                // Show error message
-                                $button.prop('disabled', false)
-                                       .text(originalText)
-                                       .removeClass('bdt-installing');
-                                
-                                // Show error notification
-                                if (typeof bdtUIkit !== 'undefined' && bdtUIkit.notification) {
-                                    bdtUIkit.notification({
-                                        message: '<span class="dashicons dashicons-warning"></span> ' + response.data.message,
-                                        status: 'danger'
-                                    });
-                                } else {
-                                    alert('Error: ' + response.data.message);
-                                }
+            }
+
+            // Handle plugin action buttons. Delegated and bound once, so it keeps
+            // working after every re-render without stacking duplicate handlers.
+            $list.on('click', '.ep-install-plugin', function(e) {
+                e.preventDefault();
+                
+                var $button = $(this);
+                var pluginSlug = $button.data('plugin-slug');
+                var nonce = $button.data('nonce');
+                var originalText = $button.text();
+                
+                // Disable button and show loading state
+                $button.prop('disabled', true)
+                       .text('<?php echo esc_js(__('Installing...', 'bdthemes-element-pack-lite')); ?>')
+                       .addClass('bdt-installing');
+                
+                // Perform AJAX request
+                $.ajax({
+                    url: '<?php echo esc_url( admin_url('admin-ajax.php') ); ?>',
+                    type: 'POST',
+                    data: {
+                        action: 'ep_install_plugin',
+                        plugin_slug: pluginSlug,
+                        nonce: nonce
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            $button.text('<?php echo esc_js(__('Installed!', 'bdthemes-element-pack-lite')); ?>')
+                                   .removeClass('bdt-installing')
+                                   .addClass('bdt-installed');
+                            
+                            // Show success notification
+                            if (typeof bdtUIkit !== 'undefined' && bdtUIkit.notification) {
+                                bdtUIkit.notification({
+                                    message: '<span class="dashicons dashicons-yes"></span> ' + response.data.message,
+                                    status: 'success'
+                                });
                             }
-                        },
-                        error: function(xhr, status, error) {
+                            
+                            // Reload the page after 2 seconds to update button states
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 2000);
+                            
+                        } else {
                             // Show error message
                             $button.prop('disabled', false)
                                    .text(originalText)
@@ -441,16 +420,32 @@ class ElementPack_Others_Plugin_Manager {
                             // Show error notification
                             if (typeof bdtUIkit !== 'undefined' && bdtUIkit.notification) {
                                 bdtUIkit.notification({
-                                    message: '<span class="dashicons dashicons-warning"></span> <?php echo esc_js(__('Installation failed. Please try again.', 'bdthemes-element-pack')); ?>',
+                                    message: '<span class="dashicons dashicons-warning"></span> ' + response.data.message,
                                     status: 'danger'
                                 });
                             } else {
-                                alert('<?php echo esc_js(__('Installation failed. Please try again.', 'bdthemes-element-pack')); ?>');
+                                alert('Error: ' + response.data.message);
                             }
                         }
-                    });
+                    },
+                    error: function(xhr, status, error) {
+                        // Show error message
+                        $button.prop('disabled', false)
+                               .text(originalText)
+                               .removeClass('bdt-installing');
+                        
+                        // Show error notification
+                        if (typeof bdtUIkit !== 'undefined' && bdtUIkit.notification) {
+                            bdtUIkit.notification({
+                                message: '<span class="dashicons dashicons-warning"></span> <?php echo esc_js(__('Installation failed. Please try again.', 'bdthemes-element-pack-lite')); ?>',
+                                status: 'danger'
+                            });
+                        } else {
+                            alert('<?php echo esc_js(__('Installation failed. Please try again.', 'bdthemes-element-pack-lite')); ?>');
+                        }
+                    }
                 });
-            }
+            });
             
             // Function to show loading state
             function showLoading() {
@@ -463,7 +458,7 @@ class ElementPack_Others_Plugin_Manager {
                                 '<div class="ep-loading-dot"></div>' +
                             '</div>' +
                         '</div>' +
-                        '<p class="bdt-margin-small-top bdt-text-muted"><?php esc_html_e("Loading plugin data...", "bdthemes-element-pack"); ?></p>' +
+                        '<p class="bdt-margin-small-top bdt-text-muted"><?php esc_html_e("Loading plugin data...", "bdthemes-element-pack-lite"); ?></p>' +
                     '</div>'
                 );
                 $list.show();
@@ -493,7 +488,13 @@ class ElementPack_Others_Plugin_Manager {
     public function ajax_get_plugins() {
         // Verify nonce
         if (!check_ajax_referer('ep_get_plugins_nonce', 'nonce', false)) {
-            wp_die(esc_html__('Security check failed.', 'bdthemes-element-pack'));
+            wp_die(esc_html__('Security check failed.', 'bdthemes-element-pack-lite'));
+        }
+
+        // This data is only ever used on the plugin-install screen; gate it to
+        // users who could act on it rather than exposing it to any logged-in user.
+        if (!current_user_can('install_plugins')) {
+            wp_send_json_error(['message' => __('You do not have permission to do this.', 'bdthemes-element-pack-lite')], 403);
         }
 
         // Get cached data
@@ -508,7 +509,7 @@ class ElementPack_Others_Plugin_Manager {
             wp_send_json_success([
                 'plugins' => [],
                 'loading' => true,
-                'message' => __('Loading plugin data...', 'bdthemes-element-pack')
+                'message' => __('Loading plugin data...', 'bdthemes-element-pack-lite')
             ]);
         }
 
@@ -516,7 +517,7 @@ class ElementPack_Others_Plugin_Manager {
         wp_send_json_success([
             'plugins' => $plugins_data,
             'loading' => false,
-            'message' => __('Plugin data loaded successfully.', 'bdthemes-element-pack')
+            'message' => __('Plugin data loaded successfully.', 'bdthemes-element-pack-lite')
         ]);
     }
 
@@ -525,19 +526,19 @@ class ElementPack_Others_Plugin_Manager {
      */
     public function install_plugin_ajax() {
         // Check nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'ep_install_plugin_nonce')) {
-            wp_send_json_error(['message' => __('Security check failed', 'bdthemes-element-pack')]);
+        if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'ep_install_plugin_nonce' ) ) {
+            wp_send_json_error(['message' => __('Security check failed', 'bdthemes-element-pack-lite')]);
         }
 
         // Check user capability
         if (!current_user_can('install_plugins')) {
-            wp_send_json_error(['message' => __('You do not have permission to install plugins', 'bdthemes-element-pack')]);
+            wp_send_json_error(['message' => __('You do not have permission to install plugins', 'bdthemes-element-pack-lite')]);
         }
 
-        $plugin_slug = sanitize_text_field($_POST['plugin_slug']);
+        $plugin_slug = isset($_POST['plugin_slug']) ? sanitize_key(wp_unslash($_POST['plugin_slug'])) : '';
 
         if (empty($plugin_slug)) {
-            wp_send_json_error(['message' => __('Plugin slug is required', 'bdthemes-element-pack')]);
+            wp_send_json_error(['message' => __('Plugin slug is required', 'bdthemes-element-pack-lite')]);
         }
 
         // Include necessary WordPress files
@@ -554,7 +555,7 @@ class ElementPack_Others_Plugin_Manager {
         ]);
 
         if (is_wp_error($api)) {
-            wp_send_json_error(['message' => __('Plugin not found: ', 'bdthemes-element-pack') . $api->get_error_message()]);
+            wp_send_json_error(['message' => __('Plugin not found: ', 'bdthemes-element-pack-lite') . $api->get_error_message()]);
         }
 
         // Install the plugin
@@ -563,18 +564,18 @@ class ElementPack_Others_Plugin_Manager {
         $result = $upgrader->install($api->download_link);
 
         if (is_wp_error($result)) {
-            wp_send_json_error(['message' => __('Installation failed: ', 'bdthemes-element-pack') . $result->get_error_message()]);
+            wp_send_json_error(['message' => __('Installation failed: ', 'bdthemes-element-pack-lite') . $result->get_error_message()]);
         } elseif ($skin->get_errors()->has_errors()) {
-            wp_send_json_error(['message' => __('Installation failed: ', 'bdthemes-element-pack') . $skin->get_error_messages()]);
+            wp_send_json_error(['message' => __('Installation failed: ', 'bdthemes-element-pack-lite') . $skin->get_error_messages()]);
         } elseif (is_null($result)) {
-            wp_send_json_error(['message' => __('Installation failed: Unable to connect to filesystem', 'bdthemes-element-pack')]);
+            wp_send_json_error(['message' => __('Installation failed: Unable to connect to filesystem', 'bdthemes-element-pack-lite')]);
         }
 
         // Get installation status
         $install_status = install_plugin_install_status($api);
         
         wp_send_json_success([
-            'message' => __('Plugin installed successfully!', 'bdthemes-element-pack'),
+            'message' => __('Plugin installed successfully!', 'bdthemes-element-pack-lite'),
             'plugin_file' => $install_status['file'],
             'plugin_name' => $api->name
         ]);

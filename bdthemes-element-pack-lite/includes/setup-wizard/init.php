@@ -46,22 +46,31 @@ class Setup_Wizard {
 		return self::$instance;
 	}
 
+	/**
+	 * Newsletter list endpoint the welcome step's opt-in posts to.
+	 */
+	const SUBSCRIBE_ENDPOINT = 'https://marketing.sigmative.com/newsletter/rui/lists/6a9943aacbe70/embedded-form-subscribe';
+
+	/**
+	 * Customer identifier required by the newsletter endpoint.
+	 */
+	const SUBSCRIBE_CUSTOMER_UID = '6a93d39ce0ebd';
+
 	// Initialize hooks
 	private function init_hooks() {
-		add_action( 'wp_ajax_setup_wizard_install_plugins', array( $this, 'install_plugins' ) );
+		add_action( 'wp_ajax_ep_setup_wizard_install_plugins', array( $this, 'install_plugins' ) );
+		add_action( 'wp_ajax_ep_setup_wizard_subscribe', array( $this, 'ajax_subscribe' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'admin_init', array( $this, 'activate_default_widgets' ) );
 		add_action( 'admin_init', array( $this, 'maybe_display_setup_wizard' ) );
 		add_action( 'admin_init', array( $this, 'check_manual_wizard_request' ) );
 
-		if ( function_exists( 'add_filter' ) ) {
-			add_filter( 'auto_update_translation', '__return_false' );
-		}
 	}
 
 	// Check for manual wizard requests
 	public function check_manual_wizard_request() {
-		$is_setup_wizard_request = isset($_GET['ep_setup_wizard']) && $_GET['ep_setup_wizard'] === 'show';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen routing, no state change.
+		$is_setup_wizard_request = isset($_GET['ep_setup_wizard']) && 'show' === sanitize_text_field(wp_unslash($_GET['ep_setup_wizard']));
 		
 		if ( $is_setup_wizard_request ) {
 			// Use the same approach as first activation - completely override the page
@@ -192,8 +201,8 @@ class Setup_Wizard {
 	public function admin_menu() {
 		add_submenu_page(
 			'element_pack_options',
-			esc_html__( 'Setup Wizard', 'bdthemes-element-pack' ),
-			esc_html__( 'Setup Wizard', 'bdthemes-element-pack' ),
+			esc_html__( 'Setup Wizard', 'bdthemes-element-pack-lite' ),
+			esc_html__( 'Setup Wizard', 'bdthemes-element-pack-lite' ),
 			'manage_options',
 			'element-pack-setup-wizard',
 			array( $this, 'display_page' )
@@ -225,7 +234,7 @@ class Setup_Wizard {
 			'BDT_SetupWizard',
 			array(
 				'ajax_url' => admin_url( 'admin-ajax.php' ),
-				'nonce'    => wp_create_nonce( 'setup_wizard_nonce' ),
+				'nonce'    => wp_create_nonce( 'ep_setup_wizard_nonce' ),
 				'is_fullscreen' => true
 			)
 		);
@@ -241,18 +250,169 @@ class Setup_Wizard {
 		return $arr_obj;
 	}
 
+	/**
+	 * Handle the newsletter opt-in on the welcome step.
+	 *
+	 * Opt-in only: nothing is sent unless the administrator ticked the box,
+	 * which is unticked by default. The choice is recorded either way so the
+	 * wizard can show it again on a re-run. Runs server side so the
+	 * cross-origin POST is not subject to CORS.
+	 */
+	public function ajax_subscribe() {
+		check_ajax_referer( 'ep_setup_wizard_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Unauthorized', 'bdthemes-element-pack-lite' ) ) );
+		}
+
+		// Record the choice first, whichever way it went.
+		$consent = isset( $_POST['consent'] ) && 'yes' === sanitize_text_field( wp_unslash( $_POST['consent'] ) );
+
+		update_option( 'bdtep_subscribe_optin', $consent ? 'yes' : 'no' );
+
+		if ( ! $consent ) {
+			// No opt-in: the choice is stored and nothing leaves the site.
+			wp_send_json_success(
+				array(
+					'subscribed' => false,
+					'message'    => esc_html__( 'Preferences saved.', 'bdthemes-element-pack-lite' ),
+				)
+			);
+		}
+
+		// Keep the raw value: sanitize_email() flattens anything malformed to an
+		// empty string, which would otherwise be indistinguishable from "left blank".
+		$raw_email = isset( $_POST['email'] ) ? sanitize_text_field( wp_unslash( $_POST['email'] ) ) : '';
+		$email     = sanitize_email( $raw_email );
+
+		if ( '' === trim( $raw_email ) ) {
+			wp_send_json_success(
+				array(
+					'subscribed' => false,
+					'message'    => esc_html__( 'Preferences saved.', 'bdthemes-element-pack-lite' ),
+				)
+			);
+		}
+
+		if ( ! is_email( $email ) ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Please enter a valid email address.', 'bdthemes-element-pack-lite' ) ) );
+		}
+
+		// Never subscribe the same address twice from this site.
+		if ( get_option( 'bdtep_subscribed_email' ) === $email ) {
+			wp_send_json_success(
+				array(
+					'subscribed' => true,
+					'message'    => esc_html__( 'You are already subscribed.', 'bdthemes-element-pack-lite' ),
+				)
+			);
+		}
+
+		$current_user = wp_get_current_user();
+
+		$body = array(
+			'customer_uid' => apply_filters( 'bdtep/setup_wizard/subscribe_customer_uid', self::SUBSCRIBE_CUSTOMER_UID ),
+			'EMAIL'        => $email,
+			'FIRST_NAME'   => $current_user ? $current_user->first_name : '',
+			'LAST_NAME'    => $current_user ? $current_user->last_name : '',
+		);
+
+		$response = wp_safe_remote_post(
+			apply_filters( 'bdtep/setup_wizard/subscribe_url', self::SUBSCRIBE_ENDPOINT ),
+			array(
+				'timeout'   => 15,
+				'body'      => apply_filters( 'bdtep/setup_wizard/subscribe_body', $body, $email ),
+				'headers'   => array( 'Accept' => '*/*' ),
+				'sslverify' => true,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Could not reach the subscription service. Please try again later.', 'bdthemes-element-pack-lite' ) ) );
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+
+		if ( $code < 200 || $code >= 400 ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'The subscription service rejected the request.', 'bdthemes-element-pack-lite' ) ) );
+		}
+
+		update_option( 'bdtep_subscribed_email', $email );
+
+		wp_send_json_success(
+			array(
+				'subscribed' => true,
+				'message'    => esc_html__( 'Thanks for subscribing!', 'bdthemes-element-pack-lite' ),
+			)
+		);
+	}
+
+	/**
+	 * Validate a caller-supplied plugin file reference.
+	 *
+	 * Only the "directory/file.php" shape used by WordPress plugin basenames is
+	 * accepted. Absolute paths, traversal sequences and anything that is not a
+	 * PHP file inside a single plugin directory are rejected outright, so a
+	 * request can never point installation or activation at a path of its own
+	 * choosing.
+	 *
+	 * @param mixed $plugin_slug Raw value from the request.
+	 * @return string Sanitized plugin basename, or an empty string if invalid.
+	 */
+	private function sanitize_plugin_basename( $plugin_slug ) {
+		if ( ! is_string( $plugin_slug ) ) {
+			return '';
+		}
+
+		$plugin_slug = sanitize_text_field( wp_unslash( $plugin_slug ) );
+
+		// The integration step posts WordPress.org slugs ("ultimate-post-kit"),
+		// because that is all the plugins API reports for something that is not
+		// installed yet; the main file is only knowable afterwards. Accept that
+		// form as well as a full "dir/file.php" basename, and let
+		// get_plugin_file() resolve a slug to its real file.
+		$is_basename = (bool) preg_match( '#^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*\.php$#', $plugin_slug );
+		$is_slug     = (bool) preg_match( '#^[A-Za-z0-9][A-Za-z0-9._-]*$#', $plugin_slug );
+
+		if ( ! $is_basename && ! $is_slug ) {
+			return '';
+		}
+
+		// Belt and braces: reject any traversal that survived the pattern.
+		if ( false !== strpos( $plugin_slug, '..' ) ) {
+			return '';
+		}
+
+		return $plugin_slug;
+	}
+
 	// Install plugins
 	public function install_plugins() {
-		check_ajax_referer( 'setup_wizard_nonce', 'nonce' );
+		check_ajax_referer( 'ep_setup_wizard_nonce', 'nonce' );
 
-		$plugin_slugs = isset( $_POST['plugins'] ) ? $_POST['plugins'] : array();
+		// Installing and activating are separate capabilities; this endpoint does both.
+		if ( ! current_user_can( 'install_plugins' ) || ! current_user_can( 'activate_plugins' ) ) {
+			wp_send_json_error( array( 'message' => 'Unauthorized' ) );
+		}
 
-		if ( empty( $plugin_slugs ) || ! is_array( $plugin_slugs ) ) {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each entry is sanitized through sanitize_plugin_basename() below.
+		$raw_slugs = isset( $_POST['plugins'] ) ? wp_unslash( $_POST['plugins'] ) : array();
+
+		if ( empty( $raw_slugs ) || ! is_array( $raw_slugs ) ) {
 			wp_send_json_error( array( 'message' => 'Invalid plugins array' ) );
 		}
 
-		if ( ! current_user_can( 'install_plugins' ) ) {
-			wp_send_json_error( array( 'message' => 'Unauthorized' ) );
+		$plugin_slugs = array();
+		foreach ( $raw_slugs as $raw_slug ) {
+			$clean_slug = $this->sanitize_plugin_basename( $raw_slug );
+
+			if ( '' !== $clean_slug ) {
+				$plugin_slugs[] = $clean_slug;
+			}
+		}
+
+		if ( empty( $plugin_slugs ) ) {
+			wp_send_json_error( array( 'message' => 'Invalid plugins array' ) );
 		}
 
 		include_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
@@ -267,12 +427,15 @@ class Setup_Wizard {
 
 		// $upgrader = new \Plugin_Upgrader();
 
-        $installedPlugins = get_plugins();
 		$results = array();
 
 		foreach ( $plugin_slugs as $plugin_slug ) {
+            // The request carries a wp.org slug, so the main file is whatever
+            // the installed plugin actually uses ('' while not installed).
+            $plugin_file = $this->get_plugin_file( $plugin_slug );
+
             // skip when the plugin is already active
-            if (is_plugin_active($plugin_slug)) {
+            if ('' !== $plugin_file && is_plugin_active($plugin_file)) {
                 $results[] = array(
                     'slug'    => $plugin_slug,
                     'success' => true,
@@ -282,7 +445,7 @@ class Setup_Wizard {
             }
 
             // Download the plugin if the plugin is not installed
-            if (!isset($installedPlugins[$plugin_slug])) {
+            if ('' === $plugin_file) {
                 $slug = explode('/', $plugin_slug)[0];
                 $api = plugins_api( 'plugin_information', array( 'slug' => $slug ) );
 
@@ -304,14 +467,41 @@ class Setup_Wizard {
                     );
                     continue;
                 }
+
+                // The plugin list is cached; refresh it so the file that was
+                // just written is visible, then resolve the real basename.
+                wp_clean_plugins_cache( false );
+                $plugin_file = $this->get_plugin_file( $plugin_slug );
+
+                if ( '' === $plugin_file ) {
+                    $results[] = array(
+                        'slug'    => $plugin_slug,
+                        'success' => false,
+                        'message' => 'Installed, but the plugin file could not be located.',
+                    );
+                    continue;
+                }
             }
 
             // active the plugin
-            if ( is_plugin_inactive($plugin_slug) ) {
-                $activation_result = activate_plugin( $plugin_slug );
+            if ( is_plugin_inactive($plugin_file) ) {
+                // validate_plugin() confirms the file is a real plugin inside
+                // WP_PLUGIN_DIR before we hand it to activate_plugin().
+                $is_valid_plugin = validate_plugin( $plugin_file );
+
+                if ( is_wp_error( $is_valid_plugin ) ) {
+                    $results[] = array(
+                        'slug'    => $plugin_slug,
+                        'success' => false,
+                        'message' => $is_valid_plugin->get_error_message(),
+                    );
+                    continue;
+                }
+
+                $activation_result = activate_plugin( $plugin_file );
                 if ( is_wp_error( $activation_result ) ) {
                     $results[] = array(
-                        'slug'    => $slug,
+                        'slug'    => $plugin_slug,
                         'success' => false,
                         'message' => $activation_result->get_error_message(),
                     );
@@ -332,21 +522,31 @@ class Setup_Wizard {
 	}
 
 	/**
-	 * Get the main plugin file path for a given slug.
+	 * Resolve a plugin reference to the installed plugin's main file.
 	 *
-	 * @param string $slug Plugin slug.
-	 * @return string|false Plugin file path or false if not found.
+	 * Accepts either a WordPress.org slug ("ultimate-post-kit") or a full
+	 * basename ("ultimate-post-kit/ultimate-post-kit.php"). Matching is exact
+	 * on the plugin's own directory: a substring match would let "ai-image"
+	 * resolve to an unrelated "ai-image-extras/..." that happens to be
+	 * installed.
+	 *
+	 * @param string $slug Plugin slug or basename.
+	 * @return string Plugin file path, or '' when the plugin is not installed.
 	 */
 	private function get_plugin_file( $slug ) {
 		$plugins = get_plugins();
 
+		if ( false !== strpos( $slug, '/' ) ) {
+			return isset( $plugins[ $slug ] ) ? $slug : '';
+		}
+
 		foreach ( $plugins as $file => $plugin ) {
-			if ( strpos( $file, $slug ) !== false ) {
+			if ( dirname( $file ) === $slug ) {
 				return $file;
 			}
 		}
 
-		return false;
+		return '';
 	}
     
     /**
@@ -420,12 +620,12 @@ Setup_Wizard::get_instance();
 
 use Elementor\TemplateLibrary\Source_Local;
 
-add_action('wp_ajax_import_elementor_template', function () {
-		check_ajax_referer( 'setup_wizard_nonce', 'nonce' );
+add_action('wp_ajax_ep_setup_wizard_import_template', function () {
+		check_ajax_referer( 'ep_setup_wizard_nonce', 'nonce' );
 
 		// Capability check - only administrators can import templates
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized', 'bdthemes-element-pack' ) ] );
+			wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized', 'bdthemes-element-pack-lite' ) ] );
 			wp_die();
 		}
 
@@ -437,7 +637,27 @@ add_action('wp_ajax_import_elementor_template', function () {
         ));
 
         if (is_wp_error($response)) {
-            wp_send_json_error(['message' => esc_html__('Failed to fetch template from URL.', 'bdthemes-element-pack')]);
+            wp_send_json_error([
+                'message' => sprintf(
+                    /* translators: %s: error reported by the HTTP request. */
+                    esc_html__('Failed to fetch template from URL: %s', 'bdthemes-element-pack-lite'),
+                    esc_html($response->get_error_message())
+                ),
+            ]);
+            wp_die();
+        }
+
+        $response_code = (int) wp_remote_retrieve_response_code($response);
+
+        if (200 !== $response_code) {
+            wp_send_json_error([
+                'message' => sprintf(
+                    /* translators: 1: HTTP status code, 2: template URL. */
+                    esc_html__('Failed to fetch template from URL (HTTP %1$d): %2$s', 'bdthemes-element-pack-lite'),
+                    $response_code,
+                    esc_html($json_url)
+                ),
+            ]);
             wp_die();
         }
 
@@ -445,7 +665,7 @@ add_action('wp_ajax_import_elementor_template', function () {
         $sourceData2 = json_decode($sourceData, true);
 
         if (!$sourceData2 || !is_array($sourceData2)) {
-            wp_send_json_error(['message' => esc_html__('Failed to fetch template from URL.', 'bdthemes-element-pack')]);
+            wp_send_json_error(['message' => esc_html__('The template URL did not return valid template JSON.', 'bdthemes-element-pack-lite')]);
             wp_die();
         }
 
@@ -455,7 +675,7 @@ add_action('wp_ajax_import_elementor_template', function () {
         // Initialize Elementor's Template Importer
         if (!class_exists('\Elementor\TemplateLibrary\Source_Local')) {
             wp_delete_file($temp_file);
-            wp_send_json_error(['message' => esc_html__('Elementor is not installed or activated!', 'bdthemes-element-pack')]);
+            wp_send_json_error(['message' => esc_html__('Elementor is not installed or activated!', 'bdthemes-element-pack-lite')]);
             wp_die();
         }
 
@@ -464,18 +684,18 @@ add_action('wp_ajax_import_elementor_template', function () {
         wp_delete_file($temp_file); // Delete temp file after import
 
         if (is_wp_error($templateData) || !is_array($templateData) || empty($templateData[0]['template_id'])) {
-            wp_send_json_error(['message' => esc_html__('Failed to import template!', 'bdthemes-element-pack')]);
+            wp_send_json_error(['message' => esc_html__('Failed to import template!', 'bdthemes-element-pack-lite')]);
             wp_die();
         }
 
         $template_id = $templateData[0]['template_id'];
         $metaData = get_post_meta($template_id);
 
-        $page_title = isset($_POST['title']) ? sanitize_text_field($_POST['title']) : esc_html__("No Title", 'bdthemes-element-pack');
+        $page_title = isset($_POST['title']) ? sanitize_text_field(wp_unslash($_POST['title'])) : esc_html__("No Title", 'bdthemes-element-pack-lite');
 
         // Validate Elementor Data
         if (!isset($metaData['_elementor_data'][0])) {
-            wp_send_json_error(['message' => esc_html__('Elementor data not found in template.', 'bdthemes-element-pack')]);
+            wp_send_json_error(['message' => esc_html__('Elementor data not found in template.', 'bdthemes-element-pack-lite')]);
             wp_die();
         }
 
@@ -490,7 +710,7 @@ add_action('wp_ajax_import_elementor_template', function () {
         ]);
 
         if (is_wp_error($new_post_id)) {
-            wp_send_json_error(['message' => esc_html__('Failed to create page!', 'bdthemes-element-pack')]);
+            wp_send_json_error(['message' => esc_html__('Failed to create page!', 'bdthemes-element-pack-lite')]);
             wp_die();
         }
 
@@ -499,7 +719,9 @@ add_action('wp_ajax_import_elementor_template', function () {
 
         // Import Page Settings if available
         if (isset($metaData['_elementor_page_settings'][0])) {
-            $_elementor_page_settings = maybe_unserialize($metaData['_elementor_page_settings'][0]);
+            $_elementor_page_settings = is_serialized($metaData['_elementor_page_settings'][0])
+                ? unserialize($metaData['_elementor_page_settings'][0], ['allowed_classes' => false])
+                : $metaData['_elementor_page_settings'][0];
             update_post_meta($new_post_id, '_elementor_page_settings', $_elementor_page_settings);
         }
 
@@ -508,7 +730,7 @@ add_action('wp_ajax_import_elementor_template', function () {
 //        update_post_meta($new_post_id, '_wp_page_template', !empty($pageTemplate) ? $pageTemplate : 'elementor_header_footer');
 
         wp_send_json_success([
-            'message'   => esc_html__('The template was imported successfully.', 'bdthemes-element-pack'),
+            'message'   => esc_html__('The template was imported successfully.', 'bdthemes-element-pack-lite'),
             'ids'       => $new_post_id,
             'edit_link' => admin_url('post.php?post=' . $new_post_id . '&action=elementor'),
         ]);
@@ -516,40 +738,112 @@ add_action('wp_ajax_import_elementor_template', function () {
 );
 
 
-add_action('wp_ajax_import_ep_elementor_bundle_template', function () {
-    check_ajax_referer('setup_wizard_nonce', 'nonce');
+/**
+ * Map an import URL back to a starter kit that ships inside this plugin.
+ *
+ * Full builds carry the .zip kits under includes/setup-wizard/assets/templates/.
+ * wordpress.org builds cannot ship compressed files, so those kits are fetched
+ * from the remote host instead. Returns the absolute path for a bundled kit and
+ * null for anything else, which is then downloaded over HTTP.
+ *
+ * @param string $file_url Import URL supplied by the wizard.
+ * @return string|null
+ */
+function element_pack_setup_wizard_bundled_kit_path( $file_url ) {
+	$templates_url  = plugins_url( 'includes/setup-wizard/assets/templates/', BDTEP__FILE__ );
+	$templates_path = BDTEP_INC_PATH . 'setup-wizard/assets/templates/';
+
+	// The site may be reached over either scheme, so compare without one.
+	$strip_scheme = static function ( $url ) {
+		return preg_replace( '#^https?://#i', '', (string) $url );
+	};
+
+	if ( 0 !== strpos( $strip_scheme( $file_url ), $strip_scheme( $templates_url ) ) ) {
+		return null;
+	}
+
+	$file_name = sanitize_file_name( wp_basename( (string) wp_parse_url( $file_url, PHP_URL_PATH ) ) );
+
+	if ( '' === $file_name || 'zip' !== strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) ) ) {
+		return null;
+	}
+
+	$real_base = realpath( $templates_path );
+	$real_file = realpath( $templates_path . $file_name );
+
+	// Confine reads to the bundled templates directory, whatever the URL says.
+	if ( false === $real_base || false === $real_file
+		|| 0 !== strpos( $real_file, $real_base . DIRECTORY_SEPARATOR )
+		|| ! is_file( $real_file ) ) {
+		return null;
+	}
+
+	return $real_file;
+}
+
+add_action('wp_ajax_ep_setup_wizard_import_bundle', function () {
+    check_ajax_referer('ep_setup_wizard_nonce', 'nonce');
 
     // Capability check - only administrators can import templates
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized', 'bdthemes-element-pack' ) ] );
+        wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized', 'bdthemes-element-pack-lite' ) ] );
         wp_die();
     }
 
     $file_url = isset($_POST['import_url']) ? esc_url_raw(wp_unslash($_POST['import_url'])) : '';
 
     if (!filter_var($file_url, FILTER_VALIDATE_URL) || 0 !== strpos($file_url, 'http')) {
-        wp_send_json_error(['message' => esc_html__('Invalid import URL', 'bdthemes-element-pack')]);
+        wp_send_json_error(['message' => esc_html__('Invalid import URL', 'bdthemes-element-pack-lite')]);
     }
 
-    $remote_zip_request = wp_safe_remote_get($file_url, array(
-        'timeout'   => 60,
-        'sslverify' => false,
-    ));
+    // A kit that ships with the plugin is read from disk. Pulling it over HTTP
+    // would make the site request its own URL, which many hosts block.
+    $local_kit = element_pack_setup_wizard_bundled_kit_path($file_url);
 
-    if (is_wp_error($remote_zip_request)) {
-        wp_send_json_error(['message' => esc_html__('Failed to fetch template from URL.', 'bdthemes-element-pack')]);
+    if ($local_kit) {
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading a validated file inside this plugin.
+        $kit_body = file_get_contents($local_kit);
+
+        if (false === $kit_body) {
+            wp_send_json_error(['message' => esc_html__('The bundled template could not be read.', 'bdthemes-element-pack-lite')]);
+        }
+    } else {
+        $remote_zip_request = wp_safe_remote_get($file_url, array(
+            'timeout'   => 60,
+            'sslverify' => false,
+        ));
+
+        if (is_wp_error($remote_zip_request)) {
+            wp_send_json_error([
+                'message' => sprintf(
+                    /* translators: %s: error reported by the HTTP request. */
+                    esc_html__('Failed to fetch template from URL: %s', 'bdthemes-element-pack-lite'),
+                    esc_html($remote_zip_request->get_error_message())
+                ),
+            ]);
+        }
+
+        $response_code = (int) wp_remote_retrieve_response_code($remote_zip_request);
+
+        if (200 !== $response_code) {
+            wp_send_json_error([
+                'message' => sprintf(
+                    /* translators: 1: HTTP status code, 2: template URL. */
+                    esc_html__('Failed to fetch template from URL (HTTP %1$d): %2$s', 'bdthemes-element-pack-lite'),
+                    $response_code,
+                    esc_html($file_url)
+                ),
+            ]);
+        }
+
+        $kit_body = wp_remote_retrieve_body($remote_zip_request);
     }
 
-
-    if (200 !== $remote_zip_request['response']['code']) {
-        wp_send_json_error(['message' => esc_html__('Failed to fetch template from URL.', 'bdthemes-element-pack')]);
-    }
-
-    $kit_zip_path = Plugin::$instance->uploads_manager->create_temp_file($remote_zip_request['body'], 'kit.zip');
+    $kit_zip_path = Plugin::$instance->uploads_manager->create_temp_file($kit_body, 'kit.zip');
 
     $app = Plugin::$instance->app;
     if (!$app) {
-        wp_send_json_error(['message' => esc_html__('Elementor app not available', 'bdthemes-element-pack')]);
+        wp_send_json_error(['message' => esc_html__('Elementor app not available', 'bdthemes-element-pack-lite')]);
     }
 
     $import_export_module = $app->get_component('import-export');
@@ -557,7 +851,10 @@ add_action('wp_ajax_import_ep_elementor_bundle_template', function () {
     try {
         $result = $import_export_module->upload_kit($kit_zip_path, 'local');
         $manifest = $result['manifest'] ?? [];
-        $plugins = $manifest['plugins'];
+        // A kit may legitimately declare no plugins; every other manifest key
+        // below is read defensively, and an unguarded read here turned such a
+        // kit into "Import failed: foreach() argument must be of type array".
+        $plugins = $manifest['plugins'] ?? [];
 
         $missingPlugins = [];
         foreach ($plugins as $plugin) {
@@ -570,11 +867,15 @@ add_action('wp_ajax_import_ep_elementor_bundle_template', function () {
         if (count($missingPlugins)) {
             wp_send_json_error([
                 'plugins' => $missingPlugins,
-                'message' => esc_html__('Missing plugins', 'bdthemes-element-pack'),
+                'message' => esc_html__('Missing plugins', 'bdthemes-element-pack-lite'),
             ]);
         }
 
-        $tmp_folder_id = $result['session'];
+        $tmp_folder_id = $result['session'] ?? '';
+
+        if ('' === $tmp_folder_id) {
+            wp_send_json_error(['message' => esc_html__('Import failed: the uploaded kit returned no session.', 'bdthemes-element-pack-lite')]);
+        }
         $includes = [];
         $selectedCustomPostTypes = [];
 
@@ -608,16 +909,16 @@ add_action('wp_ajax_import_ep_elementor_bundle_template', function () {
 
         wp_send_json_success($import);
     } catch (\Throwable $e) {
-        wp_send_json_error(['message' => esc_html__('Import failed: ', 'bdthemes-element-pack') . esc_html($e->getMessage())]);
+        wp_send_json_error(['message' => esc_html__('Import failed: ', 'bdthemes-element-pack-lite') . esc_html($e->getMessage())]);
     }
 });
 
-add_action('wp_ajax_import_ep_elementor_bundle_runner_template', function () {
-    check_ajax_referer('setup_wizard_nonce', 'nonce');
+add_action('wp_ajax_ep_setup_wizard_import_bundle_runner', function () {
+    check_ajax_referer('ep_setup_wizard_nonce', 'nonce');
 
     // Capability check - only administrators can import templates
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized', 'bdthemes-element-pack' ) ] );
+        wp_send_json_error( [ 'message' => esc_html__( 'Unauthorized', 'bdthemes-element-pack-lite' ) ] );
         wp_die();
     }
 
@@ -625,15 +926,16 @@ add_action('wp_ajax_import_ep_elementor_bundle_runner_template', function () {
     $sessionId = isset($_POST['sessionId']) ? sanitize_text_field(wp_unslash($_POST['sessionId'])) : '';
 
     if (!$runner || !$sessionId) {
-        wp_send_json_error(['message' => esc_html__('Required Param Is Missing.', 'bdthemes-element-pack')]);
+        wp_send_json_error(['message' => esc_html__('Required Param Is Missing.', 'bdthemes-element-pack-lite')]);
     }
 
     $app = Plugin::$instance->app;
     if (!$app) {
-        wp_send_json_error(['message' => esc_html__('Elementor app not available.', 'bdthemes-element-pack')]);
+        wp_send_json_error(['message' => esc_html__('Elementor app not available.', 'bdthemes-element-pack-lite')]);
     }
 
     try {
+        // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged -- Long-running kit import needs a larger budget than the default.
         @ini_set('max_execution_time', 60 * 5);
 
         $import_export_module = $app->get_component('import-export');

@@ -18,10 +18,26 @@ class Social_Share extends Module_Base {
 		'vkontakte'  => 'ep-icon-vk',
 	];
 
+	/**
+	 * Build the icon class for a social media name.
+	 *
+	 * The allow-list is checked first and unconditionally: a class is only ever
+	 * concatenated out of a name that Module has registered, so no submitted
+	 * value can reach the class attribute. Unknown names get a fixed fallback.
+	 *
+	 * @param mixed $media_name Value submitted through the repeater control.
+	 * @return string Icon class safe to print.
+	 */
 	private static function get_social_media_class( $media_name ) {
+		// Never build a class out of an arbitrary value, only out of a registered social media key.
+		if ( ! Module::is_social_media( $media_name ) ) {
+			return 'ep-icon-link';
+		}
+
 		if ( isset( self::$medias_class[ $media_name ] ) ) {
 			return self::$medias_class[ $media_name ];
 		}
+
 		return 'ep-icon-' . $media_name;
 	}
 
@@ -31,7 +47,7 @@ class Social_Share extends Module_Base {
 	}
 
 	public function get_title() {
-		return BDTEP . esc_html__( 'Social Share', 'bdthemes-element-pack' );
+		return BDTEP . esc_html__( 'Social Share', 'bdthemes-element-pack-lite' );
 	}
 
 	public function get_icon() {
@@ -75,17 +91,17 @@ class Social_Share extends Module_Base {
 
 	protected function get_upsale_data(): array {
 		return [
-			'condition' => ! is_ep_pro(),
+			'condition' => ! element_pack_is_pro(),
 			'image' => esc_url( BDTEP_ASSETS_URL . 'images/go-pro.svg' ),
-			'image_alt' => esc_attr__( 'Upgrade', 'bdthemes-element-pack' ),
-			'title' => esc_html__( 'Unlock Premium Features', 'bdthemes-element-pack' ),
+			'image_alt' => esc_attr__( 'Upgrade', 'bdthemes-element-pack-lite' ),
+			'title' => esc_html__( 'Unlock Premium Features', 'bdthemes-element-pack-lite' ),
 			/* translators: 1: First promoted feature, 2: Second promoted feature */
-			'description' => sprintf(__( '<ul class="bdt-widget-promotion-list"><li>%1$s</li><li>%2$s</li></ul> These features are available only in Element Pack Pro.', 'bdthemes-element-pack' ), 'View -> Icon, Text', 'Count -> Show'),
+			'description' => sprintf(__( '<ul class="bdt-widget-promotion-list"><li>%1$s</li><li>%2$s</li></ul> These features are available only in Element Pack Pro.', 'bdthemes-element-pack-lite' ), 'View -> Icon, Text', 'Count -> Show'),
 			'upgrade_url' => esc_url( 'https://www.elementpack.pro/pricing/?utm_source=widget_panel&utm_medium=ep_widget_panel' ),
 			/* translators: %s: Upgrade button label */
 			'upgrade_text' => sprintf(
 				'<span class="bdt-widget-promotion-btn">%s</span>',
-				esc_html__( 'Upgrade to Pro', 'bdthemes-element-pack' )
+				esc_html__( 'Upgrade to Pro', 'bdthemes-element-pack-lite' )
 			),
 		];
 	}
@@ -94,7 +110,7 @@ class Social_Share extends Module_Base {
 		$this->start_controls_section(
 			'section_buttons_content',
 			[
-				'label' => esc_html__( 'Share Buttons', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'Share Buttons', 'bdthemes-element-pack-lite' ),
 			]
 		);
 
@@ -107,7 +123,7 @@ class Social_Share extends Module_Base {
 		$repeater->add_control(
 			'button',
 			[
-				'label' => esc_html__( 'Social Media', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'Social Media', 'bdthemes-element-pack-lite' ),
 				'type' => Controls_Manager::SELECT,
 				'options' => array_reduce( $medias_names, function( $options, $media_name ) use ( $medias ) {
 					$options[ $media_name ] = $medias[ $media_name ]['title'];
@@ -121,7 +137,7 @@ class Social_Share extends Module_Base {
 		$repeater->add_control(
 			'text',
 			[
-				'label' => esc_html__( 'Custom Label', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'Custom Label', 'bdthemes-element-pack-lite' ),
 				'type' => Controls_Manager::TEXT,
 				'dynamic' => ['active' => true],
 			]
@@ -130,7 +146,7 @@ class Social_Share extends Module_Base {
 		$repeater->add_control(
 			'copied_text',
 			[
-				'label'              => esc_html__( 'Copied Text', 'bdthemes-element-pack' ),
+				'label'              => esc_html__( 'Copied Text', 'bdthemes-element-pack-lite' ),
 				'default'            => 'Copied',
 				'type'               => Controls_Manager::TEXT,
 				'dynamic'            => [ 'active' => true ],
@@ -151,33 +167,34 @@ class Social_Share extends Module_Base {
 					[ 'button' => 'twitter' ],
 					[ 'button' => 'pinterest' ],
 				],
-				'title_field' => '{{{ button }}}',
+				// {{ }} escapes, {{{ }}} does not. The repeater row label renders the
+				// submitted value in the editor panel, so it must be the escaping form.
+				'title_field' => '{{ button }}',
 			]
 		);
 
 		$this->add_control(
 			'view',
 			[
-				'label'       => esc_html__( 'View', 'bdthemes-element-pack' ),
+				'label'       => esc_html__( 'View', 'bdthemes-element-pack-lite' ),
 				'type'        => Controls_Manager::SELECT,
 				'label_block' => false,
 				'options'     => [
-					'icon-text' => esc_html__('Icon & Text', 'bdthemes-element-pack'),
-					'icon'      => esc_html__('Icon', 'bdthemes-element-pack') . BDTEP_LOCK,
-					'text'      => esc_html__('Text', 'bdthemes-element-pack') . BDTEP_LOCK,
+					'icon-text' => esc_html__('Icon & Text', 'bdthemes-element-pack-lite'),
+					'icon'      => esc_html__('Icon', 'bdthemes-element-pack-lite'),
+					'text'      => esc_html__('Text', 'bdthemes-element-pack-lite'),
 				],
 				'default'      => 'icon-text',
 				'separator'    => 'before',
 				'prefix_class' => 'bdt-ss-btns-view-',
 				'render_type'  => 'template',
-				'classes' => BDTEP_LOCK_CLASS,
 			]
 		);
 
 		$this->add_control(
 			'show_label',
 			[
-				'label'     => esc_html__( 'Label', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Label', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::SWITCHER,
 				'default'   => 'yes',
 				'condition' => [
@@ -189,12 +206,11 @@ class Social_Share extends Module_Base {
 		$this->add_control(
 			'show_counter',
 			[
-				'label'     => esc_html__( 'Count', 'bdthemes-element-pack' ) . BDTEP_PC,
+				'label'     => esc_html__( 'Count', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::SWITCHER,
 				'condition' => [
 					'view!' => 'icon',
 				],
-				'classes' => BDTEP_IS_PC,
 			]
 		);
 
@@ -203,7 +219,7 @@ class Social_Share extends Module_Base {
 			'show_counter_note',
 			[
 				'type' => Controls_Manager::RAW_HTML,
-				'raw'  => esc_html__( 'Note: Social share count only works with those platform: vkontakte, facebook, odnoklassniki, moimir, linkedin, tumblr, pinterest, buffer.', 'bdthemes-element-pack' ),
+				'raw'  => esc_html__( 'Note: Social share count only works with those platform: vkontakte, facebook, odnoklassniki, moimir, linkedin, tumblr, pinterest, buffer.', 'bdthemes-element-pack-lite' ),
 				'content_classes' => 'elementor-panel-alert elementor-panel-alert-danger',
 				'condition' => [
 					'show_counter' => 'yes',
@@ -215,7 +231,7 @@ class Social_Share extends Module_Base {
 		$this->add_responsive_control(
 			'columns',
 			[
-				'label'           => __( 'Columns', 'bdthemes-element-pack' ) . BDTEP_UC,
+				'label'           => __( 'Columns', 'bdthemes-element-pack-lite' ) . BDTEP_UC,
 				'type'            => Controls_Manager::SELECT,
 				'desktop_default' => '0',
 				'tablet_default'  => '0',
@@ -249,7 +265,7 @@ class Social_Share extends Module_Base {
 		$this->add_responsive_control(
 			'column_gap',
 			[
-				'label'     => esc_html__( 'Column Gap', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Column Gap', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::SLIDER,
 				'default' => [
 					'size' => 10,
@@ -263,7 +279,7 @@ class Social_Share extends Module_Base {
 		$this->add_responsive_control(
 			'row_gap',
 			[
-				'label'     => esc_html__( 'Row Gap', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Row Gap', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::SLIDER,
 				'default' => [
 					'size' => 10,
@@ -277,23 +293,23 @@ class Social_Share extends Module_Base {
 		$this->add_responsive_control(
 			'alignment',
 			[
-				'label'   => esc_html__( 'Alignment', 'bdthemes-element-pack' ),
+				'label'   => esc_html__( 'Alignment', 'bdthemes-element-pack-lite' ),
 				'type'    => Controls_Manager::CHOOSE,
 				'options' => [
 					'left' => [
-						'title' => esc_html__( 'Start', 'bdthemes-element-pack' ),
+						'title' => esc_html__( 'Start', 'bdthemes-element-pack-lite' ),
 						'icon'  => 'eicon-text-align-left',
 					],
 					'center' => [
-						'title' => esc_html__( 'Center', 'bdthemes-element-pack' ),
+						'title' => esc_html__( 'Center', 'bdthemes-element-pack-lite' ),
 						'icon'  => 'eicon-text-align-center',
 					],
 					'right' => [
-						'title' => esc_html__( 'End', 'bdthemes-element-pack' ),
+						'title' => esc_html__( 'End', 'bdthemes-element-pack-lite' ),
 						'icon'  => 'eicon-text-align-right',
 					],
 					'justify' => [
-						'title' => esc_html__( 'Justify', 'bdthemes-element-pack' ),
+						'title' => esc_html__( 'Justify', 'bdthemes-element-pack-lite' ),
 						'icon'  => 'eicon-text-align-justify',
 					],
 				],
@@ -316,11 +332,11 @@ class Social_Share extends Module_Base {
 		$this->add_control(
 			'share_url_type',
 			[
-				'label'   => esc_html__( 'Target URL', 'bdthemes-element-pack' ),
+				'label'   => esc_html__( 'Target URL', 'bdthemes-element-pack-lite' ),
 				'type'    => Controls_Manager::SELECT,
 				'options' => [
-					'current_page' => esc_html__( 'Current Page', 'bdthemes-element-pack' ),
-					'custom'       => esc_html__( 'Custom', 'bdthemes-element-pack' ),
+					'current_page' => esc_html__( 'Current Page', 'bdthemes-element-pack-lite' ),
+					'custom'       => esc_html__( 'Custom', 'bdthemes-element-pack-lite' ),
 				],
 				'default'   => 'current_page',
 				'separator' => 'before',
@@ -330,7 +346,7 @@ class Social_Share extends Module_Base {
 		$this->add_control(
 			'share_url',
 			[
-				'label'         => esc_html__( 'URL', 'bdthemes-element-pack' ),
+				'label'         => esc_html__( 'URL', 'bdthemes-element-pack-lite' ),
 				'type'          => Controls_Manager::URL,
 				'show_external' => false,
 				'placeholder'   => 'http://your-link.com',
@@ -346,7 +362,7 @@ class Social_Share extends Module_Base {
 		$this->start_controls_section(
 			'section_buttons_style',
 			[
-				'label' => esc_html__( 'Share Buttons', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'Share Buttons', 'bdthemes-element-pack-lite' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
 			]
 		);
@@ -354,14 +370,14 @@ class Social_Share extends Module_Base {
 		$this->add_control(
 			'style',
 			[
-				'label'   => esc_html__( 'Style', 'bdthemes-element-pack' ),
+				'label'   => esc_html__( 'Style', 'bdthemes-element-pack-lite' ),
 				'type'    => Controls_Manager::SELECT,
 				'options' => [
-					'flat'     => esc_html__( 'Flat', 'bdthemes-element-pack' ),
-					'framed'   => esc_html__( 'Framed', 'bdthemes-element-pack' ),
-					'gradient' => esc_html__( 'Gradient', 'bdthemes-element-pack' ),
-					'minimal'  => esc_html__( 'Minimal', 'bdthemes-element-pack' ),
-					'boxed'    => esc_html__( 'Boxed Icon', 'bdthemes-element-pack' ),
+					'flat'     => esc_html__( 'Flat', 'bdthemes-element-pack-lite' ),
+					'framed'   => esc_html__( 'Framed', 'bdthemes-element-pack-lite' ),
+					'gradient' => esc_html__( 'Gradient', 'bdthemes-element-pack-lite' ),
+					'minimal'  => esc_html__( 'Minimal', 'bdthemes-element-pack-lite' ),
+					'boxed'    => esc_html__( 'Boxed Icon', 'bdthemes-element-pack-lite' ),
 				],
 				'default'      => 'flat',
 				'prefix_class' => 'bdt-ss-btns-style-',
@@ -371,12 +387,12 @@ class Social_Share extends Module_Base {
 		$this->add_control(
 			'shape',
 			[
-				'label'   => esc_html__( 'Shape', 'bdthemes-element-pack' ),
+				'label'   => esc_html__( 'Shape', 'bdthemes-element-pack-lite' ),
 				'type'    => Controls_Manager::SELECT,
 				'options' => [
-					'square'  => esc_html__( 'Square', 'bdthemes-element-pack' ),
-					'rounded' => esc_html__( 'Rounded', 'bdthemes-element-pack' ),
-					'circle'  => esc_html__( 'Circle', 'bdthemes-element-pack' ),
+					'square'  => esc_html__( 'Square', 'bdthemes-element-pack-lite' ),
+					'rounded' => esc_html__( 'Rounded', 'bdthemes-element-pack-lite' ),
+					'circle'  => esc_html__( 'Circle', 'bdthemes-element-pack-lite' ),
 				],
 				'default'      => 'square',
 				'prefix_class' => 'bdt-ss-btns-shape-',
@@ -393,7 +409,7 @@ class Social_Share extends Module_Base {
 		$this->add_responsive_control(
 			'button_size',
 			[
-				'label' => esc_html__( 'Button Size', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'Button Size', 'bdthemes-element-pack-lite' ),
 				'type'  => Controls_Manager::SLIDER,
 				'range' => [
 					'px' => [
@@ -411,7 +427,7 @@ class Social_Share extends Module_Base {
 		$this->add_responsive_control(
 			'icon_size',
 			[
-				'label' => esc_html__( 'Icon Size', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'Icon Size', 'bdthemes-element-pack-lite' ),
 				'type'  => Controls_Manager::SLIDER,
 				'range' => [
 					'em' => [
@@ -446,7 +462,7 @@ class Social_Share extends Module_Base {
 		$this->add_responsive_control(
 			'button_height',
 			[
-				'label' => esc_html__( 'Button Height', 'bdthemes-element-pack' ),
+				'label' => esc_html__( 'Button Height', 'bdthemes-element-pack-lite' ),
 				'type'  => Controls_Manager::SLIDER,
 				'range' => [
 					'em' => [
@@ -478,7 +494,7 @@ class Social_Share extends Module_Base {
 		$this->add_responsive_control(
 			'border_size',
 			[
-				'label'      => esc_html__( 'Border Size', 'bdthemes-element-pack' ),
+				'label'      => esc_html__( 'Border Size', 'bdthemes-element-pack-lite' ),
 				'type'       => Controls_Manager::SLIDER,
 				'size_units' => [ 'px', 'em' ],
 				'default'    => [
@@ -506,7 +522,7 @@ class Social_Share extends Module_Base {
 		$this->add_control(
 			'text_padding',
 			[
-				'label'      => esc_html__( 'Text Padding', 'bdthemes-element-pack' ),
+				'label'      => esc_html__( 'Text Padding', 'bdthemes-element-pack-lite' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', 'em', '%' ],
 				'selectors'  => [
@@ -523,7 +539,7 @@ class Social_Share extends Module_Base {
 			Group_Control_Typography::get_type(),
 			[
 				'name'     => 'typography',
-				'label'    => esc_html__( 'Typography', 'bdthemes-element-pack' ),
+				'label'    => esc_html__( 'Typography', 'bdthemes-element-pack-lite' ),
 				'selector' => '{{WRAPPER}} .bdt-social-share-title, {{WRAPPER}} .bdt-ss-counter',
 				'exclude'  => [ 'line_height' ], // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- Elementor control option, not WP_Query.
 			]
@@ -532,7 +548,7 @@ class Social_Share extends Module_Base {
 		$this->add_control(
 			'color_source',
 			[
-				'label'       => esc_html__( 'Color', 'bdthemes-element-pack' ),
+				'label'       => esc_html__( 'Color', 'bdthemes-element-pack-lite' ),
 				'type'        => Controls_Manager::SELECT,
 				'label_block' => false,
 				'options'     => [
@@ -550,7 +566,7 @@ class Social_Share extends Module_Base {
 		$this->start_controls_tab(
 			'tab_button_normal',
 			[
-				'label'     => esc_html__( 'Normal', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Normal', 'bdthemes-element-pack-lite' ),
 				'condition' => [
 					'color_source' => 'custom',
 				],
@@ -560,7 +576,7 @@ class Social_Share extends Module_Base {
 		$this->add_control(
 			'primary_color',
 			[
-				'label'     => esc_html__( 'Primary Color', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Primary Color', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}}.bdt-ss-btns-style-flat .bdt-ss-btn,
@@ -580,7 +596,7 @@ class Social_Share extends Module_Base {
 		$this->add_control(
 			'secondary_color',
 			[
-				'label'     => esc_html__( 'Secondary Color', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Secondary Color', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}}.bdt-ss-btns-style-flat .bdt-ss-icon, 
@@ -600,7 +616,7 @@ class Social_Share extends Module_Base {
 		$this->add_control(
 			'border_color',
 			[
-				'label'     => esc_html__( 'Border Color', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'label'     => esc_html__( 'Border Color', 'bdthemes-element-pack-lite' ) . BDTEP_NC,
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}}.bdt-ss-btns-style-boxed .bdt-ss-btn, {{WRAPPER}}.bdt-ss-btns-style-framed .bdt-ss-btn' => 'border-color: {{VALUE}}',
@@ -617,7 +633,7 @@ class Social_Share extends Module_Base {
 		$this->start_controls_tab(
 			'tab_button_hover',
 			[
-				'label'     => esc_html__( 'Hover', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Hover', 'bdthemes-element-pack-lite' ),
 				'condition' => [
 					'color_source' => 'custom',
 				],
@@ -627,7 +643,7 @@ class Social_Share extends Module_Base {
 		$this->add_control(
 			'primary_color_hover',
 			[
-				'label'     => esc_html__( 'Primary Color', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Primary Color', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}}.bdt-ss-btns-style-flat .bdt-ss-btn:hover,
@@ -647,7 +663,7 @@ class Social_Share extends Module_Base {
 		$this->add_control(
 			'secondary_color_hover',
 			[
-				'label'     => esc_html__( 'Secondary Color', 'bdthemes-element-pack' ),
+				'label'     => esc_html__( 'Secondary Color', 'bdthemes-element-pack-lite' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}}.bdt-ss-btns-style-flat .bdt-ss-btn:hover .bdt-ss-icon, 
@@ -667,7 +683,7 @@ class Social_Share extends Module_Base {
 		$this->add_control(
 			'border_hover_color',
 			[
-				'label'     => esc_html__( 'Border Color', 'bdthemes-element-pack' ) . BDTEP_NC,
+				'label'     => esc_html__( 'Border Color', 'bdthemes-element-pack-lite' ) . BDTEP_NC,
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}}.bdt-ss-btns-style-boxed .bdt-ss-btn:hover, {{WRAPPER}}.bdt-ss-btns-style-framed .bdt-ss-btn:hover' => 'border-color: {{VALUE}}',
@@ -688,8 +704,9 @@ class Social_Share extends Module_Base {
 
 	private function has_counter( $media_name ) {
 		$settings = $this->get_active_settings();
+		$media    = Module::get_social_media( $media_name );
 
-		return 'icon' !== $settings['view'] && 'yes' === $settings['show_counter'] && ! empty( Module::get_social_media( $media_name )['has_counter'] );
+		return 'icon' !== $settings['view'] && 'yes' === $settings['show_counter'] && ! empty( $media['has_counter'] );
 	}
 	
 	public function render() {
@@ -705,7 +722,13 @@ class Social_Share extends Module_Base {
 		<div class="bdt-social-share bdt-ep-grid">
 			<?php
 			foreach ( $settings['share_buttons'] as $button ) {
-				$social_name = $button['button'];
+				$social_name = isset( $button['button'] ) ? $button['button'] : '';
+
+				// Skip anything that is not one of the registered social media keys.
+				if ( ! Module::is_social_media( $social_name ) ) {
+					continue;
+				}
+
 				$has_counter = $this->has_counter( $social_name );
 
 				if ( 'custom' === $settings['share_url_type'] ) {
@@ -758,7 +781,7 @@ class Social_Share extends Module_Base {
 					<div <?php $this->print_render_attribute_string( 'social-attrs' ); ?>>
 						<?php if ( 'icon' === $settings['view'] || 'icon-text' === $settings['view'] ) : ?>
 							<span class="bdt-ss-icon">
-								<i class="<?php echo wp_kses_post(self::get_social_media_class( $social_name )); ?>"></i>
+								<i class="<?php echo esc_attr( self::get_social_media_class( $social_name ) ); ?>"></i>
 							</span>
 						<?php endif; ?>
 						<?php if ( $show_text || $has_counter ) : ?>
@@ -802,7 +825,14 @@ class Social_Share extends Module_Base {
 		<#
 		var mediasMap = <?php echo wp_json_encode( $medias_for_js ); ?>;
 		var linkButtonDataUrl = <?php echo wp_json_encode( $link_current_url ); ?>;
+		// Mirrors Social_Share::get_social_media_class(). mediasMap is built from the
+		// registered keys, so the allow-list is checked first and a class is never
+		// concatenated out of a submitted value. _.has() is used rather than a plain
+		// property read so inherited names ('constructor', '__proto__') cannot pass.
 		var getIconClass = function( name ) {
+			if ( ! _.has( mediasMap, name ) ) {
+				return 'ep-icon-link';
+			}
 			if ( name === 'email' ) {
 				return 'ep-icon-envelope';
 			}
@@ -857,7 +887,7 @@ class Social_Share extends Module_Base {
 				<div<# print( divAttrs ); #>>
 					<# if ( 'icon' === viewMode || 'icon-text' === viewMode ) { #>
 					<span class="bdt-ss-icon">
-						<i class="<# print( getIconClass( socialName ) ); #>"></i>
+						<i class="<# print( _.escape( getIconClass( socialName ) ) ); #>"></i>
 					</span>
 					<# } #>
 					<# if ( showText || hasCounter ) { #>

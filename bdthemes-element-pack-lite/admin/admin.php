@@ -20,11 +20,14 @@ class Admin {
 	public function __construct() {
 
 		// Embed the Script on our Plugin's Option Page Only
-		if (isset($_GET['page']) && ($_GET['page'] == 'element_pack_options')) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen check, no state is changed.
+		$current_page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
+
+		if ('element_pack_options' == $current_page) {
 			add_action('admin_init', [$this, 'admin_script']);
 		}
 
-		add_action('admin_init', [$this, 'admin_api_biggopti_script']);
+		add_action('admin_init', [$this, 'admin_biggopti_script']);
 
 		add_action('admin_enqueue_scripts', [$this, 'enqueue_styles']);
 		
@@ -48,7 +51,7 @@ class Admin {
 		wp_enqueue_style('ep-editor', BDTEP_ASSETS_URL . 'css/ep-editor.css', [], BDTEP_VER);
 		wp_enqueue_style('ep-admin', BDTEP_ADMIN_URL . 'assets/css/ep-admin.css', [], BDTEP_VER);
 
-		wp_enqueue_script('bdt-uikit', BDTEP_ASSETS_URL . 'js/bdt-uikit.min.js', ['jquery'], '3.21.7');
+		wp_enqueue_script('bdt-uikit', BDTEP_ASSETS_URL . 'js/bdt-uikit.min.js', ['jquery'], '3.21.7', false);
 	}
 
 	/**
@@ -61,8 +64,8 @@ class Admin {
 		if (BDTEP_PBNAME === $plugin_file) {
 
             $row_meta = [
-				'docs'  => '<a href="https://elementpack.pro/contact/" aria-label="' . esc_attr(__('Go for Get Support', 'bdthemes-element-pack')) . '" target="_blank">' . __('Get Support', 'bdthemes-element-pack') . '</a>',
-				'video' => '<a href="https://www.youtube.com/playlist?list=PLP0S85GEw7DOJf_cbgUIL20qqwqb5x8KA" aria-label="' . esc_attr(__('View Element Pack Video Tutorials', 'bdthemes-element-pack')) . '" target="_blank">' . __('Video Tutorials', 'bdthemes-element-pack') . '</a>',
+				'docs'  => '<a href="https://elementpack.pro/contact/" aria-label="' . esc_attr(__('Go for Get Support', 'bdthemes-element-pack-lite')) . '" target="_blank">' . __('Get Support', 'bdthemes-element-pack-lite') . '</a>',
+				'video' => '<a href="https://www.youtube.com/playlist?list=PLP0S85GEw7DOJf_cbgUIL20qqwqb5x8KA" aria-label="' . esc_attr(__('View Element Pack Video Tutorials', 'bdthemes-element-pack-lite')) . '" target="_blank">' . __('Video Tutorials', 'bdthemes-element-pack-lite') . '</a>',
 
 			];
 
@@ -81,7 +84,7 @@ class Admin {
     public function plugin_action_links( $plugin_meta ) {
 
         $row_meta = [
-            'settings' => '<a href="'.admin_url( 'admin.php?page=element_pack_options' ) .'" aria-label="' . esc_attr(__('Go to settings', 'bdthemes-element-pack')) . '" >' . __('Settings', 'bdthemes-element-pack') . '</b></a>',
+            'settings' => '<a href="'.admin_url( 'admin.php?page=element_pack_options' ) .'" aria-label="' . esc_attr(__('Go to settings', 'bdthemes-element-pack-lite')) . '" >' . __('Settings', 'bdthemes-element-pack-lite') . '</b></a>',
         ];
 
         $plugin_meta = array_merge($plugin_meta, $row_meta);
@@ -98,7 +101,7 @@ class Admin {
 
 	public function plugin_action_meta($links) {
 
-		$links = array_merge([sprintf('<a href="%s">%s</a>', element_pack_dashboard_link('#element_pack_welcome'), esc_html__('Settings', 'bdthemes-element-pack'))], $links);
+		$links = array_merge([sprintf('<a href="%s">%s</a>', element_pack_dashboard_link('#element_pack_welcome'), esc_html__('Settings', 'bdthemes-element-pack-lite'))], $links);
 
 		return $links;
 	}
@@ -111,48 +114,24 @@ class Admin {
 	public function admin_script() {
 		$suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '' : '.min';
 		if ( is_admin() ) { // for Admin Dashboard Only
-			wp_enqueue_script('chart', BDTEP_ASSETS_URL . 'vendor/js/chart.min.js', ['jquery'], '2.7.3', true);
+			wp_enqueue_script('chart', BDTEP_ASSETS_URL . 'vendor/js/chart.min.js', ['jquery'], '4.5.1', true);
 			wp_enqueue_script('ep-admin', BDTEP_ADMIN_URL  . 'assets/js/ep-admin.min.js', ['jquery'], BDTEP_VER, true);
 			wp_enqueue_script('jquery');
 			wp_enqueue_script('jquery-form');
 		}
 	}
 
-	public function admin_api_biggopti_script() {
+	public function admin_biggopti_script() {
 		wp_enqueue_style( 'ep-biggopti', BDTEP_ADMIN_URL . 'assets/css/ep-biggopti.css', [], BDTEP_VER, 'all' );
 		wp_enqueue_script( 'ep-biggopti', BDTEP_ADMIN_URL . 'assets/js/ep-biggopti.min.js', [ 'jquery' ], BDTEP_VER, true );
 
 		wp_enqueue_style( 'bdt-product-feed', BDTEP_ADMIN_URL . 'assets/css/ep-product-feed.css', [], BDTEP_VER, 'all' );
 
-		wp_enqueue_style( 'bdt-admin-api-biggopti', BDTEP_ADMIN_URL . 'assets/css/ep-admin-api-biggopti.css', [], BDTEP_VER, 'all' );
-		wp_enqueue_script( 'ep-admin-api-biggopti', BDTEP_ADMIN_URL . 'assets/js/ep-admin-api-biggopti.min.js', [ 'jquery' ], BDTEP_VER, true );
-
-		$dismissals = get_option('bdt_biggopti_dismissals', []);
-		$dismissed_display_ids = [];
-		$prefix = 'bdt-admin-biggopti-api-biggopti-';
-		foreach (array_keys($dismissals) as $key) {
-			if (strpos($key, $prefix) === 0) {
-				$dismissed_display_ids[] = substr($key, strlen($prefix));
-			} else {
-				$dismissed_display_ids[] = $key;
-			}
-		}
-
-		$current_sector = '';
-		if ( isset( $_GET['page'] ) && $_GET['page'] === 'element_pack_options' ) {
-			$current_sector = 'plugin_dashboard';
-		}
-		
-		$script_config = [ 
+		$script_config = [
 			'ajaxurl' => admin_url( 'admin-ajax.php' ),
 			'nonce'   => wp_create_nonce( 'element-pack' ),
-			'isPro'             	=> function_exists('element_pack_pro_activated') && element_pack_pro_activated(),
-			'assetsUrl'         	=> defined('BDTEP_ASSETS_URL') ? BDTEP_ASSETS_URL : '',
-			'dismissedDisplayIds'	=> $dismissed_display_ids,
-			'currentSector'      	=> $current_sector,
 		];
 		wp_localize_script( 'ep-biggopti', 'ElementPackBiggoptiConfig', $script_config );
-		wp_localize_script( 'ep-admin-api-biggopti', 'ElementPackAdminApiBiggoptiConfig', $script_config);
 	}
 
 	/**
@@ -168,9 +147,13 @@ class Admin {
 		$table_post     = $wpdb->prefix . 'ep_template_library_post';
 		$table_cat_post = $wpdb->prefix . 'ep_template_library_cat_post';
 
-		@$wpdb->query('DROP TABLE IF EXISTS ' . $table_cat_post);
-		@$wpdb->query('DROP TABLE IF EXISTS ' . $table_cat);
-		@$wpdb->query('DROP TABLE IF EXISTS ' . $table_post);
+		// Table names cannot be passed through $wpdb->prepare(); these are built
+		// from $wpdb->prefix plus hardcoded literals, so no user input is involved.
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$wpdb->query('DROP TABLE IF EXISTS ' . $table_cat_post);
+		$wpdb->query('DROP TABLE IF EXISTS ' . $table_cat);
+		$wpdb->query('DROP TABLE IF EXISTS ' . $table_post);
+		// phpcs:enable
 	}
 
 	/**

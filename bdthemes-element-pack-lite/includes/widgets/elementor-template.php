@@ -15,7 +15,7 @@ class Element_Pack_Elementor_Template_Widget extends WP_Widget {
 	function __construct() {
 		parent::__construct(
 			'elementortemplate_widget',
-			esc_html__( 'Elementor Template', 'bdthemes-element-pack' )
+			esc_html__( 'Elementor Template', 'bdthemes-element-pack-lite' )
 		);
 	}
 
@@ -85,14 +85,14 @@ class Element_Pack_Elementor_Template_Widget extends WP_Widget {
 		$template_list = Element_Pack_Loader::elementor()->templates_manager->get_source( 'local' )->get_items();
 
 		if ( empty( $template_list ) ) {
-			echo esc_html__( 'Template Not Found!', 'bdthemes-element-pack' );
+			echo esc_html__( 'Template Not Found!', 'bdthemes-element-pack-lite' );
 			return;
 		}
 
 		?>
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>">
-				<?php esc_attr_e( 'Title', 'bdthemes-element-pack' ); ?>
+				<?php esc_attr_e( 'Title', 'bdthemes-element-pack-lite' ); ?>
 				:
 			</label>
 			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"
@@ -102,19 +102,18 @@ class Element_Pack_Elementor_Template_Widget extends WP_Widget {
 
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'template_id' ) ); ?>">
-				<?php esc_attr_e( 'Select Template', 'bdthemes-element-pack' ); ?>
+				<?php esc_attr_e( 'Select Template', 'bdthemes-element-pack-lite' ); ?>
 				:
 			</label>
 			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'template_id' ) ); ?>"
 				name="<?php echo esc_attr( $this->get_field_name( 'template_id' ) ); ?>">
 				<option value="">—
-					<?php esc_html_e( 'Select', 'bdthemes-element-pack' ); ?> —
+					<?php esc_html_e( 'Select', 'bdthemes-element-pack-lite' ); ?> —
 				</option>
 				<?php
 				foreach ( $template_list as $template ) :
-					$selected_template = selected( $template['template_id'], $instance['template_id'] );
 					?>
-					<option value="<?php echo esc_attr( $template['template_id'] ); ?>" <?php echo wp_kses_post( $selected_template ); ?> data-type="<?php echo esc_attr( $template['type'] ); ?>">
+					<option value="<?php echo esc_attr( $template['template_id'] ); ?>" <?php selected( $template['template_id'], $instance['template_id'] ); ?> data-type="<?php echo esc_attr( $template['type'] ); ?>">
 						<?php echo esc_html( $template['title'] ); ?> (
 						<?php echo esc_html( $template['type'] ); ?>)
 					</option>
@@ -143,8 +142,8 @@ class Element_Pack_Elementor_Template_Widget extends WP_Widget {
 /**
  * register the widget class to widget action
  */
-function register_ep_elementor_template_widget() {
+function element_pack_register_elementor_template_widget() {
 	register_widget( 'Element_Pack_Elementor_Template_Widget' );
 }
 
-add_action( 'widgets_init', 'register_ep_elementor_template_widget' );
+add_action( 'widgets_init', 'element_pack_register_elementor_template_widget' );

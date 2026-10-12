@@ -42,8 +42,8 @@ if ( ! class_exists( 'RC_Reviews_Collector' ) ) {
 			$this->review_url = isset( $params['review_url'] ) ? $params['review_url'] : false;
 
 			// add_action( 'admin_enqueue_scripts', array( $this, 'rc_enqueue_scripts' ) );
-			add_action( 'wp_ajax_rc_sdk_insights', array( $this, 'rc_sdk_insights' ) );
-			add_action( 'wp_ajax_rc_sdk_dismiss_biggopti', array( $this, 'rc_sdk_dismiss_biggopti' ) );
+			add_action( 'wp_ajax_bdt_rc_sdk_insights', array( $this, 'rc_sdk_insights' ) );
+			add_action( 'wp_ajax_bdt_rc_sdk_dismiss_biggopti', array( $this, 'rc_sdk_dismiss_biggopti' ) );
 
 			$security_key        = md5( $params['plugin_name'] );
 			$this->rc_name       = 'rc_' . str_replace( '-', '_', sanitize_title( $params['plugin_name'] ) . '_' . $security_key );
@@ -161,10 +161,20 @@ if ( ! class_exists( 'RC_Reviews_Collector' ) ) {
 		 * Ajax callback
 		 */
 		public function rc_sdk_insights() {
-			$sanitized_status = isset( $_POST['button_val'] ) ? sanitize_text_field( $_POST['button_val'] ) : '';
-			$nonce            = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
-			$allow_name       = isset( $_POST['allow_name'] ) ? sanitize_text_field( $_POST['allow_name'] ) : '';
-			$date_name        = isset( $_POST['date_name'] ) ? sanitize_text_field( $_POST['date_name'] ) : '';
+			$sanitized_status = isset( $_POST['button_val'] ) ? sanitize_text_field( wp_unslash( $_POST['button_val'] ) ) : '';
+			$nonce            = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+			$allow_name       = isset( $_POST['allow_name'] ) ? sanitize_key( wp_unslash( $_POST['allow_name'] ) ) : '';
+			$date_name        = isset( $_POST['date_name'] ) ? sanitize_key( wp_unslash( $_POST['date_name'] ) ) : '';
+
+			// Only this collector's own options may be written, never an arbitrary one.
+			if ( ! preg_match( '/^rc_allow_[a-z0-9_]+$/', $allow_name ) || ! preg_match( '/^rc_date_[a-z0-9_]+$/', $date_name ) ) {
+				wp_send_json( array(
+					'status'  => 'error',
+					'title'   => 'Error',
+					'message' => 'Invalid option name',
+				) );
+				wp_die();
+			}
 
 			if ( ! wp_verify_nonce( $nonce, 'rc_sdk' ) ) {
 				wp_send_json( array(
@@ -213,8 +223,8 @@ if ( ! class_exists( 'RC_Reviews_Collector' ) ) {
 		 * @since 1.0.0
 		 */
 		public function rc_enqueue_scripts() {
-			wp_enqueue_style( 'rc-sdk', plugins_url( 'assets/css/feedback-hub.css', __FILE__ ), array(), '1.0.0' );
-			wp_enqueue_script( 'rc-sdk', plugins_url( 'assets/js/rc.min.js', __FILE__ ), array( 'jquery' ), '1.0.0', true );
+			wp_enqueue_style( 'bdt-rc-sdk', plugins_url( 'assets/css/feedback-hub.css', __FILE__ ), array(), '1.0.0' );
+			wp_enqueue_script( 'bdt-rc-sdk', plugins_url( 'assets/js/rc.min.js', __FILE__ ), array( 'jquery' ), '1.0.0', true );
 			
 			// Add inline style to hide all but the first biggopti on page load
 			$inline_css = '.rc-global-biggopti { display: none; }';
@@ -285,8 +295,8 @@ if ( ! class_exists( 'RC_Reviews_Collector' ) ) {
 		 * @return void
 		 */
 		public function rc_sdk_dismiss_biggopti() {
-			$nonce   = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
-			$rc_name = isset( $_POST['rc_name'] ) ? sanitize_text_field( $_POST['rc_name'] ) : '';
+			$nonce   = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+			$rc_name = isset( $_POST['rc_name'] ) ? sanitize_text_field( wp_unslash( $_POST['rc_name'] ) ) : '';
 
 			if ( ! wp_verify_nonce( $nonce, 'rc_sdk' ) ) {
 				wp_send_json( array(
@@ -322,6 +332,15 @@ if ( ! class_exists( 'RC_Reviews_Collector' ) ) {
 /**
  * Main Insights Function
  */
+/*
+ * The `rc_*` names below belong to the shared BdThemes Review Collector SDK,
+ * which is vendored identically into several BdThemes plugins. The unprefixed
+ * name IS the cross-plugin lock: the first plugin to load defines it and the
+ * function_exists() guards stop every other copy from loading, so exactly one
+ * review prompt is ever registered. Prefixing them per plugin would defeat that
+ * and show the user one review notice per installed BdThemes plugin.
+ */
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- Shared SDK entry point; the name is the cross-plugin de-duplication lock.
 if ( ! function_exists( 'rc_sdk_automate' ) ) {
 	function rc_sdk_automate( $params ) {
 		if ( class_exists( 'RC_Reviews_Collector' ) ) {

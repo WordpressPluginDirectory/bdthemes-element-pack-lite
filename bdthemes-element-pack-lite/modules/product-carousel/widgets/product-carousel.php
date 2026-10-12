@@ -23,7 +23,7 @@ class Product_Carousel extends Module_Base {
 	}
 	
 	public function get_title() {
-		return BDTEP . esc_html__( 'Product Carousel', 'bdthemes-element-pack' );
+		return BDTEP . esc_html__( 'Product Carousel', 'bdthemes-element-pack-lite' );
 	}
 	
 	public function get_icon() {
@@ -65,7 +65,7 @@ protected function is_dynamic_content(): bool {
 	$this->start_controls_section(
 		'section_additional_settings',
 		[
-			'label' => __( 'Additional Settings', 'bdthemes-element-pack' ),
+			'label' => __( 'Additional Settings', 'bdthemes-element-pack-lite' ),
 			'tab'   => Controls_Manager::TAB_CONTENT,
 		]
 	);
@@ -75,7 +75,7 @@ protected function is_dynamic_content(): bool {
 	$this->add_control(
 		'item_match_height',
 		[
-			'label'        => __( 'Item Match Height', 'bdthemes-element-pack' ),
+			'label'        => __( 'Item Match Height', 'bdthemes-element-pack-lite' ),
 			'type'         => Controls_Manager::SWITCHER,
 			'default'      => 'yes',
 			'prefix_class' => 'bdt-item-match-height--',
@@ -87,7 +87,7 @@ protected function is_dynamic_content(): bool {
 		$widget_prefix,
 		[
 			'readmore_wrapper_option' => 'item',
-			'section_label'           => __( 'Additional Settings', 'bdthemes-element-pack' ),
+			'section_label'           => __( 'Additional Settings', 'bdthemes-element-pack-lite' ),
 			'section_wrapper'         => false,
 		]
 	);
@@ -100,7 +100,7 @@ protected function is_dynamic_content(): bool {
 	$this->start_controls_section(
 		'section_content_navigation',
 		[
-			'label' => __( 'Navigation', 'bdthemes-element-pack' ),
+			'label' => __( 'Navigation', 'bdthemes-element-pack-lite' ),
 		]
 	);
 
@@ -128,7 +128,7 @@ protected function is_dynamic_content(): bool {
 	$this->start_controls_section(
 		'section_style_navigation',
 		[
-			'label'      => __( 'Navigation', 'bdthemes-element-pack' ),
+			'label'      => __( 'Navigation', 'bdthemes-element-pack-lite' ),
 			'tab'        => Controls_Manager::TAB_STYLE,
 			'conditions' => [
 				'relation' => 'or',
@@ -279,9 +279,9 @@ protected function is_dynamic_content(): bool {
 		var hideArrowMobile = settings.hide_arrow_on_mobile ? ' bdt-visible@m' : '';
 		var rmIconHTML = elementor.helpers.renderIcon( view, settings.readmore_icon, { 'aria-hidden': true, 'class': 'fa-fw' }, 'i', 'object' );
 		var iconAlign  = settings.icon_align || 'right';
-		var readmoreLabel = settings.readmore_text || '<?php echo esc_js( __( 'Read More', 'bdthemes-element-pack' ) ); ?>';
+		var readmoreLabel = settings.readmore_text || '<?php echo esc_js( __( 'Read More', 'bdthemes-element-pack-lite' ) ); ?>';
 		#>
-		<div id="<# print( carouselId ); #>" class="<# print( carouselClass ); #>" data-settings="<# print( _.escape( dataSettings ) ); #>">
+		<div id="<# print( carouselId ); #>" class="<# print( _.escape( carouselClass ) ); #>" data-settings="<# print( _.escape( dataSettings ) ); #>">
 			<div class="swiper-carousel swiper" role="region" aria-roledescription="carousel" aria-label="<?php echo esc_attr( $this->get_title() ); ?>" dir="<?php echo is_rtl() ? 'rtl' : 'ltr'; ?>">
 				<div class="swiper-wrapper">
 					<# _.each( settings.product_items, function( item ) {
@@ -320,21 +320,21 @@ protected function is_dynamic_content(): bool {
 							<div>
 								<div class="bdt-ep-product-carousel-title-price bdt-flex bdt-flex-middle bdt-flex-between">
 									<# if ( settings.show_title === 'yes' && item.title ) { #>
-									<{{ settings.title_tag }} class="bdt-ep-product-carousel-title">
-										{{{ item.title }}}
+									<{{{ elementor.helpers.validateHTMLTag( settings.title_tag ) }}} class="bdt-ep-product-carousel-title">
+										{{{ elementor.helpers.sanitize( item.title ) }}}
 										<# if ( settings.readmore_link_to === 'title' ) { #>
 											<a href="{{ itemHref }}"{{{ itemTarget }}}{{{ itemRel }}} class="bdt-ep-product-carousel-link"></a>
 										<# } #>
-									</{{ settings.title_tag }}>
+									</{{{ elementor.helpers.validateHTMLTag( settings.title_tag ) }}}>
 									<# } #>
 
 									<# if ( settings.show_price === 'yes' && item.price ) { #>
-									<div class="bdt-ep-product-carousel-price">{{{ item.price }}}</div>
+									<div class="bdt-ep-product-carousel-price">{{{ elementor.helpers.sanitize( item.price ) }}}</div>
 									<# } #>
 								</div>
 
 								<# if ( settings.show_text === 'yes' && item.text ) { #>
-								<div class="bdt-ep-product-carousel-text">{{{ item.text }}}</div>
+								<div class="bdt-ep-product-carousel-text">{{{ elementor.helpers.sanitize( item.text ) }}}</div>
 								<# } #>
 
 								<# if ( settings.readmore_link_to === 'button' && item.readmore_link && item.readmore_link.url ) { #>
@@ -345,7 +345,7 @@ protected function is_dynamic_content(): bool {
 											{{{ rmIconHTML.value }}}
 										</span>
 										<# } #>
-										{{{ readmoreLabel }}}
+										{{ readmoreLabel }}
 										<# if ( settings.readmore_icon && settings.readmore_icon.value && iconAlign === 'right' ) { #>
 										<span class="bdt-button-icon-align-right">
 											{{{ rmIconHTML.value }}}
@@ -373,14 +373,14 @@ protected function is_dynamic_content(): bool {
 											</span>
 										<# } #>
 									</div>
-									<span class="bdt-ep-product-carousel-rating-count">{{{ item.rating_count }}}</span>
+									<span class="bdt-ep-product-carousel-rating-count">{{ item.rating_count }}</span>
 								</div>
 								<# } #>
 
 								<# if ( settings.show_time === 'yes' && item.time ) { #>
 								<div class="bdt-ep-product-carousel-time">
 									<i class="ep-icon-clock-o" aria-hidden="true"></i>
-									{{{ item.time }}}
+									{{{ elementor.helpers.sanitize( item.time ) }}}
 								</div>
 								<# } #>
 							</div>
@@ -388,7 +388,7 @@ protected function is_dynamic_content(): bool {
 
 						<# if ( settings.badge === 'yes' && item.badge_text ) { #>
 						<div class="bdt-ep-product-carousel-badge bdt-position-small bdt-position-{{ settings.badge_position }}">
-							<span class="bdt-badge bdt-padding-small">{{{ item.badge_text }}}</span>
+							<span class="bdt-badge bdt-padding-small">{{ item.badge_text }}</span>
 						</div>
 						<# } #>
 

@@ -58,14 +58,18 @@ class Remote_Data_Handler {
         }
 
         // Check if this is an AJAX request for our plugins
+        // Read-only routing check: this only decides whether to preload cached
+        // data for our own screen, it never acts on the request.
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only screen detection, no state change.
         if (wp_doing_ajax() && isset($_REQUEST['action'])) {
-            $action = sanitize_text_field($_REQUEST['action']);
+            $action = sanitize_text_field(wp_unslash($_REQUEST['action']));
             if (in_array($action, ['ep_get_plugins'])) {
                 return true;
             }
         }
 
-        $page = isset($_GET['page']) ? sanitize_text_field($_GET['page']) : '';
+        $page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
+        // phpcs:enable WordPress.Security.NonceVerification.Recommended
         return $page === 'element_pack_options';
     }
 
@@ -150,7 +154,13 @@ class Remote_Data_Handler {
     public static function ajax_get_plugins() {
         // Verify nonce for security
         if (!check_ajax_referer('ep_get_plugins_nonce', 'nonce', false)) {
-            wp_die(esc_html__('Security check failed.', 'bdthemes-element-pack'));
+            wp_die(esc_html__('Security check failed.', 'bdthemes-element-pack-lite'));
+        }
+
+        // A nonce proves intent, not authority: this listing drives the plugin
+        // installer, so require the capability that action would need.
+        if (!current_user_can('install_plugins')) {
+            wp_send_json_error(['message' => esc_html__('Unauthorized', 'bdthemes-element-pack-lite')], 403);
         }
 
         // Get cached data
@@ -169,7 +179,7 @@ class Remote_Data_Handler {
                 wp_send_json_success([
                     'plugins' => [],
                     'loading' => true,
-                    'message' => __('Loading plugin data...', 'bdthemes-element-pack')
+                    'message' => __('Loading plugin data...', 'bdthemes-element-pack-lite')
                 ]);
             }
         }
@@ -177,8 +187,10 @@ class Remote_Data_Handler {
         // Get recommended flags from Plugin_Integration_Helper (key may be 'slug' or 'slug/script.php')
         $recommended_by_slug = [];
         $helper_file = __DIR__ . '/class-plugin-integration-helper.php';
+        $helper_loaded = false;
         if (file_exists($helper_file)) {
             require_once $helper_file;
+            $helper_loaded = true;
             $predefined = \ElementPack\SetupWizard\Plugin_Integration_Helper::get_predefined_plugins();
             foreach ($predefined as $key => $config) {
                 $dir = (strpos($key, '/') !== false) ? dirname($key) : $key;
@@ -198,12 +210,21 @@ class Remote_Data_Handler {
             if (!empty($data['last_updated'])) {
                 $last_updated_formatted = self::format_last_updated($data['last_updated']);
             }
+
+            // Prefer the logo bundled with Element Pack; fall back to the icon
+            // returned by the WordPress.org plugins API.
+            $local_logo = $helper_loaded
+                ? \ElementPack\SetupWizard\Plugin_Integration_Helper::plugin_logo_url($slug)
+                : '';
             
             $formatted_plugins[] = [
-                'name' => $data['name'] ?? '',
+                // The plugins API returns HTML-encoded text ("Prime Slider &#8211; …").
+                // Both screens escape before printing, so hand them plain text
+                // instead of entities that would otherwise be escaped twice.
+                'name' => self::decode_entities($data['name'] ?? ''),
                 'slug' => $data['slug'] ?? '',
-                'description' => $data['description'] ?? '',
-                'logo' => $data['logo'] ?? '',
+                'description' => self::decode_entities($data['description'] ?? ''),
+                'logo' => $local_logo ?: ($data['logo'] ?? ''),
                 'rating' => $data['rating'] ?? 0,
                 'rating_percentage' => $data['rating_percentage'] ?? 0,
                 'num_ratings' => $data['num_ratings'] ?? 0,
@@ -226,7 +247,7 @@ class Remote_Data_Handler {
         wp_send_json_success([
             'plugins' => $formatted_plugins,
             'loading' => false,
-            'message' => __('Plugin data loaded successfully.', 'bdthemes-element-pack')
+            'message' => __('Plugin data loaded successfully.', 'bdthemes-element-pack-lite')
         ]);
     }
 
@@ -291,6 +312,20 @@ class Remote_Data_Handler {
     }
 
     /**
+     * Decode HTML entities returned by the WordPress.org plugins API.
+     *
+     * @param string $text Raw text from the API.
+     * @return string Plain text.
+     */
+    private static function decode_entities($text) {
+        if (!is_string($text) || '' === $text) {
+            return '';
+        }
+
+        return html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
+    /**
      * Format date in human-readable format
      * 
      * @param string $date_string Date string to format
@@ -298,38 +333,38 @@ class Remote_Data_Handler {
      */
     private static function format_last_updated($date_string) {
         if (empty($date_string)) {
-            return __('Unknown', 'bdthemes-element-pack');
+            return __('Unknown', 'bdthemes-element-pack-lite');
         }
         
         $date = strtotime($date_string);
         if (!$date) {
-            return __('Unknown', 'bdthemes-element-pack');
+            return __('Unknown', 'bdthemes-element-pack-lite');
         }
         
         $diff = current_time('timestamp') - $date;
         
         if ($diff < 60) {
-            return __('Just now', 'bdthemes-element-pack');
+            return __('Just now', 'bdthemes-element-pack-lite');
         } elseif ($diff < 3600) {
             $minutes = floor($diff / 60);
             /* translators: %d: Number of minutes */
-            return sprintf(_n('%d minute ago', '%d minutes ago', $minutes, 'bdthemes-element-pack'), $minutes);
+            return sprintf(_n('%d minute ago', '%d minutes ago', $minutes, 'bdthemes-element-pack-lite'), $minutes);
         } elseif ($diff < 86400) {
             $hours = floor($diff / 3600);
             /* translators: %d: Number of hours */
-            return sprintf(_n('%d hour ago', '%d hours ago', $hours, 'bdthemes-element-pack'), $hours);
+            return sprintf(_n('%d hour ago', '%d hours ago', $hours, 'bdthemes-element-pack-lite'), $hours);
         } elseif ($diff < 2592000) { // 30 days
             $days = floor($diff / 86400);
             /* translators: %d: Number of days */
-            return sprintf(_n('%d day ago', '%d days ago', $days, 'bdthemes-element-pack'), $days);
+            return sprintf(_n('%d day ago', '%d days ago', $days, 'bdthemes-element-pack-lite'), $days);
         } elseif ($diff < 31536000) { // 1 year
             $months = floor($diff / 2592000);
             /* translators: %d: Number of months */
-            return sprintf(_n('%d month ago', '%d months ago', $months, 'bdthemes-element-pack'), $months);
+            return sprintf(_n('%d month ago', '%d months ago', $months, 'bdthemes-element-pack-lite'), $months);
         } else {
             $years = floor($diff / 31536000);
             /* translators: %d: Number of years */
-            return sprintf(_n('%d year ago', '%d years ago', $years, 'bdthemes-element-pack'), $years);
+            return sprintf(_n('%d year ago', '%d years ago', $years, 'bdthemes-element-pack-lite'), $years);
         }
     }
 
@@ -386,6 +421,14 @@ class Remote_Data_Handler {
         $data = json_decode($body, true);
 
         if (empty($data) || !is_array($data)) {
+            return false;
+        }
+
+        // A plugin that is closed or missing on WordPress.org still answers with
+        // a name and a slug, alongside {"error": "closed"}. Without this check
+        // that error body was cached as a real plugin and offered for install
+        // with zeroed stats, no icon and a button that could only ever fail.
+        if (!empty($data['error']) || !empty($data['closed'])) {
             return false;
         }
 
@@ -455,7 +498,11 @@ class Remote_Data_Handler {
      */
     private static function get_valid_plugin_icon($icons) {
         $valid_extensions = ['gif', 'png', 'jpg', 'jpeg', 'svg'];
-        $icon_sizes = ['256', '128', 'default'];
+
+        // The plugins API v1.2 keys icons as "2x"/"1x"/"svg" (and occasionally
+        // "default"); the numeric keys this used to look for never matched, so
+        // the remote icon fallback always came back empty. Largest first.
+        $icon_sizes = ['2x', '256', 'svg', '1x', '128', 'default'];
         
         foreach ($icon_sizes as $size) {
             if (!empty($icons[$size])) {

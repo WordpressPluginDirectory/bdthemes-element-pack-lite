@@ -22,7 +22,7 @@ class Product_Grid extends Module_Base {
 	}
 
 	public function get_title() {
-		return BDTEP . esc_html__( 'Product Grid', 'bdthemes-element-pack' );
+		return BDTEP . esc_html__( 'Product Grid', 'bdthemes-element-pack-lite' );
 	}
 
 	public function get_icon() {
@@ -55,17 +55,17 @@ class Product_Grid extends Module_Base {
 
 	protected function get_upsale_data(): array {
 		return [
-			'condition'    => ! is_ep_pro(),
+			'condition'    => ! element_pack_is_pro(),
 			'image'        => esc_url( BDTEP_ASSETS_URL . 'images/go-pro.svg' ),
-			'image_alt'    => esc_attr__( 'Upgrade', 'bdthemes-element-pack' ),
-			'title'        => esc_html__( 'Unlock Premium Features', 'bdthemes-element-pack' ),
+			'image_alt'    => esc_attr__( 'Upgrade', 'bdthemes-element-pack-lite' ),
+			'title'        => esc_html__( 'Unlock Premium Features', 'bdthemes-element-pack-lite' ),
 			/* translators: %1$s: Promoted feature name */
-			'description'  => sprintf( __( '<ul class="bdt-widget-promotion-list"><li>%1$s</li></ul> These features are available only in Element Pack Pro.', 'bdthemes-element-pack' ), 'Link to -> Wrapper Item' ),
+			'description'  => sprintf( __( '<ul class="bdt-widget-promotion-list"><li>%1$s</li></ul> These features are available only in Element Pack Pro.', 'bdthemes-element-pack-lite' ), 'Link to -> Wrapper Item' ),
 			'upgrade_url'  => esc_url( 'https://www.elementpack.pro/pricing/?utm_source=widget_panel&utm_medium=ep_widget_panel' ),
 			/* translators: %s: Upgrade button label */
 			'upgrade_text' => sprintf(
 				'<span class="bdt-widget-promotion-btn">%s</span>',
-				esc_html__( 'Upgrade to Pro', 'bdthemes-element-pack' )
+				esc_html__( 'Upgrade to Pro', 'bdthemes-element-pack-lite' )
 			),
 		];
 	}
@@ -84,7 +84,7 @@ class Product_Grid extends Module_Base {
 	$this->start_controls_section(
 		'section_additional_settings',
 		[
-			'label' => __( 'Additional Options', 'bdthemes-element-pack' ),
+			'label' => __( 'Additional Options', 'bdthemes-element-pack-lite' ),
 			'tab'   => Controls_Manager::TAB_CONTENT,
 		]
 	);
@@ -92,7 +92,7 @@ class Product_Grid extends Module_Base {
 	$this->add_responsive_control(
 		'columns',
 		[
-			'label'           => __( 'Columns', 'bdthemes-element-pack' ),
+			'label'           => __( 'Columns', 'bdthemes-element-pack-lite' ),
 			'type'            => Controls_Manager::SELECT,
 			'desktop_default' => 3,
 			'tablet_default'  => 2,
@@ -114,7 +114,7 @@ class Product_Grid extends Module_Base {
 	$this->add_responsive_control(
 		'column_gap',
 		[
-			'label'     => esc_html__( 'Column Gap', 'bdthemes-element-pack' ),
+			'label'     => esc_html__( 'Column Gap', 'bdthemes-element-pack-lite' ),
 			'type'      => Controls_Manager::SLIDER,
 			'default'   => [
 				'size' => 20,
@@ -128,7 +128,7 @@ class Product_Grid extends Module_Base {
 	$this->add_responsive_control(
 		'row_gap',
 		[
-			'label'     => esc_html__( 'Row Gap', 'bdthemes-element-pack' ),
+			'label'     => esc_html__( 'Row Gap', 'bdthemes-element-pack-lite' ),
 			'type'      => Controls_Manager::SLIDER,
 			'default'   => [
 				'size' => 20,
@@ -143,7 +143,7 @@ class Product_Grid extends Module_Base {
 		$widget_prefix,
 		[
 			'readmore_wrapper_option' => 'wrapper',
-			'section_label'           => __( 'Additional Options', 'bdthemes-element-pack' ),
+			'section_label'           => __( 'Additional Options', 'bdthemes-element-pack-lite' ),
 			'section_wrapper'         => false,
 		]
 	);
@@ -246,21 +246,21 @@ class Product_Grid extends Module_Base {
 					<div>
 						<div class="{{ titlePriceClass }}">
 							<# if ( settings.show_title === 'yes' && item.title ) { #>
-							<{{ settings.title_tag }} class="bdt-ep-product-grid-title">
-								{{{ item.title }}}
+							<{{{ elementor.helpers.validateHTMLTag( settings.title_tag ) }}} class="bdt-ep-product-grid-title">
+								{{{ elementor.helpers.sanitize( item.title ) }}}
 								<# if ( settings.readmore_link_to === 'title' ) { #>
 									<a href="{{ itemHref }}"{{{ itemTarget }}}{{{ itemRel }}} class="bdt-ep-product-grid-link"></a>
 								<# } #>
-							</{{ settings.title_tag }}>
+							</{{{ elementor.helpers.validateHTMLTag( settings.title_tag ) }}}>
 							<# } #>
 
 							<# if ( settings.show_price === 'yes' && item.price ) { #>
-							<div class="bdt-ep-product-grid-price">{{{ item.price }}}</div>
+							<div class="bdt-ep-product-grid-price">{{{ elementor.helpers.sanitize( item.price ) }}}</div>
 							<# } #>
 						</div>
 
 						<# if ( settings.show_text === 'yes' && item.text ) { #>
-						<div class="bdt-ep-product-grid-text">{{{ item.text }}}</div>
+						<div class="bdt-ep-product-grid-text">{{{ elementor.helpers.sanitize( item.text ) }}}</div>
 						<# } #>
 
 						<# if ( settings.readmore_link_to === 'button' && item.readmore_link && item.readmore_link.url ) { #>
@@ -275,7 +275,7 @@ class Product_Grid extends Module_Base {
 									<# } #>
 								</span>
 								<# } #>
-								{{{ settings.readmore_text }}}
+								{{ settings.readmore_text }}
 								<# if ( settings.readmore_icon && settings.readmore_icon.value && iconAlign === 'right' ) { #>
 								<span class="bdt-button-icon-align-right">
 									<# if ( rmIconHTML && rmIconHTML.rendered && rmMigrated ) { #>
@@ -314,7 +314,7 @@ class Product_Grid extends Module_Base {
 						<# if ( settings.show_time === 'yes' && item.time ) { #>
 						<div class="bdt-ep-product-grid-time">
 							<i class="ep-icon-clock-o" aria-hidden="true"></i>
-							{{{ item.time }}}
+							{{{ elementor.helpers.sanitize( item.time ) }}}
 						</div>
 						<# } #>
 					</div>
@@ -322,7 +322,7 @@ class Product_Grid extends Module_Base {
 
 				<# if ( settings.badge === 'yes' && item.badge_text ) { #>
 				<div class="bdt-ep-product-grid-badge bdt-position-small bdt-position-{{ settings.badge_position }}">
-					<span class="bdt-badge bdt-padding-small">{{{ item.badge_text }}}</span>
+					<span class="bdt-badge bdt-padding-small">{{ item.badge_text }}</span>
 				</div>
 				<# } #>
 

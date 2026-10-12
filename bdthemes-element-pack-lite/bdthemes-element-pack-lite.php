@@ -4,15 +4,19 @@
  * Plugin Name: Element Pack Lite - Addons for Elementor
  * Plugin URI: http://elementpack.pro/
  * Description: The all-new <a href="https://elementpack.pro/">Element Pack</a> brings incredibly advanced, and super-flexible widgets, and A to Z essential addons to the Elementor page builder for WordPress. Explore expertly-coded widgets with first-class support by experts.
- * Version: 8.7.13
+ * Version: 8.8.9
  * Author: BdThemes
  * Author URI: https://bdthemes.com/
- * Text Domain: bdthemes-element-pack
+ * Text Domain: bdthemes-element-pack-lite
  * Domain Path: /languages
  * License: GPL3
  * Elementor requires at least: 4.0.0
- * Elementor tested up to: 4.1.5
+ * Elementor tested up to: 4.3.4
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
 
 
 if ( ! function_exists( 'element_pack_pro_installed' ) ) {
@@ -32,8 +36,8 @@ if ( ! function_exists( 'element_pack_pro_installed' ) ) {
 
 
 
-if ( ! function_exists( '_is_ep_pro_activated_check' ) ) {
-	function _is_ep_pro_activated_check() {
+if ( ! function_exists( 'element_pack_is_pro_activated_check' ) ) {
+	function element_pack_is_pro_activated_check() {
 
 		if ( ! function_exists( 'get_plugins' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -50,8 +54,8 @@ if ( ! function_exists( '_is_ep_pro_activated_check' ) ) {
 }
 
 // Check if the Pro version is activated
-if ( ! function_exists( 'is_element_pack_pro_activated' ) ) {
-	function is_element_pack_pro_activated() {
+if ( ! function_exists( 'element_pack_is_pro_activated' ) ) {
+	function element_pack_is_pro_activated() {
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
@@ -59,22 +63,16 @@ if ( ! function_exists( 'is_element_pack_pro_activated' ) ) {
 	}
 }
 
-if ( is_element_pack_pro_activated() ) {
+if ( element_pack_is_pro_activated() ) {
 	return;
 }
 
 if ( ! function_exists( 'element_pack_pro_activated' ) ) {
 	function element_pack_pro_activated() {
-		if ( function_exists( 'bdt_license_validation' ) ) {
-			if ( bdt_license_validation() ) {
-				return true;
-			}
+		if ( function_exists( 'element_pack_license_validation' ) && element_pack_license_validation() ) {
+			return true;
 		}
-		if ( ! function_exists( 'bdt_license_validation' ) ) {
-			if ( bdt_license_validation() ) {
-				return true;
-			}
-		}
+
 		return false;
 	}
 }
@@ -82,7 +80,7 @@ if ( ! function_exists( 'element_pack_pro_activated' ) ) {
 if ( ! element_pack_pro_installed() ) {
 
 	// Some pre defined value for easy use
-	define( 'BDTEP_VER', '8.7.13' );
+	define( 'BDTEP_VER', '8.8.9' );
 	define( 'BDTEP_TPL_DB_VER', '1.0.1' );
 	define( 'BDTEP__FILE__', __FILE__ );
 	if ( ! defined( 'BDTEP_TITLE' ) ) {
@@ -95,17 +93,22 @@ if ( ! element_pack_pro_installed() ) {
 	require_once( dirname( __FILE__ ) . '/includes/utils.php' );
 	require_once BDTEP_INC_PATH . 'class-pro-widget-map.php';
 
+	// Old, unprefixed names for the helpers above, kept so existing integrations
+	// keep working. Loaded after helper.php so the wrappers can forward to it.
+	require_once BDTEP_INC_PATH . 'deprecated-function-aliases.php';
+
 	/**
-	 * Loads translations
+	 * Translations are loaded automatically by WordPress for plugins hosted on
+	 * WordPress.org, so no load_plugin_textdomain() call is needed here (it has
+	 * been discouraged since WordPress 4.6). The function is kept as a no-op
+	 * because it is a public global that other code may still call.
 	 *
 	 * @return void
 	 */
-
-	if ( ! function_exists( 'ep_load_textdomain' ) ) {
-		function ep_load_textdomain() {
-			load_plugin_textdomain( 'bdthemes-element-pack', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+	if ( ! function_exists( 'element_pack_load_textdomain' ) ) {
+		function element_pack_load_textdomain() {
+			// Intentionally empty; see the note above.
 		}
-		add_action( 'init', 'ep_load_textdomain' );
 	}
 
 	/**
@@ -145,30 +148,30 @@ if ( ! element_pack_pro_installed() ) {
 
 		$plugin = 'elementor/elementor.php';
 
-		if ( _is_elementor_installed() ) {
+		if ( element_pack_is_elementor_installed() ) {
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				return;
 			}
 			$activation_url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $plugin . '&amp;plugin_status=all&amp;paged=1&amp;s', 'activate-plugin_' . $plugin );
-			$admin_message  = '<p>' . esc_html__( 'Ops! Element Pack not working because you need to activate the Elementor plugin first.', 'bdthemes-element-pack' ) . '</p>';
-			$admin_message .= '<p>' . sprintf( '<a href="%s" class="button-primary">%s</a>', $activation_url, esc_html__( 'Activate Elementor Now', 'bdthemes-element-pack' ) ) . '</p>';
+			$admin_message  = '<p>' . esc_html__( 'Ops! Element Pack not working because you need to activate the Elementor plugin first.', 'bdthemes-element-pack-lite' ) . '</p>';
+			$admin_message .= '<p>' . sprintf( '<a href="%s" class="button-primary">%s</a>', esc_url( $activation_url ), esc_html__( 'Activate Elementor Now', 'bdthemes-element-pack-lite' ) ) . '</p>';
 		} else {
 			if ( ! current_user_can( 'install_plugins' ) ) {
 				return;
 			}
 			$install_url   = wp_nonce_url( self_admin_url( 'update.php?action=install-plugin&plugin=elementor' ), 'install-plugin_elementor' );
-			$admin_message = '<p>' . esc_html__( 'Ops! Element Pack not working because you need to install the Elementor plugin', 'bdthemes-element-pack' ) . '</p>';
-			$admin_message .= '<p>' . sprintf( '<a href="%s" class="button-primary">%s</a>', $install_url, esc_html__( 'Install Elementor Now', 'bdthemes-element-pack' ) ) . '</p>';
+			$admin_message = '<p>' . esc_html__( 'Ops! Element Pack not working because you need to install the Elementor plugin', 'bdthemes-element-pack-lite' ) . '</p>';
+			$admin_message .= '<p>' . sprintf( '<a href="%s" class="button-primary">%s</a>', esc_url( $install_url ), esc_html__( 'Install Elementor Now', 'bdthemes-element-pack-lite' ) ) . '</p>';
 		}
 
-		echo '<div class="error">' . $admin_message . '</div>';
+		echo '<div class="error">' . wp_kses_post( $admin_message ) . '</div>';
 	}
 
 	/**
 	 * Check the elementor installed or not
 	 */
-	if ( ! function_exists( '_is_elementor_installed' ) ) {
-		function _is_elementor_installed() {
+	if ( ! function_exists( 'element_pack_is_elementor_installed' ) ) {
+		function element_pack_is_elementor_installed() {
 			$file_path         = 'elementor/elementor.php';
 			$installed_plugins = get_plugins();
 
@@ -182,26 +185,27 @@ if ( ! element_pack_pro_installed() ) {
 	 * @param string $plugin
 	 * @return void
 	 */
-	if ( ! function_exists( 'ep_activation_redirect' ) ) {
-		function ep_activation_redirect( $plugin ) {
+	if ( ! function_exists( 'element_pack_activation_redirect' ) ) {
+		function element_pack_activation_redirect( $plugin ) {
 			if ( ! did_action( 'elementor/loaded' ) ) {
 				return;
 			}
 
 			if ( $plugin == plugin_basename( BDTEP__FILE__ ) ) {
-				exit( wp_redirect( admin_url( 'admin.php?page=element_pack_options' ) ) );
+				wp_safe_redirect( admin_url( 'admin.php?page=element_pack_options' ) );
+				exit;
 			}
 		}
 	}
 
-	add_action( 'activated_plugin', 'ep_activation_redirect', 20 );
+	add_action( 'activated_plugin', 'element_pack_activation_redirect', 20 );
 
 	/**
 	 * Review Automation Integration
 	 */
 
-	if ( ! function_exists( 'rc_ep_lite_plugin' ) ) {
-		function rc_ep_lite_plugin() {
+	if ( ! function_exists( 'element_pack_rc_lite_plugin' ) ) {
+		function element_pack_rc_lite_plugin() {
 
 			if ( defined( 'BDTEP_INC_PATH' ) ) {
 				require_once BDTEP_INC_PATH . 'feedback-hub/start.php';
@@ -222,6 +226,6 @@ if ( ! element_pack_pro_installed() ) {
 			}
 
 		}
-		add_action( 'admin_init', 'rc_ep_lite_plugin' );
+		add_action( 'admin_init', 'element_pack_rc_lite_plugin' );
 	}
 }

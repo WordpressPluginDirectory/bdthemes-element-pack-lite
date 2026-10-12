@@ -46,7 +46,7 @@ class Biggopties {
 		// }
 
 		// API endpoint for biggopties - you can change this to your actual endpoint
-		$api_url = 'https://api.sigmative.io/prod/store/api/biggopti/api-data-records';
+		$api_url = '';
 
 		$response = wp_remote_get($api_url, [
 			'timeout' => 30,
@@ -333,7 +333,7 @@ class Biggopties {
 	 * AJAX: Build and return API biggopties HTML for dynamic injection
 	 */
 	public function ajax_fetch_api_biggopti() {
-		$nonce = isset($_POST['_wpnonce']) ? sanitize_text_field($_POST['_wpnonce']) : '';
+		$nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
 		if (!wp_verify_nonce($nonce, 'element-pack')) {
 			wp_send_json_error([ 'message' => 'invalid_nonce' ]);
 		}
@@ -348,7 +348,7 @@ class Biggopties {
 		}
 
 		// Don't show biggopties on plugin/theme install and upload pages
-		$current_url = isset($_POST['current_url']) ? sanitize_text_field($_POST['current_url']) : '';
+		$current_url = isset($_POST['current_url']) ? sanitize_text_field(wp_unslash($_POST['current_url'])) : '';
 		
 		if (!empty($current_url)) {
 			$excluded_patterns = [
@@ -405,10 +405,10 @@ class Biggopties {
 	 * Dismiss Biggopti.
 	 */
 	public function dismiss() {
-		$nonce = (isset($_POST['_wpnonce'])) ? sanitize_text_field($_POST['_wpnonce']) : '';
-		$id   = (isset($_POST['id'])) ? esc_attr($_POST['id']) : '';
-		$time = (isset($_POST['time'])) ? esc_attr($_POST['time']) : '';
-		$meta = (isset($_POST['meta'])) ? esc_attr($_POST['meta']) : '';
+		$nonce = (isset($_POST['_wpnonce'])) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
+		$id   = (isset($_POST['id'])) ? sanitize_text_field(wp_unslash($_POST['id'])) : '';
+		$time = (isset($_POST['time'])) ? sanitize_text_field( wp_unslash( $_POST['time'] ) ) : '';
+		$meta = (isset($_POST['meta'])) ? sanitize_text_field( wp_unslash( $_POST['meta'] ) ) : '';
 
 		if ( ! wp_verify_nonce($nonce, 'element-pack') ) {
 			wp_send_json_error();
@@ -467,11 +467,6 @@ class Biggopties {
 		foreach (self::$biggopties as $key => $biggopti) {
 
 			$biggopti = wp_parse_args($biggopti, $defaults);
-
-			// Check if biggopti is for White Label
-			if (defined('BDTEP_WL') && $biggopti['category'] === 'regular') {
-				continue;
-			}
 
 			$classes = ['biggopti'];
 

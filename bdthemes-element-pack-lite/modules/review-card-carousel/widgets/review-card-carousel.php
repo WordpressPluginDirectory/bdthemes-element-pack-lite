@@ -25,7 +25,7 @@ class Review_Card_Carousel extends Module_Base {
 	}
 
 	public function get_title() {
-		return BDTEP . esc_html__( 'Review Card Carousel', 'bdthemes-element-pack' );
+		return BDTEP . esc_html__( 'Review Card Carousel', 'bdthemes-element-pack-lite' );
 	}
 
 	public function get_icon() {
@@ -68,7 +68,7 @@ class Review_Card_Carousel extends Module_Base {
 		$this->start_controls_section(
 			'section_review_additional_settings',
 			[
-				'label' => __( 'Additional Settings', 'bdthemes-element-pack' ),
+				'label' => __( 'Additional Settings', 'bdthemes-element-pack-lite' ),
 				'tab'   => Controls_Manager::TAB_CONTENT,
 			]
 		);
@@ -78,7 +78,7 @@ class Review_Card_Carousel extends Module_Base {
 		$this->add_control(
 			'item_match_height',
 			[
-				'label'        => __( 'Item Match Height', 'bdthemes-element-pack' ),
+				'label'        => __( 'Item Match Height', 'bdthemes-element-pack-lite' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'default'      => 'yes',
 				'prefix_class' => 'bdt-item-match-height--',
@@ -100,7 +100,7 @@ class Review_Card_Carousel extends Module_Base {
 		$this->start_controls_section(
 			'section_content_navigation',
 			[
-				'label' => __( 'Navigation', 'bdthemes-element-pack' ),
+				'label' => __( 'Navigation', 'bdthemes-element-pack-lite' ),
 			]
 		);
 		$this->register_navigation_controls();
@@ -131,7 +131,7 @@ class Review_Card_Carousel extends Module_Base {
 		$this->start_controls_section(
 			'section_style_navigation',
 			[
-				'label'      => __( 'Navigation', 'bdthemes-element-pack' ),
+				'label'      => __( 'Navigation', 'bdthemes-element-pack-lite' ),
 				'tab'        => Controls_Manager::TAB_STYLE,
 				'conditions' => [
 					'relation' => 'or',
@@ -313,7 +313,7 @@ class Review_Card_Carousel extends Module_Base {
 			return html;
 		};
 		#>
-		<div id="<# print( carouselId ); #>" class="<# print( carouselClass ); #>" data-settings="<# print( _.escape( dataSettings ) ); #>">
+		<div id="<# print( carouselId ); #>" class="<# print( _.escape( carouselClass ) ); #>" data-settings="<# print( _.escape( dataSettings ) ); #>">
 			<div class="swiper-carousel swiper" role="region" aria-roledescription="carousel" aria-label="<?php echo esc_attr( $this->get_title() ); ?>" dir="<?php echo is_rtl() ? 'rtl' : 'ltr'; ?>">
 				<div class="swiper-wrapper">
 					<# _.each( settings.review_items || [], function( item ) { #>
@@ -335,10 +335,10 @@ class Review_Card_Carousel extends Module_Base {
 								<# } #>
 								<div class="bdt-flex bdt-flex-column bdt-flex-center">
 									<# if ( settings.show_reviewer_name === 'yes' && item.reviewer_name ) { #>
-									<{{ settings.review_name_tag }} class="bdt-ep-review-card-carousel-name">{{{ item.reviewer_name }}}</{{ settings.review_name_tag }}>
+									<{{{ elementor.helpers.validateHTMLTag( settings.review_name_tag ) }}} class="bdt-ep-review-card-carousel-name">{{{ elementor.helpers.sanitize( item.reviewer_name ) }}}</{{{ elementor.helpers.validateHTMLTag( settings.review_name_tag ) }}}>
 									<# } #>
 									<# if ( settings.show_reviewer_job_title === 'yes' && item.reviewer_job_title ) { #>
-									<div class="bdt-ep-review-card-carousel-job-title">{{{ item.reviewer_job_title }}}</div>
+									<div class="bdt-ep-review-card-carousel-job-title">{{ item.reviewer_job_title }}</div>
 									<# } #>
 									<# if ( settings.show_rating === 'yes' && ratingPosition === 'before' ) { #>
 									{{{ renderItemRating( item ) }}}
@@ -349,10 +349,10 @@ class Review_Card_Carousel extends Module_Base {
 
 							<# if ( imageInline !== 'yes' ) { #>
 							<# if ( settings.show_reviewer_name === 'yes' && item.reviewer_name ) { #>
-							<{{ settings.review_name_tag }} class="bdt-ep-review-card-carousel-name">{{{ item.reviewer_name }}}</{{ settings.review_name_tag }}>
+							<{{{ elementor.helpers.validateHTMLTag( settings.review_name_tag ) }}} class="bdt-ep-review-card-carousel-name">{{{ elementor.helpers.sanitize( item.reviewer_name ) }}}</{{{ elementor.helpers.validateHTMLTag( settings.review_name_tag ) }}}>
 							<# } #>
 							<# if ( settings.show_reviewer_job_title === 'yes' && item.reviewer_job_title ) { #>
-							<div class="bdt-ep-review-card-carousel-job-title">{{{ item.reviewer_job_title }}}</div>
+							<div class="bdt-ep-review-card-carousel-job-title">{{ item.reviewer_job_title }}</div>
 							<# } #>
 							<# if ( settings.show_rating === 'yes' && ratingPosition === 'before' ) { #>
 							{{{ renderItemRating( item ) }}}
@@ -360,7 +360,7 @@ class Review_Card_Carousel extends Module_Base {
 							<# } #>
 
 							<# if ( settings.show_review_text === 'yes' && item.review_text ) { #>
-							<div class="bdt-ep-review-card-carousel-text<# if ( settings.review_words_length ) { #> bdt-ep-read-more-text<# } #>"<# if ( settings.review_words_length ) { #> data-read-more="<# print( _.escape( readMoreData ) ); #>"<# } #>>{{{ item.review_text }}}</div>
+							<div class="bdt-ep-review-card-carousel-text<# if ( settings.review_words_length ) { #> bdt-ep-read-more-text<# } #>"<# if ( settings.review_words_length ) { #> data-read-more="<# print( _.escape( readMoreData ) ); #>"<# } #>>{{{ elementor.helpers.sanitize( item.review_text ) }}}</div>
 							<# } #>
 
 							<# if ( settings.show_rating === 'yes' && ratingPosition === 'after' ) { #>
